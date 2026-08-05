@@ -19,11 +19,16 @@
   --on-ink: #ffffff;
   --on-ink-2: #9aa3b2;
 
-  /* Macros — teal / purple / orange, matching the category leader. */
-  --carbs: #12b5a0;
-  --fat: #6b21a8;
-  --protein: #f5a623;
-  --water: #16a3e0;
+  /* Macros — two blues from the calorie accent's own family, separated by
+     lightness, plus one warm. Deriving all three from the accent looks tidier
+     but then they differ by lightness alone, which is unreadable on an 8px
+     bar. Blue-against-amber is also the one contrast that survives red-green
+     colourblindness. */
+  --carbs: #38bdf8;
+  --fat: #1e40af;
+  --protein: #f59e0b;
+  /* Water sits deeper than carbs so the two never read as the same blue. */
+  --water: #0891b2;
 
   /* Status */
   --positive: #17a34a;
@@ -85,10 +90,12 @@
   --on-ink: #ffffff;
   --on-ink-2: #8b94a5;
 
-  --carbs: #2fd3bb;
-  --fat: #a855f7;
-  --protein: #ffb340;
-  --water: #3fbdf2;
+  /* Same trio, lifted for a dark background — the light-mode navy would
+     disappear against it, so fat moves up to a mid blue instead. */
+  --carbs: #8fdcff;
+  --fat: #4c6ef5;
+  --protein: #fbbf24;
+  --water: #22a5c7;
 
   --positive: #3ddc84;
   --warning: #ffb340;
