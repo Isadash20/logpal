@@ -1,0 +1,114 @@
+/*
+ * Design tokens.
+ *
+ * Neutrals are deliberately COOL (blue-biased): #F6F6F8, #EBEBF0, #6C6C70.
+ * Warm-tinted greys (bone, ivory, greige) carry yellow and make the whole app
+ * read cheap — every neutral here is sampled from the category leader.
+ */
+
+:root {
+  /* Brand */
+  --accent: #0066ee;
+  --accent-press: #0052be;
+  --accent-soft: #e8f1fe;
+  --accent-ring: rgba(0, 102, 238, 0.16);
+
+  /* Chrome — the near-black that carries the premium feel */
+  --ink: #151824;
+  --ink-2: #262b3d;
+  --on-ink: #ffffff;
+  --on-ink-2: #9aa3b2;
+
+  /* Macros — teal / purple / orange, matching the category leader. */
+  --carbs: #12b5a0;
+  --fat: #6b21a8;
+  --protein: #f5a623;
+  --water: #16a3e0;
+
+  /* Status */
+  --positive: #17a34a;
+  --warning: #e8890c;
+  --danger: #e02f45;
+  --gold: #fdda1c;
+
+  /* Surfaces. The page is a soft blue-lavender wash, not flat grey — cards
+     float on it rather than butting edge to edge. */
+  --bg: #e7eaf3;
+  --bg-top: #d9e4f5;
+  --surface: #ffffff;
+  --surface-2: #f7f8fb;
+  --surface-3: #eef0f6;
+  --border: #e8e9ef;
+  --border-strong: #d3d6e0;
+
+  --gold: #f5c542;
+
+  /* Text */
+  --text: #1d1d20;
+  --text-2: #6c6c70;
+  --text-3: #a9a9b2;
+  --on-accent: #ffffff;
+
+  /* Shape */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(21, 24, 36, 0.05);
+  --shadow-2: 0 4px 14px rgba(21, 24, 36, 0.09);
+  --shadow-3: 0 16px 40px rgba(21, 24, 36, 0.2);
+
+  /* Layout */
+  --tabbar-h: 58px;
+  --topbar-h: 54px;
+  --page-max: 640px;
+
+  --font:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-num:
+    ui-rounded, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+}
+
+:root[data-theme='dark'] {
+  --accent: #4d94ff;
+  --accent-press: #6ba7ff;
+  --accent-soft: #12243d;
+  --accent-ring: rgba(77, 148, 255, 0.22);
+
+  --ink: #0b0e17;
+  --ink-2: #171b28;
+  --on-ink: #ffffff;
+  --on-ink-2: #8b94a5;
+
+  --carbs: #2fd3bb;
+  --fat: #a855f7;
+  --protein: #ffb340;
+  --water: #3fbdf2;
+
+  --positive: #3ddc84;
+  --warning: #ffb340;
+  --danger: #ff5d70;
+  --gold: #fdda1c;
+
+  --bg: #0b0e17;
+  --bg-top: #121727;
+  --surface: #141824;
+  --surface-2: #191e2c;
+  --surface-3: #222839;
+  --border: #262d3f;
+  --border-strong: #38415a;
+
+  --text: #f2f4f8;
+  --text-2: #98a1b3;
+  --text-3: #6a7385;
+  --on-accent: #ffffff;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}

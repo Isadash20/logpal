@@ -1,0 +1,913 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  /* The wash fades out as you scroll down, so the top of the page feels lit. */
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 240px);
+  position: relative;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.topbar {
+  height: var(--topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* Pushed screens sit on white and keep a hairline; tab roots float on the wash. */
+.topbar--solid {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Large left-aligned page title, the way the reference app leads a screen. */
+.pagetitle {
+  padding: 4px 18px 14px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-head {
+  padding: 22px 18px 10px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.topbar__title {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__side {
+  min-width: 56px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.topbar__side--right {
+  justify-content: flex-end;
+}
+
+.iconbtn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: var(--text-2);
+}
+
+.iconbtn:active {
+  background: var(--surface-3);
+}
+
+.iconbtn--accent {
+  color: var(--accent);
+}
+
+.textbtn {
+  padding: 8px 12px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: var(--r-md);
+}
+
+.textbtn:disabled {
+  color: var(--text-3);
+}
+
+/* The blue "Log" pill sitting at the end of each diary row. */
+.logpill {
+  flex: none;
+  padding: 7px 20px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.logpill:active {
+  background: #d7e6fd;
+}
+
+.goldpill {
+  flex: none;
+  padding: 7px 15px;
+  border-radius: var(--r-full);
+  background: var(--gold);
+  color: #4a3a00;
+  font-weight: 700;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
+}
+
+/* Boxed right-hand control — the reference app's signature field affordance. */
+.boxed {
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-width: 92px;
+  text-align: right;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+  background: var(--surface);
+}
+
+/* Floating pill nav with the add button riding beside it, not inside it. */
+.navdock {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
+  z-index: 20;
+  background: linear-gradient(180deg, transparent, var(--bg) 55%);
+}
+
+.tabbar {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--surface);
+  border-radius: var(--r-full);
+  padding: 7px 6px;
+  box-shadow: var(--shadow-2);
+}
+
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-2);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 0;
+  border-radius: var(--r-full);
+}
+
+.tabbar__item--active {
+  color: var(--text);
+  background: var(--surface-3);
+}
+
+.fab {
+  width: 54px;
+  height: 54px;
+  flex: none;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-2);
+}
+
+.fab:active {
+  background: var(--accent-press);
+}
+
+/* ----------------------------------------------------------------- card -- */
+
+/* Cards float on the wash with side margins — never edge to edge. */
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  margin: 0 14px 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.card--flush {
+  border-radius: 16px;
+}
+
+.card--inset {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin: 12px 14px;
+  overflow: hidden;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card__title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.card__body {
+  padding: 16px;
+}
+
+.section-label {
+  padding: 22px 18px 8px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+/* ----------------------------------------------------------------- rows -- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  width: 100%;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  min-height: 48px;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+button.row:active {
+  background: var(--surface-3);
+}
+
+.row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row__title {
+  font-size: 15px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.row__value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  color: var(--text);
+  flex: none;
+}
+
+.row__chev {
+  color: var(--text-3);
+  flex: none;
+  display: flex;
+}
+
+.row--link .row__title {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.row--sub {
+  padding-left: 32px;
+}
+
+/* Row with a trailing action: the body is the tap target, the action sits
+   outside it so the two <button>s stay siblings. */
+.row--split {
+  padding: 0;
+  gap: 0;
+}
+
+.row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 4px 11px 16px;
+  text-align: left;
+  min-height: 48px;
+}
+
+.row__body:active {
+  background: var(--surface-3);
+}
+
+.row__aside {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 12px;
+  flex: none;
+}
+
+/* --------------------------------------------------------------- totals -- */
+
+.totals {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.totals__value {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------- calories -- */
+
+.calbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 16px;
+}
+
+.calbar__formula {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.calbar__cell {
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.calbar__num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.calbar__num--over {
+  color: var(--danger);
+}
+
+.calbar__label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-2);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.calbar__op {
+  font-size: 17px;
+  color: var(--text-3);
+  padding-bottom: 18px;
+  flex: none;
+}
+
+.progress {
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.progress__fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-full);
+  transition: width 0.25s ease;
+}
+
+.progress__fill--over {
+  background: var(--danger);
+}
+
+/* --------------------------------------------------------------- macros -- */
+
+.macros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.macro__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.macro__name {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.macro__val {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  font-size: 11.5px;
+}
+
+.macro__track {
+  height: 5px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.macro__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  transition: width 0.25s ease;
+}
+
+/* ------------------------------------------------------------- controls -- */
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  min-height: 48px;
+}
+
+.field__label {
+  flex: none;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.field__control {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.input {
+  border: 0;
+  background: none;
+  text-align: right;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  width: 100%;
+  min-width: 0;
+  outline: none;
+  color: var(--text);
+}
+
+.input::placeholder {
+  color: var(--text-3);
+}
+
+.input--boxed {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  text-align: left;
+  background: var(--surface);
+}
+
+.select {
+  border: 0;
+  background: none;
+  font-size: 15px;
+  text-align: right;
+  direction: rtl;
+  outline: none;
+  color: var(--text);
+  max-width: 100%;
+  appearance: none;
+  padding-right: 2px;
+}
+
+.select option {
+  direction: ltr;
+}
+
+.unit {
+  color: var(--text-2);
+  font-size: 14px;
+  flex: none;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-radius: var(--r-md);
+  font-weight: 700;
+  font-size: 15px;
+  background: var(--accent);
+  color: var(--on-accent);
+  width: 100%;
+}
+
+.btn:active {
+  background: var(--accent-press);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+}
+
+/* The near-black button. Reserved for the one committing action on a screen —
+   it outranks the accent button, so never show two at once. */
+.btn--ink {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn--ink:active {
+  background: var(--ink-2);
+}
+
+.btn--ghost {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--border-strong);
+}
+
+.btn--ghost:active {
+  background: var(--surface-3);
+}
+
+.btn--danger {
+  background: var(--surface);
+  color: var(--danger);
+  border: 1px solid var(--border-strong);
+}
+
+.btn-wrap {
+  padding: 16px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  scrollbar-width: none;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.chip--active {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ----------------------------------------------------------------- tabs -- */
+
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tabs__item {
+  flex: 1;
+  padding: 12px 6px 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  border-bottom: 2.5px solid transparent;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tabs__item--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* --------------------------------------------------------------- search -- */
+
+.searchbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.searchbar__box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-3);
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  color: var(--text-3);
+  min-width: 0;
+}
+
+.searchbar__input {
+  flex: 1;
+  border: 0;
+  background: none;
+  outline: none;
+  font-size: 15px;
+  min-width: 0;
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- sheet -- */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade 0.15s ease;
+}
+
+.sheet {
+  width: 100%;
+  max-width: var(--page-max);
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: rise 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sheet__grip {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  margin: 8px auto 4px;
+}
+
+.sheet__title {
+  padding: 8px 16px 12px;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.dialog {
+  width: calc(100% - 48px);
+  max-width: 340px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin: auto;
+  box-shadow: var(--shadow-3);
+  animation: pop 0.16s ease;
+}
+
+.scrim--center {
+  align-items: center;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- misc --- */
+
+.empty {
+  padding: 44px 32px;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.empty__title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: var(--r-full);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.center-pad {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0.03em;
+  flex: none;
+}
+
+.hint {
+  padding: 10px 16px 16px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.divider {
+  height: 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+  flex: none;
+}
+
+.stack-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grow {
+  flex: 1;
+}
+
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
