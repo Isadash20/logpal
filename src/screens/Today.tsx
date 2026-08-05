@@ -3,11 +3,22 @@ import { MEAL_KEYS, PERIOD_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { TopBar } from '../components/ui'
-import { WeekStrip } from '../components/charts'
+import { FastDial, FastHistoryBars, WeekStrip } from '../components/charts'
 import { cal, weight as fmtWeight } from '../lib/format'
 import { addDays, longDate, today } from '../lib/dates'
 import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
-import { activeFast, fastElapsedMs, fastProgress, formatDuration } from '../lib/fasting'
+import {
+  PROTOCOL_BY_KEY,
+  activeFast,
+  completedFasts,
+  fastElapsedMs,
+  fastProgress,
+  fastStats,
+  formatClock,
+  formatDuration,
+  targetHoursFor,
+  windowFor,
+} from '../lib/fasting'
 
 /**
  * Home screen, laid out to match the reference app: a calorie bar, a macro
@@ -28,6 +39,7 @@ export function Today() {
     latestWeight,
     data,
     push,
+    setTab,
     entriesFor,
   } = app
 
@@ -70,6 +82,16 @@ export function Today() {
     return () => window.clearInterval(t)
   }, [fast])
 
+  const fastBars = useMemo(
+    () =>
+      completedFasts(data.fasts)
+        .slice(0, 7)
+        .reverse()
+        .map((f) => ({ hours: fastElapsedMs(f) / 3_600_000, target: f.targetHours })),
+    [data.fasts]
+  )
+  const fastStreak = useMemo(() => fastStats(data.fasts).streak, [data.fasts])
+
   const lastWeigh = [...data.weights].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
   const fmtW = (ml: number) => {
     const v = mlToDisplay(ml, settings.waterUnit)
@@ -88,7 +110,7 @@ export function Today() {
             >
               Your plan
             </button>
-            <button className="iconbtn" onClick={() => push({ name: 'settings' })}>
+            <button className="iconbtn" onClick={() => setTab('more')} aria-label="Settings">
               <Icon name="settings" size={21} />
             </button>
           </>
@@ -274,41 +296,83 @@ export function Today() {
           </button>
         </div>
 
+        {/* --------------------------------------------- intermittent fasting -- */}
+        <div className="section-head">
+          <span>Intermittent fasting</span>
+          <button
+            className="textbtn"
+            style={{ padding: 0 }}
+            onClick={() => push({ name: 'fasting' })}
+          >
+            {fast ? 'Open' : 'Set up'}
+          </button>
+        </div>
+
+        <button
+          className="card"
+          style={{ width: 'calc(100% - 28px)', textAlign: 'left', display: 'block', padding: 16 }}
+          onClick={() => push({ name: 'fasting' })}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <FastDial
+              progress={fast ? fastProgress(fast, fastNow) : 0}
+              complete={fast ? fastProgress(fast, fastNow) >= 1 : false}
+              center={
+                fast ? (
+                  <>
+                    <div
+                      className="num"
+                      style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.02em' }}
+                    >
+                      {formatDuration(fastElapsedMs(fast, fastNow))}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-2)' }}>
+                      of {fast.targetHours}h
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="num" style={{ fontSize: 17, fontWeight: 800 }}>
+                      {PROTOCOL_BY_KEY[data.fasting.protocol].label}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-2)' }}>plan</div>
+                  </>
+                )
+              }
+            />
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>
+                {fast
+                  ? fastProgress(fast, fastNow) >= 1
+                    ? 'Target reached'
+                    : 'Fasting now'
+                  : 'Not fasting'}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 3 }}>
+                {fast
+                  ? `Started ${formatClock(fast.startedAt)} · ends ${formatClock(windowFor(fast).endsAt)}`
+                  : `Tap to start a ${targetHoursFor(data.fasting)}h fast`}
+              </div>
+
+              {fastBars.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <FastHistoryBars fasts={fastBars} />
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>
+                    Last {fastBars.length} fasts · {fastStreak} day streak
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </button>
+
         {/* ------------------------------------------------- healthy habits -- */}
         <div className="section-head">
           <span>Healthy habits</span>
         </div>
 
         <div className="card">
-          <button className="row" onClick={() => push({ name: 'fasting' })}>
-            <span className="row__main">
-              <span className="row__title" style={{ display: 'block', fontWeight: 500 }}>
-                Intermittent fasting
-              </span>
-              <span className="row__sub" style={{ display: 'block' }}>
-                {fast
-                  ? `Fasting ${formatDuration(fastElapsedMs(fast, fastNow))} of ${fast.targetHours}h`
-                  : 'Not fasting right now'}
-              </span>
-            </span>
-            {fast && (
-              <span
-                className="num"
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color:
-                    fastProgress(fast, fastNow) >= 1 ? 'var(--positive)' : 'var(--accent)',
-                  flex: 'none',
-                }}
-              >
-                {Math.round(fastProgress(fast, fastNow) * 100)}%
-              </span>
-            )}
-            <span className="row__chev">
-              <Icon name="forward" size={17} strokeWidth={2.2} />
-            </span>
-          </button>
           <button className="row" onClick={() => push({ name: 'water', date })}>
             <span className="row__main">
               <span className="row__title" style={{ display: 'block', fontWeight: 500 }}>
@@ -362,25 +426,6 @@ export function Today() {
             </span>
             <span className="row__chev">
               <Icon name="forward" size={17} strokeWidth={2.2} />
-            </span>
-          </button>
-        </div>
-
-        {/* ---------------------------------------------------------- notes -- */}
-        <div className="section-head">
-          <span>Notes</span>
-        </div>
-
-        <div className="card">
-          <button className="row" onClick={() => push({ name: 'note', date })}>
-            <span
-              className="row__main row__title"
-              style={{ color: log.note ? 'var(--text)' : 'var(--text-3)' }}
-            >
-              {log.note || 'Add a note'}
-            </span>
-            <span style={{ color: 'var(--text-2)', display: 'flex', flex: 'none' }}>
-              <Icon name="edit" size={18} />
             </span>
           </button>
         </div>

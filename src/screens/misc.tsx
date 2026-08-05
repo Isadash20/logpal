@@ -285,53 +285,6 @@ export function WaterScreen({ date }: { date: string }) {
   )
 }
 
-/* ----------------------------------------------------------------- notes -- */
-
-export function NoteScreen({ date }: { date: string }) {
-  const { pop, dayLog, setNote } = useApp()
-  const [text, setText] = useState(dayLog(date).note)
-
-  return (
-    <>
-      <TopBar
-        title="Notes"
-        onBack={pop}
-        right={
-          <button
-            className="textbtn"
-            onClick={() => {
-              setNote(date, text)
-              pop()
-            }}
-          >
-            Save
-          </button>
-        }
-      />
-      <div className="scroll">
-        <textarea
-          value={text}
-          autoFocus
-          onChange={(e) => setText(e.target.value)}
-          placeholder="How did today go?"
-          style={{
-            width: '100%',
-            minHeight: 220,
-            border: 0,
-            borderBottom: '1px solid var(--border)',
-            background: 'var(--surface)',
-            padding: 16,
-            resize: 'vertical',
-            outline: 'none',
-            fontSize: 15,
-            lineHeight: 1.5,
-          }}
-        />
-      </div>
-    </>
-  )
-}
-
 /* --------------------------------------------------------------- scanner -- */
 
 export function BarcodeScanner({ date }: { date: string }) {
@@ -625,15 +578,6 @@ export function AddSheetContent({
           </span>
         }
         onClick={go(() => push({ name: 'water', date }))}
-      />
-      <Row
-        title="Note"
-        left={
-          <span style={{ color: 'var(--accent)', display: 'flex' }}>
-            <Icon name="note" size={20} />
-          </span>
-        }
-        onClick={go(() => push({ name: 'note', date }))}
       />
     </>
   )

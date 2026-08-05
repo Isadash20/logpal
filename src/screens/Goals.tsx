@@ -67,7 +67,7 @@ export function Goals() {
             sub={custom ? 'Set by you' : 'Calculated from your goal'}
             value={cal(plan.calories)}
             chevron
-            onClick={() => push({ name: 'settings' })}
+            onClick={() => push({ name: 'planHub' })}
           />
           <Row title="Carbohydrates" sub={`${plan.split.carbs}%`} value={`${plan.macros.carbs} g`} onClick={custom ? undefined : () => setMacroOpen(true)} chevron={!custom} />
           <Row title="Fat" sub={`${plan.split.fat}%`} value={`${plan.macros.fat} g`} onClick={custom ? undefined : () => setMacroOpen(true)} chevron={!custom} />

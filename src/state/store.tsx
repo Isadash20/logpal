@@ -71,18 +71,23 @@ export type Route =
       entryId?: string
     }
   | { name: 'water'; date: string }
-  | { name: 'note'; date: string }
   | { name: 'meals' }
   | { name: 'mealEditor'; mealId?: string }
   | { name: 'recipes' }
   | { name: 'recipeEditor'; recipeId?: string }
   | { name: 'myFoods' }
   | { name: 'goals' }
-  | { name: 'settings' }
   | { name: 'weightEntry' }
   | { name: 'measurement'; key: string }
   | { name: 'progressPhotos' }
   | { name: 'fasting' }
+  | { name: 'foodsHub' }
+  | { name: 'planHub' }
+  | { name: 'prefsProfile' }
+  | { name: 'prefsUnits' }
+  | { name: 'prefsFoodDb' }
+  | { name: 'prefsAppearance' }
+  | { name: 'about' }
 
 /* ------------------------------------------------------------- selectors -- */
 

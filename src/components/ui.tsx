@@ -177,6 +177,60 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   return <div className="section-label">{children}</div>
 }
 
+/**
+ * A full-width tappable card that opens its own page. Used instead of long
+ * inline setting lists — one decision per screen reads far better on a phone
+ * than forty controls stacked on top of each other.
+ */
+export function Banner({
+  icon,
+  title,
+  sub,
+  onClick,
+  value,
+}: {
+  icon: IconName
+  title: string
+  sub?: string
+  value?: ReactNode
+  onClick(): void
+}) {
+  return (
+    <button className="banner" onClick={onClick}>
+      <span className="banner__icon">
+        <Icon name={icon} size={20} />
+      </span>
+      <span className="banner__main">
+        <span className="banner__title">{title}</span>
+        {sub && <span className="banner__sub">{sub}</span>}
+      </span>
+      {value != null && <span className="banner__value">{value}</span>}
+      <span className="row__chev">
+        <Icon name="forward" size={18} strokeWidth={2.2} />
+      </span>
+    </button>
+  )
+}
+
+/** Sticky footer holding the one committing action on a settings page. */
+export function SaveBar({
+  onSave,
+  label = 'Save',
+  disabled,
+}: {
+  onSave(): void
+  label?: string
+  disabled?: boolean
+}) {
+  return (
+    <div className="savebar">
+      <button className="btn" onClick={onSave} disabled={disabled}>
+        {label}
+      </button>
+    </div>
+  )
+}
+
 /* --------------------------------------------------------------- topbar --- */
 
 export function TopBar({

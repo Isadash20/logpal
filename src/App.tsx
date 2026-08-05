@@ -8,7 +8,16 @@ import { Plan } from './screens/Plan'
 import { VoiceLog } from './screens/VoiceLog'
 import { MealScan } from './screens/MealScan'
 import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
-import { More, Settings } from './screens/Settings'
+import {
+  About,
+  FoodsHub,
+  More,
+  PlanHub,
+  PrefsAppearance,
+  PrefsFoodDb,
+  PrefsProfile,
+  PrefsUnits,
+} from './screens/Settings'
 import { NutritionScreen } from './screens/NutritionScreen'
 import { FoodSearch } from './screens/FoodSearch'
 import { FoodDetail } from './screens/FoodDetail'
@@ -23,15 +32,15 @@ import {
   RecipeEditor,
   RecipesList,
 } from './screens/MealsRecipes'
-import { AddSheetContent, NoteScreen, QuickAdd, WaterScreen } from './screens/misc'
+import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
 import { BarcodeScanner } from './screens/Scanner'
 import { Fasting } from './screens/Fasting'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
-  { key: 'today', label: 'Today', icon: 'home' },
+  { key: 'today', label: 'Home', icon: 'home' },
   { key: 'plan', label: 'Plan', icon: 'plan' },
   { key: 'progress', label: 'Progress', icon: 'progress' },
-  { key: 'more', label: 'More', icon: 'dots' },
+  { key: 'more', label: 'Settings', icon: 'settings' },
 ]
 
 function Shell() {
@@ -143,9 +152,6 @@ function Shell() {
       case 'water':
         return <WaterScreen date={route.date} />
 
-      case 'note':
-        return <NoteScreen date={route.date} />
-
       case 'meals':
         return <MealsList />
 
@@ -164,9 +170,6 @@ function Shell() {
       case 'goals':
         return <Goals />
 
-      case 'settings':
-        return <Settings />
-
       case 'weightEntry':
         return <WeightEntry />
 
@@ -175,6 +178,27 @@ function Shell() {
 
       case 'fasting':
         return <Fasting />
+
+      case 'foodsHub':
+        return <FoodsHub />
+
+      case 'planHub':
+        return <PlanHub />
+
+      case 'prefsProfile':
+        return <PrefsProfile />
+
+      case 'prefsUnits':
+        return <PrefsUnits />
+
+      case 'prefsFoodDb':
+        return <PrefsFoodDb />
+
+      case 'prefsAppearance':
+        return <PrefsAppearance />
+
+      case 'about':
+        return <About />
 
       case 'progressPhotos':
         return <More />

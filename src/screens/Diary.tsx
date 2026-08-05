@@ -244,18 +244,6 @@ export function Diary() {
           )}
         </div>
 
-        {/* ---------------------------------------------------------- notes -- */}
-        <div className="card">
-          <div className="card__head">
-            <span className="card__title">Notes</span>
-          </div>
-          <Row
-            className={log.note ? '' : 'row--link'}
-            title={log.note || 'Add a note for today'}
-            onClick={() => push({ name: 'note', date })}
-          />
-        </div>
-
         <div className="btn-wrap" style={{ display: 'grid', gap: 10 }}>
           <button className="btn btn--ghost" onClick={() => push({ name: 'nutrition', date })}>
             Nutrition breakdown

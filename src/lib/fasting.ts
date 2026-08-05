@@ -161,3 +161,72 @@ export function defaultFastingSettings(): FastingSettings {
     eatingWindowStartHour: 12,
   }
 }
+
+/* ----------------------------------------------------- recommendations -- */
+
+export interface FastRecommendation {
+  protocol: FastProtocol
+  /** Why this one, in the user's terms. */
+  reason: string
+  /** Suggested local hour to open the eating window. */
+  eatingStartHour: number
+}
+
+/**
+ * Suggest a protocol from the goal.
+ *
+ * Fasting helps by shrinking the window in which it's easy to overeat, so a
+ * deficit gets a tighter window than a surplus. Building muscle gets the
+ * loosest, because a short window makes hitting a protein target genuinely
+ * hard — and where the two aims conflict, protein wins.
+ */
+export function recommendFast(opts: {
+  goalKind: 'lose-weight' | 'gain-muscle' | 'maintain' | 'recomp'
+  rate: number
+}): FastRecommendation {
+  if (opts.goalKind === 'gain-muscle') {
+    return {
+      protocol: '12:12',
+      reason:
+        'A wide eating window. Building muscle needs both the calories and the protein, and a short window makes hitting either harder.',
+      eatingStartHour: 8,
+    }
+  }
+  if (opts.goalKind === 'maintain') {
+    return {
+      protocol: '14:10',
+      reason: 'Roughly overnight plus a couple of hours — easy to hold indefinitely.',
+      eatingStartHour: 10,
+    }
+  }
+  if (opts.goalKind === 'recomp') {
+    return {
+      protocol: '16:8',
+      reason:
+        'Tight enough to keep a mild deficit honest, wide enough to fit the protein a recomp needs.',
+      eatingStartHour: 12,
+    }
+  }
+  // Losing: the steeper the target, the tighter the window.
+  if (opts.rate <= -1.5) {
+    return {
+      protocol: '18:6',
+      reason:
+        'A steep deficit needs a tight window. Six hours makes it much harder to drift over your calories in the evening.',
+      eatingStartHour: 12,
+    }
+  }
+  if (opts.rate <= -1) {
+    return {
+      protocol: '16:8',
+      reason:
+        'The most widely used schedule, and enough structure to keep a moderate deficit on track.',
+      eatingStartHour: 12,
+    }
+  }
+  return {
+    protocol: '14:10',
+    reason: 'A gentle start — skip breakfast or eat dinner earlier, nothing drastic.',
+    eatingStartHour: 10,
+  }
+}

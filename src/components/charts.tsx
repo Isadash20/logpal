@@ -786,3 +786,100 @@ export function StackedBar({
     </div>
   )
 }
+
+/* ------------------------------------------------------------ fast dial -- */
+
+/**
+ * A dial showing progress through a fast.
+ *
+ * A linear bar can't express that a fast wraps past midnight and that the
+ * eating window is the remainder of the same cycle. A dial can, and the filled
+ * portion reads as "how far through" at a glance.
+ */
+export function FastDial({
+  progress,
+  size = 108,
+  stroke = 10,
+  complete,
+  center,
+}: {
+  progress: number
+  size?: number
+  stroke?: number
+  complete?: boolean
+  center?: React.ReactNode
+}) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const dash = Math.min(1, Math.max(0, progress)) * c
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flex: 'none' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke="var(--surface-3)"
+          strokeWidth={stroke}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={complete ? 'var(--positive)' : 'var(--accent)'}
+          strokeWidth={stroke}
+          strokeDasharray={`${dash} ${c - dash}`}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dasharray .6s linear' }}
+        />
+      </svg>
+      {center && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            placeContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          {center}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Recent fasts as bars against their targets — the consistency view. */
+export function FastHistoryBars({
+  fasts,
+  height = 44,
+}: {
+  fasts: { hours: number; target: number }[]
+  height?: number
+}) {
+  if (fasts.length === 0) return null
+  const max = Math.max(...fasts.map((f) => Math.max(f.hours, f.target)), 1)
+
+  return (
+    // Capped width so a short history reads as bars rather than blocks.
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height }}>
+      {fasts.map((f, i) => (
+        <div
+          key={i}
+          title={`${f.hours.toFixed(1)}h of ${f.target}h`}
+          style={{
+            flex: '0 1 14px',
+            maxWidth: 14,
+            height: `${Math.max(12, (f.hours / max) * 100)}%`,
+            background: f.hours >= f.target ? 'var(--accent)' : 'var(--border-strong)',
+            borderRadius: 3,
+          }}
+        />
+      ))}
+    </div>
+  )
+}

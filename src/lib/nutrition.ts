@@ -325,17 +325,20 @@ export function waterGoalMl(opts: {
 /* ------------------------------------------------------------------ plan -- */
 
 export const GOAL_LABELS: Record<GoalKind, string> = {
-  'lose-weight': 'Lose weight',
+  'lose-weight': 'Lose fat',
   'gain-muscle': 'Build muscle',
-  maintain: 'Maintain',
-  recomp: 'Lose fat and build muscle',
+  maintain: 'Stay where I am',
+  recomp: 'Lose fat and build muscle at once',
 }
 
 export const GOAL_DESCRIPTIONS: Record<GoalKind, string> = {
-  'lose-weight': 'Eat below maintenance to drop body fat',
-  'gain-muscle': 'Eat above maintenance to add size and strength',
-  maintain: 'Hold steady at your current weight',
-  recomp: 'Eat near maintenance with high protein',
+  'lose-weight':
+    'A real calorie deficit with protein pushed high, so what you lose is fat rather than muscle',
+  'gain-muscle':
+    'A deliberate surplus with plenty of protein and carbs to train hard and recover',
+  maintain: 'Hold your weight steady and eat enough to keep the muscle you have',
+  recomp:
+    'Sit near maintenance with the highest protein of any plan. Slow on the scale, fast in the mirror',
 }
 
 /**
@@ -344,13 +347,36 @@ export const GOAL_DESCRIPTIONS: Record<GoalKind, string> = {
  */
 export function proteinTarget(profile: Profile, weightLb: number): number {
   const lean = leanMass(profile, weightLb)
+
+  /* Grams per pound of LEAN mass, pushed toward the ends of the evidence range
+     on purpose. In a deficit protein is what decides whether the weight you
+     lose is fat or muscle; in a surplus it is the raw material. A flat figure
+     for everyone makes both goals worse. */
   const perLb: Record<GoalKind, number> = {
-    'lose-weight': 1.1,
-    'gain-muscle': 1.0,
-    maintain: 0.85,
-    recomp: 1.2,
+    'lose-weight': 1.3,
+    'gain-muscle': 1.2,
+    maintain: 0.9,
+    recomp: 1.4,
   }
-  return Math.round(lean * perLb[profile.goal.kind])
+
+  /* A hard cut needs more still — muscle loss scales with how steep the
+     deficit is, not merely with the fact of being in one. */
+  const steepCut = profile.goal.kind === 'lose-weight' && profile.goal.rate <= -1.5
+  return Math.round(lean * (perLb[profile.goal.kind] + (steepCut ? 0.15 : 0)))
+}
+
+/**
+ * Fat as a share of calories, by goal.
+ *
+ * Cutting pushes fat toward the hormonal floor so the remaining calories can
+ * go to protein and training fuel. Building leaves more room, because hitting
+ * a surplus on protein and carbs alone is genuinely unpleasant to eat.
+ */
+function fatShareFor(kind: GoalKind): number {
+  if (kind === 'lose-weight') return 0.22
+  if (kind === 'gain-muscle') return 0.28
+  if (kind === 'recomp') return 0.24
+  return 0.3
 }
 
 export interface ResolvedPlan {
@@ -402,11 +428,12 @@ export function resolvePlan(
   const raw = Math.round(maintenance + dailyDelta)
   const calories = Math.max(floor, raw)
 
-  // Protein is anchored to lean mass first; carbs and fat divide the rest,
-  // with fat held at a floor of 20% of calories for hormonal health.
+  // Protein is anchored to lean mass first, then fat takes its goal-dependent
+  // share, and carbs get whatever is left. Protein is capped at half of
+  // calories so an extreme goal can't crowd out everything else.
   const protein = proteinTarget(profile, weightLb)
-  const proteinCals = Math.min(protein * KCAL_PER_G.protein, calories * 0.45)
-  const fatCals = Math.max(calories * 0.2, (calories - proteinCals) * 0.35)
+  const proteinCals = Math.min(protein * KCAL_PER_G.protein, calories * 0.5)
+  const fatCals = calories * fatShareFor(profile.goal.kind)
   const carbCals = Math.max(0, calories - proteinCals - fatCals)
 
   const split: MacroSplit = {

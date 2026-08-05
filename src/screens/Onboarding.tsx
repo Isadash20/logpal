@@ -14,6 +14,7 @@ import {
   weeksToGoal,
 } from '../lib/nutrition'
 import { cal } from '../lib/format'
+import { PROTOCOL_BY_KEY, recommendFast } from '../lib/fasting'
 import { displayToIn, displayToLb, lbToDisplay, mlToDisplay } from '../lib/units'
 import { today } from '../lib/dates'
 import { defaultProfile } from '../lib/storage'
@@ -27,7 +28,7 @@ type Step = (typeof STEPS)[number]
  * as a payoff rather than another form.
  */
 export function Onboarding() {
-  const { saveProfile, saveSettings, addWeight } = useApp()
+  const { saveProfile, saveSettings, addWeight, saveFasting } = useApp()
   const [step, setStep] = useState<Step>('sex')
 
   const [sex, setSex] = useState<Sex>('female')
@@ -93,17 +94,45 @@ export function Onboarding() {
 
   const plan = resolvePlan(draft, ageYears, weightLb)
   const weeks = weeksToGoal(weightLb, goalLb, effectiveRate)
+  const fastRec = recommendFast({ goalKind, rate: effectiveRate })
 
+  /* Deliberately spread to the extremes — a lean bulk and an aggressive cut
+     are genuinely different plans, and collapsing them into one middle option
+     serves neither. */
   const rateOptions =
-    goalKind === 'gain-muscle'
-      ? [0.25, 0.5, 0.75, 1]
-      : [-0.5, -1, -1.5, -2]
+    goalKind === 'gain-muscle' ? [0.25, 0.5, 0.75, 1] : [-0.5, -1, -1.5, -2]
+
+  const paceCopy = (r: number): { title: string; sub: string } => {
+    if (r > 0) {
+      if (r <= 0.25)
+        return { title: 'Lean gain', sub: 'Slowest, and the least fat gained alongside the muscle' }
+      if (r <= 0.5)
+        return { title: 'Steady build', sub: 'The usual choice — noticeable in a couple of months' }
+      if (r <= 0.75)
+        return { title: 'Fast build', sub: 'Quicker size, but you will put on more fat with it' }
+      return { title: 'Hard bulk', sub: 'Maximum surplus. Expect real fat gain and a cut afterwards' }
+    }
+    if (r >= -0.5)
+      return { title: 'Gentle', sub: 'Barely noticeable day to day, and the easiest to sustain' }
+    if (r >= -1)
+      return { title: 'Steady', sub: 'The standard pace, and the one most people actually keep to' }
+    if (r >= -1.5)
+      return { title: 'Aggressive', sub: 'Fast, hungry, and demanding. Protein is pushed high to protect muscle' }
+    return {
+      title: 'Very aggressive',
+      sub: 'The steepest this app will plan. Hard to sustain and easy to lose muscle on — best kept short',
+    }
+  }
 
   function finish() {
     const finalCals = customizing ? parseInt(customCals) || plan.calories : plan.calories
     saveSettings({
       weightUnit: wUnit,
       heightUnit: units === 'imperial' ? 'in' : 'cm',
+    })
+    saveFasting({
+      protocol: fastRec.protocol,
+      eatingWindowStartHour: fastRec.eatingStartHour,
     })
     saveProfile({
       ...draft,
@@ -402,21 +431,18 @@ export function Onboarding() {
                 <div className="section-label" style={{ padding: '0 0 8px' }}>
                   Pace
                 </div>
-                {rateOptions.map((r) => (
-                  <Choice
-                    key={r}
-                    label={`${Math.abs(r)} ${wUnit} per week`}
-                    sub={
-                      Math.abs(r) >= 1.5
-                        ? 'Aggressive — hard to sustain, and more of the loss is muscle'
-                        : Math.abs(r) <= 0.5
-                          ? 'Gradual and easiest to hold onto'
-                          : 'A steady, common pace'
-                    }
-                    active={rate === r}
-                    onClick={() => setRate(r)}
-                  />
-                ))}
+                {rateOptions.map((r) => {
+                  const c = paceCopy(r)
+                  return (
+                    <Choice
+                      key={r}
+                      label={`${c.title} — ${Math.abs(r)} ${wUnit} per week`}
+                      sub={c.sub}
+                      active={rate === r}
+                      onClick={() => setRate(r)}
+                    />
+                  )
+                })}
               </>
             )}
 
@@ -534,6 +560,19 @@ export function Onboarding() {
                 speak to a clinician.
               </div>
             )}
+
+            <div className="card card--inset" style={{ margin: '12px 0 0', textAlign: 'left' }}>
+              <div className="card__head">
+                <span className="card__title">Suggested fasting window</span>
+                <span className="num" style={{ fontWeight: 700 }}>
+                  {PROTOCOL_BY_KEY[fastRec.protocol].label}
+                </span>
+              </div>
+              <div className="hint" style={{ padding: '12px 16px' }}>
+                {fastRec.reason} You can change it, or ignore fasting entirely, from the
+                Settings tab.
+              </div>
+            </div>
 
             <div className="hint">
               These are estimates from standard equations, not medical advice.
