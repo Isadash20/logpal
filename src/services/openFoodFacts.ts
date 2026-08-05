@@ -35,7 +35,7 @@ const FIELDS = [
 
 /** Browsers set their own User-Agent and forbid overriding it, so identify via
  *  a query parameter instead — OFF accepts `app_name`/`app_uuid` for this. */
-const APP_PARAMS = 'app_name=FitLog&app_version=0.1'
+const APP_PARAMS = 'app_name=LogPal&app_version=0.1'
 
 interface OFFNutriments {
   [key: string]: number | string | undefined

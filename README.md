@@ -1,4 +1,4 @@
-# FitLog
+# LogPal
 
 A calorie and nutrition tracker for the web, built as a functional replica of a
 mainstream mobile calorie counter. React 19 + Vite + TypeScript, no UI or chart
@@ -161,7 +161,7 @@ history.
 
 ## Persistence
 
-Everything is in `localStorage` under `fitlog.v1`, behind the
+Everything is in `localStorage` under `logpal.v1`, behind the
 `PersistenceAdapter` interface in `src/lib/storage.ts`. Moving to Supabase means
 making `load`/`save` async, adding a `user_id`, and awaiting them in the store —
 no screen changes. A `migrate()` step fills in fields added after a user's data

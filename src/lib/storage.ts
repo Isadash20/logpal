@@ -2,7 +2,10 @@ import type { AppData, Profile, Settings } from '../types'
 import { DEFAULT_MACRO_SPLIT } from './nutrition'
 import { defaultFastingSettings } from './fasting'
 
-const KEY = 'fitlog.v1'
+const KEY = 'logpal.v1'
+
+/** The app was called FitLog before; carry that data over on first load. */
+const LEGACY_KEYS = ['fitlog.v1']
 
 /**
  * Persistence adapter. Everything the app writes funnels through `save`/`load`,
@@ -18,7 +21,21 @@ export interface PersistenceAdapter {
 export const localAdapter: PersistenceAdapter = {
   load() {
     try {
-      const raw = localStorage.getItem(KEY)
+      let raw = localStorage.getItem(KEY)
+
+      // First run after the rename: adopt the old key's data and leave the
+      // original in place, so an accidental downgrade doesn't lose anything.
+      if (!raw) {
+        for (const legacy of LEGACY_KEYS) {
+          const old = localStorage.getItem(legacy)
+          if (old) {
+            localStorage.setItem(KEY, old)
+            raw = old
+            break
+          }
+        }
+      }
+
       if (!raw) return null
       return migrate(JSON.parse(raw))
     } catch {

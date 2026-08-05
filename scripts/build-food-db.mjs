@@ -22,7 +22,7 @@ import { dirname } from 'node:path'
 // search, which returns intermittent 503s under load. Unusable from a browser
 // (no CORS headers) but perfectly fine from Node, which is where this runs.
 const SEARCH = 'https://search.openfoodfacts.org/search'
-const UA = 'FitLog/0.1 (offline database build)'
+const UA = 'LogPal/0.1 (offline database build)'
 const FIELDS = [
   'code',
   'product_name',
