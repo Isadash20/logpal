@@ -152,8 +152,9 @@ export function MealScan({ date }: { date: string }) {
 
   async function runEstimate() {
     setWorking(true)
-    const bulk = await loadFoodDb()
-    setEstimate(estimateFromDescription(description, [...data.customFoods, ...bulk]))
+    // Only has to be resident — searchLocal reads the bulk database itself.
+    await loadFoodDb()
+    setEstimate(estimateFromDescription(description, data.customFoods))
     setWorking(false)
   }
 

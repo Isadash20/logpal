@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import type { Food, Recipe } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
@@ -6,7 +6,7 @@ import { Empty, Row, TopBar } from '../components/ui'
 import { cal } from '../lib/format'
 import { scaleNutrients, sumNutrients } from '../lib/nutrition'
 import { looksLikeBarcode, searchLocal } from '../services/foodSearch'
-import { loadFoodDb } from '../services/foodDb'
+import { loadFoodDb, onFoodDbGrown } from '../services/foodDb'
 import { RateLimitedError, lookupBarcode, searchProducts } from '../services/openFoodFacts'
 
 type Tab = 'all' | 'meals' | 'recipes' | 'myfoods'
@@ -27,24 +27,32 @@ export function FoodSearch({ date }: { date: string }) {
   }, [])
 
   /* The bulk database is a separate static file; pull it down as soon as the
-     search screen opens so results fill in without a visible wait. */
-  const [bulk, setBulk] = useState<Food[]>([])
+     search screen opens so results fill in without a visible wait. `searchLocal`
+     reads it directly, so all this has to do is trigger the load and re-run the
+     search once it lands — the counter is what makes the memo notice. */
+  const [dbVersion, setDbVersion] = useState(0)
   useEffect(() => {
     let live = true
-    void loadFoodDb().then((f) => live && setBulk(f))
+    void loadFoodDb()
+    const off = onFoodDbGrown(() => live && setDbVersion((v) => v + 1))
     return () => {
       live = false
+      off()
     }
   }, [])
 
+  /* Scanning sixty thousand foods takes a few hundred milliseconds on a laptop
+     and rather longer on a phone. Deferring it lets React paint the typed
+     character first and abandon a half-finished result list as soon as the next
+     keystroke arrives, so the field stays responsive at speed instead of
+     running one full search per letter. */
+  const deferredQuery = useDeferredValue(query)
   const localResults = useMemo(
     () =>
-      searchLocal(query, [
-        ...data.customFoods,
-        ...Object.values(data.foodCache),
-        ...bulk,
-      ]),
-    [query, data.customFoods, data.foodCache, bulk]
+      searchLocal(deferredQuery, [...data.customFoods, ...Object.values(data.foodCache)]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dbVersion is the
+    // signal that the database behind searchLocal grew; it has no other use.
+    [deferredQuery, data.customFoods, data.foodCache, dbVersion]
   )
 
   /* Debounced network search. Open Food Facts allows only ~10 searches per

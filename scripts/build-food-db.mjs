@@ -1,5 +1,14 @@
 /**
- * Builds `public/food-db.json` — a large offline food database.
+ * Builds an offline food database from Open Food Facts.
+ *
+ * NOTE: this is no longer what produces the shipped `public/food-db.json` —
+ * `build-usda-db.mjs` is. USDA FoodData Central has generic foods, US brand
+ * coverage and real household serving sizes, none of which Open Food Facts
+ * offers in useful quantity. This is kept for the cases FDC does not cover:
+ * non-US products, and anything identified only by barcode.
+ *
+ * Output from this script must be run through `trim-food-db.mjs`, and written
+ * to a different path unless you intend to replace the USDA database.
  *
  * Pulls the most-scanned products from Open Food Facts across a wide spread of
  * brands and categories, normalises them into the app's Food shape, and writes
@@ -237,7 +246,16 @@ async function main() {
     }
   }
 
-  const foods = [...byCode.values()].sort((a, b) => a.n.localeCompare(b.n))
+  /* Insertion order is popularity order — results arrive sorted by
+     `unique_scans_n` per term. It MUST survive to `trim-food-db.mjs`, whose
+     whole selection strategy is "keep the first N".
+
+     Sorting alphabetically here used to be the last step, and it silently
+     turned that trim into "keep every food whose name begins A through C". The
+     shipped database had 11,531 foods starting with C and 37 in total for D
+     through Z: no Doritos, no Gatorade, no Eggo, and a search for a store's
+     own-brand shrimp came back empty. Sort at display time, never here. */
+  const foods = [...byCode.values()]
   await mkdir(dirname(OUT), { recursive: true })
   await writeFile(OUT, JSON.stringify({ version: 1, count: foods.length, foods }))
   const mb = (JSON.stringify(foods).length / 1e6).toFixed(1)

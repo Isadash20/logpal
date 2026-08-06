@@ -48,9 +48,10 @@ problem that bites Daily Planner does not apply.
 
 ## 3. Current state
 
-Six commits. **Four are unpushed** — `git push` to deploy them:
+Seven commits. **Five are unpushed** — `git push` to deploy them:
 
 ```
+(head)   Rebuild the food database from USDA FoodData Central     ← unpushed
 d6b0f14  Drop the last traces of the notes feature                ← unpushed
 fc98c85  Add HANDOFF.md                                           ← unpushed
 700fbba  Restructure navigation, sharpen goals, surface fasting   ← unpushed
@@ -232,28 +233,65 @@ exercise minute. Clamped 1.4–5.0 L. Shown in the user's chosen unit everywhere
 
 ---
 
-## 8. Food data — three layers
+## 8. Food data — four layers
 
 1. **Curated seed** — 324 foods in `src/data/seedFoods.ts`, a pipe-delimited
-   table (15 columns). USDA FoodData Central for whole foods, published panels
-   for branded/restaurant. **Ranked first in search** because they're the only
-   ones checked by hand. The parser asserts the column count.
-2. **Bulk offline DB** — 25,000 products in `public/food-db.json`. Static file,
-   not bundled, so nothing downloads until first search. ~0.9 MB gzipped, ~76 ms
-   to parse, searches run 7–76 ms. Rows are stored positionally.
-3. **Open Food Facts live** — search and barcode for anything else.
+   table (15 columns). **Ranked first in search** because they're the only ones
+   checked by hand. The parser asserts the column count.
+2. **Core offline DB** — 58,381 foods in `public/food-db.json` (10.5 MB, 2.6 MB
+   gzipped). Every USDA generic food plus the 45,000 best-ranked branded
+   products. Fetched on the first search, then HTTP-cached for a week.
+3. **Extended offline DB** — 175,000 more branded products in
+   `public/food-db-ext.json` (29.7 MB, 7.7 MB gzipped). **Never fetched
+   automatically** — Settings → Food database has a button. It is a large
+   download and takes the heap from ~44 MB to ~117 MB, which is a fair thing to
+   offer and an unfair thing to impose on a phone.
+4. **Open Food Facts live** — barcode lookup, and search for non-US products.
 
-### Rebuilding the bulk database
+Rows stay packed in memory and are only turned into `Food` objects for results
+that get displayed (`unpackRow`). Eagerly unpacking everything cost ~405 MB of
+heap — enough to get a tab killed on iOS. See `src/services/foodDb.ts`.
+
+### Why USDA rather than more Open Food Facts
+
+OFF is crowd-sourced and Europe-heavy, and has almost no *generic* foods — no
+plain "Shrimp", no "Chicken breast, grilled", only barcoded packages. Searching
+"white rice" returned Asda and Sainsbury's own-brand. USDA FoodData Central is
+public domain, US-first, and ships household portions ("1 cup", "2 oz",
+"12 chips") instead of everything being 100 g.
+
+| FDC dataset | Rows kept | What it gives |
+|---|---|---|
+| Survey (FNDDS) | 5,372 | generic foods as eaten, household portions |
+| SR Legacy | 7,710 | reference whole foods |
+| Foundation | 299 | newer lab-analysed whole foods |
+| Branded | 364,161 usable | US packaged goods with real serving sizes |
+
+### Rebuilding
 
 ```bash
-node scripts/build-food-db.mjs --pages 4     # ~15 min, ~120k foods, 16 MB
-node scripts/trim-food-db.mjs --max 25000    # filter + dedupe to ship size
+# Download the JSON exports from https://fdc.nal.usda.gov/download-datasets
+# and unzip them all into one directory, then:
+node --max-old-space-size=12288 scripts/build-usda-db.mjs --src <dir>
 ```
 
-**The trim step is not optional.** The raw pull is full of records whose
-`product_name` is just the brand — an early build showed eight rows all called
-"Chobani". Trimming drops those, plus records whose macros can't account for
-their calories, then de-duplicates on name+brand keeping the most-scanned.
+Takes about four minutes; the branded export is 3.3 GB unzipped. It is **read
+as JSON Lines**, not parsed whole — FDC writes one record per line inside the
+array, and the file is far past the maximum length of a JS string, so
+`JSON.parse` throws before it starts. `--generics-only` skips the slow half.
+
+`build-food-db.mjs` (Open Food Facts) is kept for non-US coverage but no longer
+produces the shipped file. If you run it, write to a different path.
+
+### The bug that made this necessary
+
+The old shipped database was **alphabetically truncated at "C"**. `build-food-db.mjs`
+sorted alphabetically before writing, and `trim-food-db.mjs` then kept the first
+25,000 — believing, per its own comment, that it was keeping the most-scanned.
+The result: 11,531 foods starting with C, and **37 in total for D through Z**.
+No Doritos, no Eggo, no Gatorade, no own-brand shrimp. This is fixed (the
+builder no longer sorts), and it is worth remembering as the reason the database
+"had 25,000 foods" and still could not find StarKist tuna.
 
 ### Open Food Facts gotchas — these cost real time, don't rediscover them
 
@@ -295,14 +333,16 @@ src/
     nutrients.ts            17 nutrients, order, daily values
   services/
     openFoodFacts.ts        live search + barcode, cache + throttle
-    foodDb.ts               lazy loader for public/food-db.json
+    foodDb.ts               two-stage loader, packed rows, lazy unpack
     foodSearch.ts           local ranking, aliases, plural handling
   state/store.tsx           all state + nav stack + mutations
   components/
     Icon.tsx charts.tsx ui.tsx nutrition.tsx
   screens/                  one file per screen
-scripts/                    build-food-db.mjs, trim-food-db.mjs
-public/food-db.json         25k products
+scripts/                    build-usda-db.mjs (ships the DB),
+                            build-food-db.mjs + trim-food-db.mjs (OFF, legacy)
+public/food-db.json         58k core foods
+public/food-db-ext.json     175k extended, opt-in
 ```
 
 **Nutrition is stored per serving as logged** on each diary entry, never
@@ -349,9 +389,15 @@ survive it. If a click seems to do nothing, that's usually why, not a bug.
   live — no push is needed to test it.
 - **Data is per-browser localStorage.** Phone and laptop don't share. Clearing
   site data wipes it. Settings → About → Export is the only backup.
-- Bulk food DB skews European in places — Open Food Facts is Europe-heavy,
-  though US brand coverage was checked and is solid (Chobani 255, Great Value
-  138, Kirkland 123, Ben & Jerry's 216).
+- The offline database is US-centric now that it comes from USDA. Non-US
+  packaged goods rely on live Open Food Facts, which is rate-limited.
+- **Open Food Facts search is the weak link.** ~10 searches per minute per IP,
+  and the failure mode is dropping CORS headers rather than returning 429 — so
+  it fails opaquely and looks like a CORS bug. Local results still show; only
+  the "Open Food Facts" section errors. Barcode lookup has a separate, higher
+  budget and is more reliable.
+- About 1% of branded rows still carry cosmetic artefacts from the source data
+  (a stray separator in a serving label, a repeated flavour in a name).
 - No account system, no social feed, no step counting (no web pedometer API).
 
 ---

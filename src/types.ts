@@ -67,7 +67,14 @@ export interface Serving {
   multiplier: number
 }
 
-export type FoodSource = 'seed' | 'off' | 'custom' | 'quick' | 'recipe' | 'meal'
+export type FoodSource =
+  | 'seed'
+  | 'usda'
+  | 'off'
+  | 'custom'
+  | 'quick'
+  | 'recipe'
+  | 'meal'
 
 export interface Food {
   id: string
@@ -84,6 +91,12 @@ export interface Food {
   /** Set for foods generated from a saved recipe. */
   recipeId?: string
   verified?: boolean
+  /**
+   * A reference food ("Shrimp", "Chicken breast, grilled") rather than a
+   * packaged product. Search ranks these above branded rows, because someone
+   * typing "shrimp" wants shrimp, not Maruchan Shrimp Flavour Ramen.
+   */
+  generic?: boolean
 }
 
 export interface FoodEntry {

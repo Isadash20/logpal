@@ -92,6 +92,11 @@ export function FoodDetail({
               OPEN FOOD FACTS
             </span>
           )}
+          {food.source === 'usda' && (
+            <span className="badge" style={{ display: 'inline-block', marginTop: 8 }}>
+              USDA
+            </span>
+          )}
           {food.source === 'seed' && (
             <span className="badge" style={{ display: 'inline-block', marginTop: 8 }}>
               VERIFIED

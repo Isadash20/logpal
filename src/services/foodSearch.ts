@@ -1,5 +1,6 @@
 import type { Food } from '../types'
 import { SEED_FOODS } from '../data/seedFoods'
+import { foodIndex, unpackRow, type PackedFood } from './foodDb'
 
 /**
  * Local relevance scoring for the built-in database.
@@ -42,13 +43,39 @@ function keysFor(food: Food) {
   return k
 }
 
-function score(food: Food, terms: string[][]): number {
-  const { name, brand, len } = keysFor(food)
+/**
+ * Reference foods outrank packaged ones.
+ *
+ * The branded half of the database is two orders of magnitude larger than the
+ * generic half, so on raw text relevance a search for "shrimp" fills with
+ * Maruchan Shrimp Flavour Ramen and shrimp-flavoured crisps long before it
+ * reaches shrimp. Someone typing a bare food name almost always wants the food.
+ * The bonus is large enough to clear a whole extra term match, because that is
+ * the size of the gap it has to close.
+ */
+const GENERIC_BONUS = 130
+/** Hand-checked, so they win ties against anything imported. */
+const SEED_BONUS = 150
 
+function sourceBonus(food: Food): number {
+  if (food.source === 'seed') return SEED_BONUS
+  if (food.generic) return GENERIC_BONUS
+  if (food.source === 'custom') return SEED_BONUS
+  return 0
+}
+
+function score(
+  name: string,
+  brand: string,
+  len: number,
+  bonus: number,
+  terms: string[][]
+): number {
   let total = 0
   for (const forms of terms) {
     let best = -1
-    for (const [i, term] of forms.entries()) {
+    for (let i = 0; i < forms.length; i++) {
+      const term = forms[i]
       const inName = name.indexOf(term)
       const inBrand = brand.indexOf(term)
       if (inName < 0 && inBrand < 0) continue
@@ -78,7 +105,7 @@ function score(food: Food, terms: string[][]): number {
 
   // Prefer concise names — "Apple" over "Apple Juice" for the query "apple".
   total -= len * 0.2
-  return total
+  return total + bonus
 }
 
 /**
@@ -129,14 +156,55 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
   const pool = [...SEED_FOODS, ...extra]
   if (!raw.length) return pool.slice(0, limit)
 
-  // Ranked but unsliced — the alias promotion below has to see the whole list,
-  // or a caller asking for one result never gets the promotion applied.
-  const run = (words: string[]) =>
-    pool
-      .map((f) => ({ f, s: score(f, words.map(variants)) }))
-      .filter((x) => x.s >= 0)
-      .sort((a, b) => b.s - a.s)
-      .map((x) => x.f)
+  /* Ranked but unsliced — the alias promotion below has to see the whole list,
+     or a caller asking for one result never gets the promotion applied.
+
+     Two pools are scored against the same scale: the in-memory `Food` objects
+     (seed, custom, previously scanned) and the packed bulk database, which is
+     left packed. Only the rows that survive into the returned slice are turned
+     into `Food` objects — materialising all of them costs about 100 MB of heap
+     to build nutrient and serving objects for rows nobody looks at.
+
+     Written as explicit loops rather than map/filter/sort because this runs on
+     every keystroke over a couple of hundred thousand rows: the chained version
+     allocates a wrapper object per row, and that garbage is easily the most
+     expensive thing here. Scoring only what matches keeps allocation
+     proportional to the results rather than to the database. */
+  const run = (words: string[]) => {
+    const forms = words.map(variants)
+    const first = forms[0]
+    const matched: { f?: Food; row?: PackedFood; s: number }[] = []
+
+    // Cheap rejection on the first term before the full scorer runs. Every
+    // term has to match somewhere, so a miss here is a miss overall.
+    const possible = (name: string, brand: string) => {
+      for (let j = 0; j < first.length; j++) {
+        if (name.includes(first[j]) || brand.includes(first[j])) return true
+      }
+      return false
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      const food = pool[i]
+      const { name, brand } = keysFor(food)
+      if (!possible(name, brand)) continue
+      const s = score(name, brand, name.length + brand.length + 1, sourceBonus(food), forms)
+      if (s >= 0) matched.push({ f: food, s })
+    }
+
+    const { rows, namesLc, brandsLc } = foodIndex()
+    for (let i = 0; i < rows.length; i++) {
+      const name = namesLc[i]
+      const brand = brandsLc[i]
+      if (!possible(name, brand)) continue
+      const bonus = rows[i].k === 0 ? GENERIC_BONUS : 0
+      const s = score(name, brand, name.length + brand.length + 1, bonus, forms)
+      if (s >= 0) matched.push({ row: rows[i], s })
+    }
+
+    matched.sort((a, b) => b.s - a.s)
+    return matched
+  }
 
   let hits = run(raw)
   let matchedWords = raw
@@ -159,11 +227,14 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
      so the single-word fallback gets the promotion too. */
   const alias = COMMON_ALIASES[matchedWords.join(' ')]
   if (alias) {
-    const i = hits.findIndex((f) => f.name.toLowerCase() === alias)
+    const i = hits.findIndex(
+      (h) => (h.f ? h.f.name : (h.row?.n ?? '')).toLowerCase() === alias
+    )
     if (i > 0) hits = [hits[i], ...hits.filter((_, k) => k !== i)]
   }
 
-  return hits.slice(0, limit)
+  // Packed rows become Food objects only here, once the list is final.
+  return hits.slice(0, limit).map((h) => h.f ?? unpackRow(h.row as PackedFood))
 }
 
 /** A barcode is 8–14 digits; used to route a typed query straight to lookup. */

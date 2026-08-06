@@ -6,6 +6,7 @@ import { Row, TopBar } from '../components/ui'
 import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
 import { searchLocal } from '../services/foodSearch'
+import { loadFoodDb } from '../services/foodDb'
 
 /* ------------------------------------------------------------ speech API -- */
 
@@ -123,6 +124,14 @@ export function VoiceLog({ date }: { date: string }) {
   const supported = typeof window !== 'undefined' && getRecognition() !== null
 
   useEffect(() => () => recRef.current?.stop(), [])
+
+  /* Spoken items are matched with `searchLocal`, which reads the bulk database
+     — so it has to be resident by the time someone stops talking. Started on
+     mount rather than on match, because the download is slower than the pause
+     between speaking and matching. */
+  useEffect(() => {
+    void loadFoodDb()
+  }, [])
 
   function start() {
     const rec = getRecognition()

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
 import { Banner, Dialog, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
@@ -13,7 +13,13 @@ import {
 } from '../lib/units'
 import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
-import { foodDbSize } from '../services/foodDb'
+import {
+  extendedDbLoaded,
+  foodDbSize,
+  loadExtendedFoodDb,
+  loadFoodDb,
+  onFoodDbGrown,
+} from '../services/foodDb'
 
 /* ------------------------------------------------------------------ hub -- */
 
@@ -423,6 +429,21 @@ export function PrefsUnits() {
 
 export function PrefsFoodDb() {
   const { pop, settings, saveSettings, data } = useApp()
+
+  /* The offline database loads in two stages and its size changes underneath
+     this screen, so it is mirrored into state rather than read once at render. */
+  const [size, setSize] = useState(foodDbSize())
+  const [full, setFull] = useState(extendedDbLoaded())
+  useEffect(() => {
+    void loadFoodDb()
+    const sync = () => {
+      setSize(foodDbSize())
+      setFull(extendedDbLoaded())
+    }
+    sync()
+    return onFoodDbGrown(sync)
+  }, [])
+
   return (
     <>
       <TopBar title="Food database" onBack={pop} solid />
@@ -437,9 +458,26 @@ export function PrefsFoodDb() {
         </div>
         <div className="card">
           <Row title="Curated foods" value={SEED_FOODS.length} />
-          <Row title="Offline database" value={foodDbSize() || 25000} />
+          <Row title="Offline database" value={size ? size.toLocaleString() : '—'} />
           <Row title="Your custom foods" value={data.customFoods.length} />
           <Row title="Scanned and saved" value={Object.keys(data.foodCache).length} />
+        </div>
+
+        {/* Never fetched automatically: it is a large download and a large
+            amount of memory once loaded, which is a fair thing to offer and an
+            unfair thing to impose on a phone. */}
+        {!full && (
+          <div className="btn-wrap">
+            <button className="btn btn--ghost" onClick={() => void loadExtendedFoodDb()}>
+              Add the extended database
+            </button>
+          </div>
+        )}
+
+        <div className="hint">
+          {full
+            ? 'The extended database is loaded for this session. Search covers the full long tail of packaged products.'
+            : 'Every generic food and the most common packaged products are already on this device. The extended set adds 175,000 more niche products — a larger download, and heavier on memory.'}
         </div>
         <div className="hint">
           Anything you scan is checked for real nutrition data, then saved to this device
