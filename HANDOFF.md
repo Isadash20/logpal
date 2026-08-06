@@ -48,9 +48,11 @@ problem that bites Daily Planner does not apply.
 
 ## 3. Current state
 
-Four commits. **Two are unpushed** — `git push` to deploy them:
+Six commits. **Four are unpushed** — `git push` to deploy them:
 
 ```
+d6b0f14  Drop the last traces of the notes feature                ← unpushed
+fc98c85  Add HANDOFF.md                                           ← unpushed
 700fbba  Restructure navigation, sharpen goals, surface fasting   ← unpushed
 5456dcb  Recolour macros to the calorie accent's family           ← unpushed
 565e8e1  Rename FitLog to LogPal
@@ -59,13 +61,14 @@ e087a77  FitLog: calorie and nutrition tracker
 
 39 TypeScript files in `src/`, plus a 3.4 MB `public/food-db.json`.
 
-### Open question for the user
+### Notes — settled 2026-08-06
 
 They said "remove the notes section completely", then later — while describing
-Home's ordering — said "your weight, your notes". Notes were removed everywhere
-(Home, Diary, the add sheet, and the `NoteScreen` component). **This was
-flagged and is awaiting confirmation.** `DayLog.note` still exists in the data
-model, so restoring it is small.
+Home's ordering — said "your weight, your notes", which left it ambiguous.
+**Asked, and confirmed: remove it completely.** Notes is gone from the screens
+(Home, Diary, the add sheet, `NoteScreen`) *and* from the data model —
+`DayLog.note` and `setNote` are deleted. Saves written before this still carry
+a `note` key; nothing reads it, so it is inert.
 
 ---
 
@@ -335,8 +338,15 @@ survive it. If a click seems to do nothing, that's usually why, not a bug.
 - **Meal scan does not identify food from the photo.** No vision model. The
   estimate is from the typed description.
 - **Camera needs a secure context** — works on `localhost` and the Vercel https
-  URL, never over plain http on a LAN. The barcode scanner has not been verified
-  on a real device camera; that's still outstanding.
+  URL, never over plain http on a LAN. **The ZXing decode loop is still
+  unverified on a real device camera** — the in-app browser blocks camera
+  access, so it cannot be tested from here; it needs a phone against the Vercel
+  URL. Everything either side of the decode *is* verified (2026-08-06):
+  permission-denied falls back correctly, and manual entry →
+  Open Food Facts → food detail works, writing to `scannedBarcodes` and
+  `foodCache`. Camera and manual share one `resolve()`, so only the decode
+  itself is unproven. The ZXing version shipped in `e087a77` and is already
+  live — no push is needed to test it.
 - **Data is per-browser localStorage.** Phone and laptop don't share. Clearing
   site data wipes it. Settings → About → Export is the only backup.
 - Bulk food DB skews European in places — Open Food Facts is Europe-heavy,

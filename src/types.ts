@@ -297,7 +297,6 @@ export interface FastingSettings {
 
 export interface DayLog {
   water: number // ml
-  note: string
   completed: boolean
 }
 

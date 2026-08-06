@@ -149,7 +149,6 @@ interface Ctx {
   logExercise(e: Omit<ExerciseEntry, 'id' | 'loggedAt'> & { id?: string }): void
   deleteExercise(id: string): void
   setWater(date: string, ml: number): void
-  setNote(date: string, note: string): void
   setCompleted(date: string, done: boolean): void
   addWeight(date: string, lb: number): void
   deleteWeight(date: string): void
@@ -278,7 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const dayLog = useCallback(
-    (d: string): DayLog => data.days[d] ?? { water: 0, note: '', completed: false },
+    (d: string): DayLog => data.days[d] ?? { water: 0, completed: false },
     [data.days]
   )
 
@@ -451,18 +450,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setWater: (d0, ml) =>
       update((d) => {
-        d.days[d0] = { ...(d.days[d0] ?? { water: 0, note: '', completed: false }), water: Math.max(0, ml) }
-      }),
-
-    setNote: (d0, note) =>
-      update((d) => {
-        d.days[d0] = { ...(d.days[d0] ?? { water: 0, note: '', completed: false }), note }
+        d.days[d0] = { ...(d.days[d0] ?? { water: 0, completed: false }), water: Math.max(0, ml) }
       }),
 
     setCompleted: (d0, done) =>
       update((d) => {
         d.days[d0] = {
-          ...(d.days[d0] ?? { water: 0, note: '', completed: false }),
+          ...(d.days[d0] ?? { water: 0, completed: false }),
           completed: done,
         }
       }),
