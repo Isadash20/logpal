@@ -50,6 +50,16 @@ The `VITE_` trap from Daily Planner **does** apply now: Vite inlines these at
 *build* time, so setting them in Vercel does nothing until the next deploy.
 Leaving them unset is supported and runs the app device-local.
 
+**Live project:** `egqetljdvslvfdmnecfk` (org LogPal). Verified end to end on
+2026-08-06: sign-up, the localStorage lift, incremental upserts and deletes, a
+wipe-and-restore on a simulated second device, and sign-out. Row level security
+was checked by attempting an anonymous insert, which Postgres rejected (42501).
+
+Note that database also holds `habits`, `trackers`, `schedules`, `mental` from
+an abandoned Daily Planner setup. Unrelated and harmless — everything here is
+prefixed `logpal_` — but it is not a clean database, so do not assume a table
+without the prefix belongs to this app.
+
 ### Supabase setup, from scratch
 
 1. Create a project at supabase.com. Save the database password.
