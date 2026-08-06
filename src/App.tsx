@@ -10,6 +10,7 @@ import { MealScan } from './screens/MealScan'
 import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
 import {
   About,
+  Account,
   FoodsHub,
   More,
   PlanHub,
@@ -35,6 +36,8 @@ import {
 import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
 import { BarcodeScanner } from './screens/Scanner'
 import { Fasting } from './screens/Fasting'
+import { Auth } from './screens/Auth'
+import { cloudEnabled } from './lib/supabase'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
   { key: 'today', label: 'Home', icon: 'home' },
@@ -46,6 +49,7 @@ const TABS: { key: TabKey; label: string; icon: IconName }[] = [
 function Shell() {
   const app = useApp()
   const { route, activeTab, setTab, profile, settings, date } = app
+  const { session, authReady, localOnly, setLocalOnly } = app
   const [addOpen, setAddOpen] = useState(false)
 
   /* Theme is applied to <html> so the tokens cascade everywhere, including
@@ -61,6 +65,22 @@ function Shell() {
     media.addEventListener('change', apply)
     return () => media.removeEventListener('change', apply)
   }, [settings.theme])
+
+  /* Auth gates the app only when the build actually has Supabase credentials.
+     Without them LogPal is the local-only app it has always been, and showing
+     a sign-in screen nobody could get past would be worse than useless. */
+  if (cloudEnabled()) {
+    // Blank rather than a spinner: the session check reads localStorage and
+    // resolves in a few milliseconds, and a flashed spinner reads as jank.
+    if (!authReady) return <div className="app" />
+    if (!session && !localOnly) {
+      return (
+        <div className="app">
+          <Auth onSkip={() => setLocalOnly(true)} />
+        </div>
+      )
+    }
+  }
 
   if (!profile.onboarded) return <Onboarding />
 
@@ -193,6 +213,9 @@ function Shell() {
 
       case 'prefsFoodDb':
         return <PrefsFoodDb />
+
+      case 'account':
+        return <Account />
 
       case 'prefsAppearance':
         return <PrefsAppearance />

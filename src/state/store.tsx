@@ -26,8 +26,14 @@ import type {
   WeightEntry,
 } from '../types'
 import { MEAL_KEYS, periodForDate } from '../types'
+import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
+import { cloudEnabled, supabase } from '../lib/supabase'
+import { deleteAll, fetchAll, pushChanges } from '../services/cloud'
 import { today } from '../lib/dates'
+
+/** Set when someone declines an account; keeps them out of the auth screen. */
+const LOCAL_ONLY_KEY = 'logpal.localOnly'
 import { uid } from '../lib/id'
 import {
   age as ageOf,
@@ -86,6 +92,7 @@ export type Route =
   | { name: 'prefsProfile' }
   | { name: 'prefsUnits' }
   | { name: 'prefsFoodDb' }
+  | { name: 'account' }
   | { name: 'prefsAppearance' }
   | { name: 'about' }
 
@@ -170,6 +177,20 @@ interface Ctx {
   deleteRecipe(id: string): void
   logItems(items: MealItem[], date: string, source: Food['source']): void
   resetAll(): void
+
+  // account + sync
+  /** Null when signed out, or when the app has no Supabase credentials. */
+  session: Session | null
+  /** False until the initial session check completes; gates the auth screen. */
+  authReady: boolean
+  /** True while the first cloud read of a session is in flight. */
+  syncing: boolean
+  /** Last sync failure, or null. Changes are kept locally and retried. */
+  syncError: string | null
+  signOut(): Promise<void>
+  /** True when the user chose to carry on without an account on this device. */
+  localOnly: boolean
+  setLocalOnly(v: boolean): void
 }
 
 const AppContext = createContext<Ctx | null>(null)
@@ -183,19 +204,116 @@ export function useApp(): Ctx {
 /* -------------------------------------------------------------- provider -- */
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  /* Local storage is still the source of truth at startup, even with an
+     account. It is synchronous, so the app paints real data immediately
+     instead of a spinner, and it keeps working with no connection. The cloud
+     copy is reconciled in behind it. */
   const [data, setData] = useState<AppData>(() => localAdapter.load() ?? defaultData())
   const [date, setDate] = useState(today())
   const [activeTab, setActiveTab] = useState<TabKey>('today')
   const [stack, setStack] = useState<Route[]>([{ name: 'tab', tab: 'today' }])
 
+  /* Remembered per device, so someone who declined an account is not asked
+     again on every load. Cleared from Settings when they want to sign in. */
+  const [localOnly, setLocalOnlyState] = useState(
+    () => localStorage.getItem(LOCAL_ONLY_KEY) === '1',
+  )
+  const setLocalOnly = useCallback((v: boolean) => {
+    if (v) localStorage.setItem(LOCAL_ONLY_KEY, '1')
+    else localStorage.removeItem(LOCAL_ONLY_KEY)
+    setLocalOnlyState(v)
+  }, [])
+
+  const [session, setSession] = useState<Session | null>(null)
+  const [authReady, setAuthReady] = useState(!cloudEnabled())
+  const [syncing, setSyncing] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
+
+  /* The last snapshot known to match the server. `pushChanges` diffs against
+     it, so it must only advance when a push actually succeeds — otherwise a
+     failed write is silently forgotten and that change never reaches the
+     cloud. */
+  const syncedRef = useRef<AppData | null>(null)
+  /* Set while the initial cloud read is replacing local state, to stop the
+     save effect from immediately pushing that same data back up. */
+  const hydratingRef = useRef(false)
+
+  useEffect(() => {
+    if (!supabase) return
+    supabase.auth.getSession().then(({ data: d }) => {
+      setSession(d.session)
+      setAuthReady(true)
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  /* On sign-in, reconcile with the cloud.
+
+     An empty cloud means this account has never synced, so whatever is on this
+     device is lifted up rather than being wiped by an empty server — that is
+     the upgrade path from the localStorage-only version. Otherwise the cloud
+     copy wins, because it is the one that has seen every device. */
+  const userId = session?.user.id ?? null
+  useEffect(() => {
+    if (!userId) {
+      syncedRef.current = null
+      return
+    }
+    let live = true
+    setSyncing(true)
+    setSyncError(null)
+    ;(async () => {
+      try {
+        const remote = await fetchAll()
+        if (!live) return
+        if (remote) {
+          hydratingRef.current = true
+          setData(remote)
+          syncedRef.current = remote
+          localAdapter.save(remote)
+        } else {
+          const local = localAdapter.load() ?? defaultData()
+          await pushChanges(null, local)
+          if (!live) return
+          syncedRef.current = local
+        }
+      } catch (err) {
+        if (live) setSyncError((err as Error).message)
+      } finally {
+        if (live) setSyncing(false)
+      }
+    })()
+    return () => {
+      live = false
+    }
+  }, [userId])
+
   // Persist on every change. Debounced so rapid edits (sliders, steppers)
-  // don't thrash localStorage.
+  // don't thrash localStorage or fire a request per keystroke.
   const saveTimer = useRef<number | undefined>(undefined)
   useEffect(() => {
     window.clearTimeout(saveTimer.current)
-    saveTimer.current = window.setTimeout(() => localAdapter.save(data), 250)
+    saveTimer.current = window.setTimeout(() => {
+      localAdapter.save(data)
+
+      if (hydratingRef.current) {
+        // This render is the cloud read landing, not a user edit.
+        hydratingRef.current = false
+        return
+      }
+      if (!userId || !cloudEnabled()) return
+
+      const from = syncedRef.current
+      pushChanges(from, data)
+        .then(() => {
+          syncedRef.current = data
+          setSyncError(null)
+        })
+        .catch((err) => setSyncError((err as Error).message))
+    }, 250)
     return () => window.clearTimeout(saveTimer.current)
-  }, [data])
+  }, [data, userId])
 
   const update = useCallback((fn: (d: AppData) => void) => {
     setData((prev) => {
@@ -578,8 +696,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }),
 
     resetAll: () => {
+      const fresh = defaultData()
       localAdapter.clear()
-      setData(defaultData())
+      setData(fresh)
+      setStack([{ name: 'tab', tab: 'today' }])
+      setActiveTab('today')
+
+      /* Clearing only this device would be a lie when there is an account —
+         the next sync would pull everything straight back down. Marking the
+         cloud as empty afterwards stops the save effect from re-uploading the
+         blank slate as a diff against stale state. */
+      if (userId && cloudEnabled()) {
+        deleteAll()
+          .then(() => {
+            syncedRef.current = null
+            setSyncError(null)
+          })
+          .catch((err) => setSyncError((err as Error).message))
+      }
+    },
+
+    session,
+    authReady,
+    syncing,
+    syncError,
+    localOnly,
+    setLocalOnly,
+    signOut: async () => {
+      if (!supabase) return
+      await supabase.auth.signOut()
+      // Drop back to whatever this device holds, rather than showing another
+      // account's data until the next load.
+      syncedRef.current = null
+      setLocalOnly(false)
+      setData(localAdapter.load() ?? defaultData())
       setStack([{ name: 'tab', tab: 'today' }])
       setActiveTab('today')
     },

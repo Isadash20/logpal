@@ -41,17 +41,37 @@ the harness resolves launch configs from the primary working directory, which is
 `daily_planner`. If the preview opens Daily Planner instead of LogPal, that's
 why — start the preview by the name `logpal`.
 
-**No environment variables.** There is no Supabase here, so the `VITE_` prefix
-problem that bites Daily Planner does not apply.
+**Environment variables.** `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`,
+in `.env.local` for development and in the Vercel project settings for
+production. Copy `.env.example`. Both are safe in a browser bundle — the anon
+key only grants what row level security allows.
+
+The `VITE_` trap from Daily Planner **does** apply now: Vite inlines these at
+*build* time, so setting them in Vercel does nothing until the next deploy.
+Leaving them unset is supported and runs the app device-local.
+
+### Supabase setup, from scratch
+
+1. Create a project at supabase.com. Save the database password.
+2. SQL Editor → paste all of `supabase/schema.sql` → Run. Idempotent, so it is
+   safe to re-run after edits.
+3. Authentication → Sign In / Providers → enable **Email**, and enable
+   **Google** (needs a Google OAuth client; the callback URL is shown there).
+4. Authentication → URL Configuration → set Site URL to the Vercel URL and add
+   `http://localhost:5180` to Redirect URLs, or Google sign-in bounces to the
+   wrong origin in development.
+5. Project Settings → API → copy the Project URL and the **anon public** key
+   into `.env.local` and into Vercel. Never the `service_role` key.
 
 ---
 
 ## 3. Current state
 
-Seven commits. **Five are unpushed** — `git push` to deploy them:
+Eight commits. **Six are unpushed** — `git push` to deploy them:
 
 ```
-(head)   Rebuild the food database from USDA FoodData Central     ← unpushed
+(head)   Sync to Supabase behind accounts                         ← unpushed
+7afea2a  Rebuild the food database from USDA FoodData Central     ← unpushed
 d6b0f14  Drop the last traces of the notes feature                ← unpushed
 fc98c85  Add HANDOFF.md                                           ← unpushed
 700fbba  Restructure navigation, sharpen goals, surface fasting   ← unpushed
@@ -81,17 +101,37 @@ are hand-written inline SVG.
 **Only two runtime dependencies beyond React:** `@zxing/browser` and
 `@zxing/library`, for barcode decoding. No UI kit, no chart library, no router.
 
-### Storage
+### Storage — local first, cloud behind it
 
-Everything is in `localStorage` under key **`logpal.v1`**, behind the
-`PersistenceAdapter` interface in `src/lib/storage.ts`. `load()` migrates from
-the legacy `fitlog.v1` key on first run and leaves the old key in place.
+`localStorage` under key **`logpal.v1`** is still the startup source of truth,
+even with an account: it is synchronous, so the app paints real data instead of
+a spinner, and it keeps working offline. `load()` migrates from the legacy
+`fitlog.v1` key on first run and leaves the old key in place.
 
-`migrate()` in the same file backfills fields added after a user's data was
-written — always add new `AppData` fields there or old saves crash.
+`migrate()` in `src/lib/storage.ts` backfills fields added after a user's data
+was written — always add new `AppData` fields there or old saves crash.
 
-**To move to Supabase later:** make `load`/`save` async, add a `user_id`, await
-them in the store. No screen changes needed. That was the point of the adapter.
+**Supabase** (`src/services/cloud.ts`) syncs on top. Signing in reconciles:
+
+- Cloud has data → it wins, because it has seen every device.
+- Cloud is empty → this device's data is uploaded. That is the upgrade path
+  from the localStorage-only version, and it is why an empty server never
+  wipes a device.
+
+The original plan in this document was "make `load`/`save` async and add a
+`user_id`". That was wrong, and it is worth saying why: a whole-blob save is
+last-write-wins, so logging breakfast on a phone and lunch on a laptop loses
+one of them. Instead the store is untouched and `pushChanges(prev, next)` diffs
+two `AppData` snapshots and writes only the rows that differ. One code path
+rather than thirty hand-wired mutations, and a mutation added later syncs
+itself as long as it goes through `update()`.
+
+`src/services/cloud.test.ts` covers the differ — `npm test`. It is the code
+that can silently lose a diary, so change it with tests rather than by eye.
+
+**Without `VITE_` credentials the app runs exactly as it did before sync** —
+signed out, device-local, no auth screen. Deliberate: a misconfigured deploy
+degrades instead of showing a white screen.
 
 ### Navigation
 
@@ -331,7 +371,10 @@ src/
     seedFoods.ts            324 curated foods
     exercises.ts            70 cardio (MET) + 60 strength
     nutrients.ts            17 nutrients, order, daily values
+  lib/supabase.ts           client, or null when unconfigured
   services/
+    cloud.ts                snapshot differ, fetchAll, pushChanges
+    cloud.test.ts           differ tests — npm test
     openFoodFacts.ts        live search + barcode, cache + throttle
     foodDb.ts               two-stage loader, packed rows, lazy unpack
     foodSearch.ts           local ranking, aliases, plural handling
@@ -339,6 +382,7 @@ src/
   components/
     Icon.tsx charts.tsx ui.tsx nutrition.tsx
   screens/                  one file per screen
+supabase/schema.sql         tables + row level security
 scripts/                    build-usda-db.mjs (ships the DB),
                             build-food-db.mjs + trim-food-db.mjs (OFF, legacy)
 public/food-db.json         58k core foods
@@ -387,8 +431,14 @@ survive it. If a click seems to do nothing, that's usually why, not a bug.
   `foodCache`. Camera and manual share one `resolve()`, so only the decode
   itself is unproven. The ZXing version shipped in `e087a77` and is already
   live — no push is needed to test it.
-- **Data is per-browser localStorage.** Phone and laptop don't share. Clearing
-  site data wipes it. Settings → About → Export is the only backup.
+- **Sync is last-write-wins per row, not a merge.** Two devices editing the
+  *same* entry at the same time: the later write survives. Different entries,
+  different days and offline edits are all fine, because the diff is per row.
+- **Signed out, data is per-browser localStorage.** Phone and laptop don't
+  share, and clearing site data wipes it. Settings → About → Export is the only
+  backup in that mode.
+- **The cloud read fetches a user's whole history** on sign-in. Fine for years
+  of diary; if it ever isn't, `fetchAll` is where to add a date window.
 - The offline database is US-centric now that it comes from USDA. Non-US
   packaged goods rely on live Open Food Facts, which is rate-limited.
 - **Open Food Facts search is the weak link.** ~10 searches per minute per IP,

@@ -20,6 +20,7 @@ import {
   loadFoodDb,
   onFoodDbGrown,
 } from '../services/foodDb'
+import { cloudEnabled } from '../lib/supabase'
 
 /* ------------------------------------------------------------------ hub -- */
 
@@ -28,7 +29,7 @@ import {
  * screen holds one decision comfortably and about forty badly.
  */
 export function More() {
-  const { push, profile, settings, data, plan } = useApp()
+  const { push, profile, settings, data, plan, session, syncing, syncError } = useApp()
 
   return (
     <>
@@ -94,6 +95,22 @@ export function More() {
           }
           onClick={() => push({ name: 'fasting' })}
         />
+        {cloudEnabled() && (
+          <Banner
+            icon="user"
+            title="Account"
+            sub={
+              syncError
+                ? 'Sync problem — tap for details'
+                : session
+                  ? syncing
+                    ? 'Syncing…'
+                    : (session.user.email ?? 'Signed in')
+                  : 'Not signed in — this device only'
+            }
+            onClick={() => push({ name: 'account' })}
+          />
+        )}
         <Banner
           icon="user"
           title="Profile"
@@ -421,6 +438,75 @@ export function PrefsUnits() {
           pop()
         }}
       />
+    </>
+  )
+}
+
+/* -------------------------------------------------------------- account -- */
+
+export function Account() {
+  const { pop, session, syncing, syncError, signOut, setLocalOnly, data } = useApp()
+
+  const logged =
+    data.foodEntries.length + data.exerciseEntries.length + data.weights.length
+
+  return (
+    <>
+      <TopBar title="Account" onBack={pop} solid />
+      <div className="scroll">
+        {session ? (
+          <>
+            <div className="card" style={{ marginTop: 12 }}>
+              <Row title="Signed in as" value={session.user.email ?? '—'} />
+              <Row
+                title="Sync"
+                value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
+              />
+              <Row title="Records synced" value={logged.toLocaleString()} />
+            </div>
+
+            {syncError && (
+              <div className="hint" style={{ color: 'var(--danger)' }}>
+                {syncError}
+              </div>
+            )}
+            <div className="hint">
+              {syncError
+                ? 'Your changes are saved on this device and will be retried automatically. Nothing has been lost.'
+                : 'Your diary, weight, measurements, fasts, custom foods and recipes sync to every device you sign in on.'}
+            </div>
+
+            <div className="btn-wrap">
+              <button className="btn btn--ghost" onClick={() => void signOut()}>
+                Sign out
+              </button>
+            </div>
+            <div className="hint" style={{ color: 'var(--text-3)' }}>
+              Signing out leaves this device's copy in place. It does not delete
+              anything from your account.
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="card" style={{ marginTop: 12 }}>
+              <Row title="Status" value="This device only" />
+              <Row title="Records held" value={logged.toLocaleString()} />
+            </div>
+            <div className="hint">
+              You are using LogPal without an account. Everything works, but the
+              diary lives only in this browser — clearing site data erases it, and
+              your phone and laptop do not share.
+            </div>
+            <div className="btn-wrap">
+              {/* Clearing the flag drops back to the auth screen, and whatever
+                  is on this device is lifted up on first sign-in. */}
+              <button className="btn" onClick={() => setLocalOnly(false)}>
+                Sign in to sync
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </>
   )
 }
