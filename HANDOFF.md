@@ -50,6 +50,37 @@ The `VITE_` trap from Daily Planner **does** apply now: Vite inlines these at
 *build* time, so setting them in Vercel does nothing until the next deploy.
 Leaving them unset is supported and runs the app device-local.
 
+### The two-hour bug, so nobody repeats it
+
+Google sign-in appeared broken for a long stretch. It was never broken. The
+Vercel environment variable `VITE_SUPABASE_ANON_KEY` had been set to the *shell
+command that copies the key* rather than the key, so the production bundle
+shipped a string beginning `grep VITE_SUPABASE_ANON_KEY ~/…| pbcopy` as its
+credential. Supabase answered every authenticated call with **`Invalid API
+key`**, which meant OAuth completed, returned a valid session, and the client
+refused it.
+
+Three things made it take far longer than it should have:
+
+- The error was caught and swallowed, so nothing surfaced `Invalid API key`.
+  **Surface the server's error before theorising about the symptom.**
+- It worked locally and failed in production, because `.env.local` held the
+  real key. A dev/prod split like that points at configuration, not code.
+- There was no way to tell which commit a deployment was running, so a fix was
+  twice declared verified against a build that did not contain it.
+
+Hence `__BUILD_SHA__` (see `vite.config.ts`), shown on Settings → About. To
+check what production is actually running:
+
+```bash
+curl -s https://logpal-two.vercel.app/ | grep -o '/assets/[^"]*\.js' |
+  xargs -I{} curl -s https://logpal-two.vercel.app{} | grep -c '<sha>'
+```
+
+A sanity check worth keeping: the deployed bundle should contain a JWT whose
+payload decodes to `role: anon`. If it contains no JWT at all, the environment
+variable is wrong.
+
 **Live project:** `egqetljdvslvfdmnecfk` (org LogPal). Verified end to end on
 2026-08-06: sign-up, the localStorage lift, incremental upserts and deletes, a
 wipe-and-restore on a simulated second device, and sign-out. Row level security
