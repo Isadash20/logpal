@@ -184,3 +184,72 @@ begin
     );
   end loop;
 end $$;
+
+-- ------------------------------------------------------------- usernames --
+
+-- Usernames are a second identity alongside the email address: unique, chosen
+-- at sign-up, and the handle other people will eventually search for.
+--
+-- Kept in their own table rather than as a column on logpal_profile because
+-- this one is deliberately world-readable. Uniqueness has to be enforceable
+-- across accounts, and a friend search has to be able to see other people's
+-- handles — neither works under a policy that hides every row but your own.
+--
+-- Note what is NOT here: no email, no display name, nothing but the handle and
+-- the id it belongs to.
+create table if not exists logpal_usernames (
+  username   text primary key,
+  user_id    uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  -- One handle per account.
+  unique (user_id)
+);
+
+alter table logpal_usernames enable row level security;
+
+-- Anyone may look a handle up; only its owner may create or change it.
+drop policy if exists usernames_readable on logpal_usernames;
+create policy usernames_readable on logpal_usernames for select using (true);
+
+drop policy if exists usernames_own_write on logpal_usernames;
+create policy usernames_own_write on logpal_usernames for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists usernames_own_update on logpal_usernames;
+create policy usernames_own_update on logpal_usernames for update
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Case-insensitive uniqueness: "Phillip" and "phillip" are the same handle.
+create unique index if not exists logpal_usernames_lower
+  on logpal_usernames (lower(username));
+
+/*
+ * Resolves a handle to the address its account signs in with.
+ *
+ * Signing in by username needs this because Supabase authenticates on email —
+ * the client has to turn one into the other before it can call
+ * signInWithPassword.
+ *
+ * SECURITY DEFINER, so it can read auth.users, which is otherwise unreachable
+ * from the client. It returns exactly one column for exactly one row and takes
+ * no other input, so it cannot be used to enumerate the table.
+ *
+ * The trade-off is real and worth stating plainly: anyone who knows a handle
+ * can learn the address behind it. That is the cost of username sign-in
+ * without a server, and it is why the function exposes nothing else.
+ */
+create or replace function email_for_username(handle text)
+returns text
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select u.email
+  from logpal_usernames n
+  join auth.users u on u.id = n.user_id
+  where lower(n.username) = lower(trim(handle))
+  limit 1
+$$;
+
+revoke all on function email_for_username(text) from public;
+grant execute on function email_for_username(text) to anon, authenticated;
