@@ -50,6 +50,16 @@ export const supabase: SupabaseClient | null =
  * Returns true when a session was established.
  */
 export async function consumeAuthFragment(): Promise<boolean> {
+  // TEMPORARY diagnostic breadcrumbs. Production behaves differently from dev
+  // and three rounds of inference have been wrong, so record what actually
+  // happens. Removed once the cause is known.
+  const trail: string[] = []
+  const note = (m: string) => {
+    trail.push(m)
+    try { window.localStorage.setItem(`logpal.authTrace`, JSON.stringify(trail)) } catch { /* ignore */ }
+  }
+  note(`enter hash=${window.location.hash.length} search=${window.location.search.length}`)
+  note(`client=${supabase ? 'yes' : 'no'}`)
   if (!supabase) return false
 
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
@@ -57,7 +67,8 @@ export async function consumeAuthFragment(): Promise<boolean> {
   const access_token = hash.get('access_token')
   const refresh_token = hash.get('refresh_token')
   const code = query.get('code')
-  if (!access_token && !code) return false
+  note(`parsed at=${!!access_token} rt=${!!refresh_token} code=${!!code}`)
+  if (!access_token && !code) { note('early-return'); return false }
 
   const clear = () => window.history.replaceState({}, '', window.location.pathname)
 
@@ -65,6 +76,7 @@ export async function consumeAuthFragment(): Promise<boolean> {
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({ access_token, refresh_token })
       if (error) throw error
+      note('setSession ok')
       return true
     }
     if (code) {
@@ -73,9 +85,8 @@ export async function consumeAuthFragment(): Promise<boolean> {
       return true
     }
     return false
-  } catch {
-    // A stale or half-formed return is not worth blocking startup over; the
-    // sign-in screen is the right place to land.
+  } catch (e) {
+    note(`threw ${(e as Error)?.message ?? String(e)}`)
     return false
   } finally {
     // Cleared either way, so a reload cannot replay a spent token and the
