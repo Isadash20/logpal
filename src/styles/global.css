@@ -981,3 +981,126 @@ button.row:active {
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
+
+/* ------------------------------------------------------------------ auth -- */
+
+/* Sign-in gets its own input vocabulary rather than reusing `.field`/`.input`.
+   Those are built for settings rows — label on the left, value right-aligned in
+   the tabular-numeral font — which is right for "Weight  174 lb" and wrong for
+   an email address, where it reads as a broken value instead of something you
+   type into. Credentials want a stacked label and a box with visible edges. */
+
+.auth {
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.auth__head {
+  padding: 44px 18px 4px;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.auth__sub {
+  padding: 0 18px 22px;
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.authfield {
+  display: block;
+  padding: 0 18px 12px;
+}
+
+.authfield__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.authinput {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text);
+  /* 16px is the floor that stops iOS Safari zooming the page on focus. */
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.authinput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* Separates the two ways in, so Google doesn't read as a third field. */
+.auth__or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 18px 14px;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+.auth__or::before,
+.auth__or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Secondary actions are links, not more pills. Four identical full-width
+   buttons gave every choice the same weight as signing in. */
+.linkbtn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: none;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.linkbtn--quiet {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.auth__error {
+  margin: 0 18px 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.auth__notice {
+  margin: 0 18px 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.auth__foot {
+  padding: 4px 18px 28px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
