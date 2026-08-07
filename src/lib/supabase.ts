@@ -45,6 +45,23 @@ export async function consumeAuthFragment(): Promise<boolean> {
   const hash = window.location.hash.replace(/^#/, '')
   if (!hash.includes('access_token')) return false
 
+  const clear = () =>
+    window.history.replaceState({}, '', window.location.pathname + window.location.search)
+
+  /* Ask for the session first, and not just as an optimisation.
+     `detectSessionInUrl` means the client may already be reading this very
+     fragment, and both paths spend the same single-use refresh token — so
+     whichever finishes second fails. Calling getSession() first is what
+     resolves it: internally it awaits the client's initialisation, so by the
+     time it answers, the built-in handling has either claimed the fragment or
+     declined it. Racing it produced a fix that worked locally and failed in
+     production, which is the worst possible outcome. */
+  const { data } = await supabase.auth.getSession()
+  if (data.session) {
+    clear()
+    return true
+  }
+
   const params = new URLSearchParams(hash)
   const access_token = params.get('access_token')
   const refresh_token = params.get('refresh_token')
@@ -61,7 +78,7 @@ export async function consumeAuthFragment(): Promise<boolean> {
   } finally {
     // Cleared either way, so a reload cannot replay a spent token, and so the
     // address bar stops showing a credential.
-    window.history.replaceState({}, '', window.location.pathname + window.location.search)
+    clear()
   }
 }
 
