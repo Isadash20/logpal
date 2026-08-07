@@ -3,21 +3,16 @@ import { MEAL_KEYS, PERIOD_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { TopBar } from '../components/ui'
-import { FastDial, FastHistoryBars, WeekStrip } from '../components/charts'
+import { WeekStrip } from '../components/charts'
 import { cal, weight as fmtWeight } from '../lib/format'
 import { addDays, longDate, today } from '../lib/dates'
 import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import {
-  PROTOCOL_BY_KEY,
   activeFast,
-  completedFasts,
   fastElapsedMs,
   fastProgress,
   fastStats,
-  formatClock,
   formatDuration,
-  targetHoursFor,
-  windowFor,
 } from '../lib/fasting'
 
 /**
@@ -57,21 +52,53 @@ export function Today() {
   const share = (v: number) => (macroTotal > 0 ? (v / macroTotal) * 100 : 0)
 
   const week = useMemo(() => {
-    const out: { label: string; logged: boolean; date: string; today?: boolean }[] = []
+    const out: {
+      label: string
+      logged: boolean
+      date: string
+      selected?: boolean
+      isToday?: boolean
+    }[] = []
     // Monday-first, matching the reference app's default week start.
     const d0 = new Date(date + 'T00:00:00')
     const offset = (d0.getDay() + 6) % 7
+    const realToday = today()
     for (let i = 0; i < 7; i++) {
       const d = addDays(date, i - offset)
       out.push({
         label: ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i],
         logged: totalsFor(d).nutrients.calories > 0,
         date: d,
-        today: d === date,
+        selected: d === date,
+        isToday: d === realToday,
       })
     }
     return out
   }, [date, totalsFor])
+
+  /**
+   * Consecutive days logged, counting back from today.
+   *
+   * A day counts as logged when it has calories on it — the same rule the week
+   * strip ticks use, so the streak can never disagree with the row of circles
+   * directly above it.
+   *
+   * Counting starts at yesterday when today has nothing on it yet. Anchoring on
+   * today would reset a long streak to zero every midnight and only restore it
+   * after the first meal, which reads as losing the streak for breakfast.
+   */
+  const logStreak = useMemo(() => {
+    const realToday = today()
+    const loggedOn = (d: string) => totalsFor(d).nutrients.calories > 0
+    let cursor = loggedOn(realToday) ? realToday : addDays(realToday, -1)
+    let count = 0
+    // Bounded so a corrupt date can never spin here forever.
+    while (count < 3650 && loggedOn(cursor)) {
+      count++
+      cursor = addDays(cursor, -1)
+    }
+    return count
+  }, [totalsFor])
 
   /* Only tick while a fast is actually running — no timer otherwise. */
   const fast = activeFast(data.fasts)
@@ -82,14 +109,6 @@ export function Today() {
     return () => window.clearInterval(t)
   }, [fast])
 
-  const fastBars = useMemo(
-    () =>
-      completedFasts(data.fasts)
-        .slice(0, 7)
-        .reverse()
-        .map((f) => ({ hours: fastElapsedMs(f) / 3_600_000, target: f.targetHours })),
-    [data.fasts]
-  )
   const fastStreak = useMemo(() => fastStats(data.fasts).streak, [data.fasts])
 
   const lastWeigh = [...data.weights].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
@@ -118,7 +137,17 @@ export function Today() {
       />
 
       <div className="scroll">
-        <div className="pagetitle">{date === today() ? 'Today' : longDate(date)}</div>
+        <div className="pagetitle">
+          {date === today() ? 'Today' : longDate(date)}
+          {/* Only from one day — a streak of zero is not worth a badge, and
+              showing "0" on day one is discouraging rather than motivating. */}
+          {logStreak > 0 && (
+            <span className="streak" title={`${logStreak} days logged in a row`}>
+              <Icon name="flame" size={14} />
+              <span className="num">{logStreak}</span>
+            </span>
+          )}
+        </div>
 
         <div style={{ padding: '0 12px 16px' }}>
           <WeekStrip days={week} onPick={setDate} />
@@ -236,6 +265,82 @@ export function Today() {
           </div>
         </div>
 
+        {/* ------------------------------------------------ fasting + water -- */}
+        {/* Both used to sit below the diary, which on a phone meant scrolling
+            past four meal cards to reach them — so in practice they were never
+            seen. Promoted to a pair of tiles directly under the macros, each
+            one a single tap through to its own screen. */}
+        <div className="tilerow">
+          <button className="tile" onClick={() => push({ name: 'fasting' })}>
+            <span className="tile__head">
+              <Icon name="clock" size={15} />
+              Fasting
+            </span>
+            {fast ? (
+              <>
+                <span className="tile__value">
+                  <span className="num">{formatDuration(fastElapsedMs(fast, fastNow))}</span>
+                </span>
+                <span className="tile__sub">of {fast.targetHours}h target</span>
+                <span className="tile__bar">
+                  <span
+                    className="tile__fill"
+                    style={{
+                      width: `${Math.min(100, fastProgress(fast, fastNow) * 100)}%`,
+                      background:
+                        fastProgress(fast, fastNow) >= 1
+                          ? 'var(--positive)'
+                          : 'var(--accent)',
+                    }}
+                  />
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="tile__value">
+                  <span className="num">{fastStreak}</span>
+                  <span className="tile__unit">
+                    {fastStreak === 1 ? 'day streak' : 'day streak'}
+                  </span>
+                </span>
+                <span className="tile__sub">
+                  {data.fasts.length ? 'Not fasting — tap to start' : 'Tap to start a fast'}
+                </span>
+                <span className="tile__bar">
+                  <span className="tile__fill" style={{ width: '0%' }} />
+                </span>
+              </>
+            )}
+          </button>
+
+          <button className="tile" onClick={() => push({ name: 'water', date })}>
+            <span className="tile__head">
+              <Icon name="water" size={15} />
+              Water
+            </span>
+            <span className="tile__value">
+              <span className="num">{fmtW(log.water)}</span>
+              <span className="tile__unit">
+                / {fmtW(waterTarget)} {waterUnitLabel(settings.waterUnit)}
+              </span>
+            </span>
+            <span className="tile__sub">
+              {log.water >= waterTarget
+                ? 'Goal reached'
+                : `${fmtW(Math.max(0, waterTarget - log.water))} to go`}
+            </span>
+            <span className="tile__bar">
+              <span
+                className="tile__fill"
+                style={{
+                  width: `${waterTarget > 0 ? Math.min(100, (log.water / waterTarget) * 100) : 0}%`,
+                  background: 'var(--water)',
+                }}
+              />
+            </span>
+          </button>
+        </div>
+
         {/* ---------------------------------------------------------- diary -- */}
         <div className="section-head">
           <span>Diary</span>
@@ -296,97 +401,13 @@ export function Today() {
           </button>
         </div>
 
-        {/* --------------------------------------------- intermittent fasting -- */}
-        <div className="section-head">
-          <span>Intermittent fasting</span>
-          <button
-            className="textbtn"
-            style={{ padding: 0 }}
-            onClick={() => push({ name: 'fasting' })}
-          >
-            {fast ? 'Open' : 'Set up'}
-          </button>
-        </div>
-
-        <button
-          className="card"
-          style={{ width: 'calc(100% - 28px)', textAlign: 'left', display: 'block', padding: 16 }}
-          onClick={() => push({ name: 'fasting' })}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <FastDial
-              progress={fast ? fastProgress(fast, fastNow) : 0}
-              complete={fast ? fastProgress(fast, fastNow) >= 1 : false}
-              center={
-                fast ? (
-                  <>
-                    <div
-                      className="num"
-                      style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.02em' }}
-                    >
-                      {formatDuration(fastElapsedMs(fast, fastNow))}
-                    </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-2)' }}>
-                      of {fast.targetHours}h
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="num" style={{ fontSize: 17, fontWeight: 800 }}>
-                      {PROTOCOL_BY_KEY[data.fasting.protocol].label}
-                    </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-2)' }}>plan</div>
-                  </>
-                )
-              }
-            />
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>
-                {fast
-                  ? fastProgress(fast, fastNow) >= 1
-                    ? 'Target reached'
-                    : 'Fasting now'
-                  : 'Not fasting'}
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 3 }}>
-                {fast
-                  ? `Started ${formatClock(fast.startedAt)} · ends ${formatClock(windowFor(fast).endsAt)}`
-                  : `Tap to start a ${targetHoursFor(data.fasting)}h fast`}
-              </div>
-
-              {fastBars.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <FastHistoryBars fasts={fastBars} />
-                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>
-                    Last {fastBars.length} fasts · {fastStreak} day streak
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </button>
-
         {/* ------------------------------------------------- healthy habits -- */}
         <div className="section-head">
           <span>Healthy habits</span>
         </div>
 
+        {/* Water is not repeated here — it has its own tile above the diary. */}
         <div className="card">
-          <button className="row" onClick={() => push({ name: 'water', date })}>
-            <span className="row__main">
-              <span className="row__title" style={{ display: 'block', fontWeight: 500 }}>
-                Water
-              </span>
-              <span className="row__sub" style={{ display: 'block' }}>
-                {fmtW(log.water)} of {fmtW(waterTarget)} {waterUnitLabel(settings.waterUnit)}
-                {log.water === 0 ? ' (you must be thirsty!)' : ''}
-              </span>
-            </span>
-            <span className="row__chev">
-              <Icon name="forward" size={17} strokeWidth={2.2} />
-            </span>
-          </button>
           <button
             className="row"
             onClick={() => push({ name: 'exerciseSearch', date, kind: 'cardio' })}

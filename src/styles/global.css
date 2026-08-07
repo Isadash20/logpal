@@ -1104,3 +1104,91 @@ button.row:active {
   line-height: 1.5;
   text-align: center;
 }
+
+/* Logging streak, beside the page title. Warm against the app's cool blues so
+   it reads as a reward rather than another piece of chrome. */
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px 3px 7px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: color-mix(in srgb, var(--gold) 62%, var(--text));
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  flex: none;
+}
+
+/* Paired tiles — intermittent fasting and water, side by side under the
+   macros. Both are whole-card buttons rather than cards containing buttons, so
+   the entire tile is the tap target on a phone. */
+.tilerow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 14px 14px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 14px;
+  min-height: 132px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  text-align: left;
+}
+
+.tile__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tile__value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.tile__unit {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.tile__sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.35;
+}
+
+.tile__bar {
+  /* Both this and the fill are spans; without an explicit display they stay
+     inline, where height is ignored and the bar renders as nothing. */
+  display: block;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.tile__fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  transition: width 0.25s ease;
+  border-radius: var(--r-full);
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
-import { Banner, Dialog, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
+import { Banner, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
 import { SEED_FOODS } from '../data/seedFoods'
 import {
   displayToIn,
@@ -138,7 +138,7 @@ export function More() {
         <Banner
           icon="info"
           title="About"
-          sub="Version, data sources, reset"
+          sub="Version and data sources"
           onClick={() => push({ name: 'about' })}
         />
       </div>
@@ -602,9 +602,13 @@ export function PrefsAppearance() {
 /* ---------------------------------------------------------------- about -- */
 
 export function About() {
-  const { pop, resetAll } = useApp()
-  const [confirmReset, setConfirmReset] = useState(false)
+  const { pop, session } = useApp()
 
+  /* No "reset all data" button here any more, by request. It was a one-tap
+     path to irreversibly deleting a diary, sitting on an otherwise harmless
+     information screen — and now that data syncs, it would wipe the account
+     rather than just this browser. Signing out is on the Account screen;
+     deleting an account is a deliberate enough act to belong elsewhere. */
   return (
     <>
       <TopBar title="About" onBack={pop} solid />
@@ -621,41 +625,12 @@ export function About() {
           estimates from standard equations — none of it is medical advice.
         </div>
 
-        <div className="btn-wrap">
-          <button className="btn btn--danger" onClick={() => setConfirmReset(true)}>
-            Reset all data
-          </button>
-        </div>
         <div className="hint">
-          Everything lives in this browser. Clearing site data or switching devices
-          starts you over.
+          {session
+            ? 'Your diary syncs to your account, so it follows you between devices.'
+            : 'You are signed out, so everything lives in this browser only. Clearing site data starts you over.'}
         </div>
       </div>
-
-      {confirmReset && (
-        <Dialog title="Reset everything?" onClose={() => setConfirmReset(false)}>
-          <div style={{ color: 'var(--text-2)', marginBottom: 16, fontSize: 14 }}>
-            This permanently deletes your diary, weight history, custom foods, recipes,
-            fasts and goals from this browser. It can&apos;t be undone.
-          </div>
-          <button
-            className="btn btn--danger"
-            onClick={() => {
-              resetAll()
-              setConfirmReset(false)
-            }}
-          >
-            Delete everything
-          </button>
-          <button
-            className="btn btn--ghost"
-            style={{ marginTop: 8 }}
-            onClick={() => setConfirmReset(false)}
-          >
-            Cancel
-          </button>
-        </Dialog>
-      )}
     </>
   )
 }

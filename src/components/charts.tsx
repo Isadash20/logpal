@@ -672,11 +672,33 @@ export function BarChart({
  * Weekday letters over plain circles: filled with a tick once the day has been
  * logged, hollow otherwise, with a marker dot above the selected day.
  */
-export function WeekStrip({
+export /**
+ * The week strip.
+ *
+ * Three states have to be readable at a glance, and they are easy to collapse
+ * into one another: a day that has been *logged*, the day being *viewed*, and
+ * the real calendar *today*. Logged alone filled the circle dark, so on a good
+ * week every circle looked identical and nothing said which one you were
+ * actually looking at.
+ *
+ * Logged fills dark; the viewed day fills in the accent with a ring around it,
+ * bright enough to stand out from a row of dark circles even when it is logged
+ * too; today keeps a dot above its letter, which matters once you navigate away
+ * from it.
+ */
+function WeekStrip({
   days,
   onPick,
 }: {
-  days: { label: string; logged: boolean; date: string; today?: boolean }[]
+  days: {
+    label: string
+    logged: boolean
+    date: string
+    /** The day currently being viewed. */
+    selected?: boolean
+    /** The real calendar today, which is not always the day being viewed. */
+    isToday?: boolean
+  }[]
   onPick?(date: string): void
 }) {
   return (
@@ -692,10 +714,16 @@ export function WeekStrip({
             alignItems: 'center',
             gap: 7,
           }}
-          aria-label={`${d.label}${d.logged ? ' — logged' : ''}`}
+          aria-label={
+            `${d.label}` +
+            (d.isToday ? ' — today' : '') +
+            (d.logged ? ' — logged' : '') +
+            (d.selected ? ' — selected' : '')
+          }
+          aria-current={d.selected ? 'date' : undefined}
         >
           <span style={{ position: 'relative', lineHeight: 1 }}>
-            {d.today && (
+            {d.isToday && (
               <span
                 style={{
                   position: 'absolute',
@@ -705,15 +733,15 @@ export function WeekStrip({
                   width: 4,
                   height: 4,
                   borderRadius: 999,
-                  background: 'var(--text-2)',
+                  background: d.selected ? 'var(--accent)' : 'var(--text-2)',
                 }}
               />
             )}
             <span
               style={{
                 fontSize: 13,
-                fontWeight: 500,
-                color: 'var(--text-2)',
+                fontWeight: d.selected ? 700 : 500,
+                color: d.selected ? 'var(--accent)' : 'var(--text-2)',
               }}
             >
               {d.label}
@@ -726,12 +754,20 @@ export function WeekStrip({
               borderRadius: 999,
               display: 'grid',
               placeItems: 'center',
-              background: d.logged ? 'var(--ink)' : 'transparent',
-              border: d.logged ? 'none' : '1.5px solid var(--border-strong)',
+              background: d.selected
+                ? 'var(--accent)'
+                : d.logged
+                  ? 'var(--ink)'
+                  : 'transparent',
+              border:
+                d.selected || d.logged ? 'none' : '1.5px solid var(--border-strong)',
+              /* The ring is what keeps the viewed day distinct when the whole
+                 week is logged and every other circle is already filled. */
+              boxShadow: d.selected ? '0 0 0 3px var(--accent-ring)' : 'none',
               color: '#fff',
             }}
           >
-            {d.logged && (
+            {d.logged ? (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
                   d="M20 6L9 17l-5-5"
@@ -741,7 +777,13 @@ export function WeekStrip({
                   strokeLinejoin="round"
                 />
               </svg>
-            )}
+            ) : d.selected ? (
+              // Nothing logged yet, so the circle would otherwise be a flat
+              // disc with no indication of what it is.
+              <span
+                style={{ width: 6, height: 6, borderRadius: 999, background: '#fff' }}
+              />
+            ) : null}
           </span>
           {i < 0 && null}
         </button>
