@@ -191,7 +191,28 @@ export function PlanHub() {
   const { pop, push, settings, profile, saveSettings, saveProfile, plan } = useApp()
   const unit = settings.waterUnit
   const shownWater = Math.round(mlToDisplay(plan.waterMl, unit) * 10) / 10
-  const override = profile.waterGoalOverrideMl
+
+  /* Held as a draft and only committed by the save bar. Every field here used
+     to write on each keystroke, so a mistyped digit in "minutes per workout"
+     was already saved — and, now that data syncs, already pushed to the
+     account — before you could correct it. Backing out discards. */
+  const [waterText, setWaterText] = useState(() =>
+    profile.waterGoalOverrideMl === undefined
+      ? ''
+      : String(Math.round(mlToDisplay(profile.waterGoalOverrideMl, unit) * 10) / 10),
+  )
+  const [addsExercise, setAddsExercise] = useState(settings.exerciseAddsCalories)
+  const [workouts, setWorkouts] = useState(String(profile.workoutsPerWeek))
+  const [minutes, setMinutes] = useState(String(profile.minutesPerWorkout))
+
+  const dirty =
+    addsExercise !== settings.exerciseAddsCalories ||
+    workouts !== String(profile.workoutsPerWeek) ||
+    minutes !== String(profile.minutesPerWorkout) ||
+    waterText !==
+      (profile.waterGoalOverrideMl === undefined
+        ? ''
+        : String(Math.round(mlToDisplay(profile.waterGoalOverrideMl, unit) * 10) / 10))
 
   return (
     <>
@@ -225,16 +246,8 @@ export function PlanHub() {
                 type="number"
                 inputMode="decimal"
                 placeholder={String(shownWater)}
-                value={
-                  override === undefined ? '' : Math.round(mlToDisplay(override, unit) * 10) / 10
-                }
-                onChange={(e) =>
-                  saveProfile({
-                    waterGoalOverrideMl: e.target.value
-                      ? displayToMl(parseFloat(e.target.value) || 0, unit)
-                      : undefined,
-                  })
-                }
+                value={waterText}
+                onChange={(e) => setWaterText(e.target.value)}
               />
               <span className="unit">{waterUnitLabel(unit)}</span>
             </span>
@@ -250,8 +263,8 @@ export function PlanHub() {
           <Toggle
             label="Add exercise calories to your goal"
             sub="When on, calories you burn increase what you can eat that day."
-            checked={settings.exerciseAddsCalories}
-            onChange={(v) => saveSettings({ exerciseAddsCalories: v })}
+            checked={addsExercise}
+            onChange={setAddsExercise}
           />
           <label className="field">
             <span className="field__label">Workouts per week</span>
@@ -260,8 +273,8 @@ export function PlanHub() {
                 className="input"
                 type="number"
                 inputMode="numeric"
-                value={profile.workoutsPerWeek}
-                onChange={(e) => saveProfile({ workoutsPerWeek: parseInt(e.target.value) || 0 })}
+                value={workouts}
+                onChange={(e) => setWorkouts(e.target.value)}
               />
             </span>
           </label>
@@ -272,13 +285,28 @@ export function PlanHub() {
                 className="input"
                 type="number"
                 inputMode="numeric"
-                value={profile.minutesPerWorkout}
-                onChange={(e) => saveProfile({ minutesPerWorkout: parseInt(e.target.value) || 0 })}
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value)}
               />
             </span>
           </label>
         </div>
       </div>
+
+      <SaveBar
+        disabled={!dirty}
+        onSave={() => {
+          saveSettings({ exerciseAddsCalories: addsExercise })
+          saveProfile({
+            workoutsPerWeek: parseInt(workouts) || 0,
+            minutesPerWorkout: parseInt(minutes) || 0,
+            waterGoalOverrideMl: waterText
+              ? displayToMl(parseFloat(waterText) || 0, unit)
+              : undefined,
+          })
+          pop()
+        }}
+      />
     </>
   )
 }
@@ -530,6 +558,9 @@ export function PrefsFoodDb() {
     return onFoodDbGrown(sync)
   }, [])
 
+  // Draft until saved, like every other preferences screen.
+  const [useOff, setUseOff] = useState(settings.useOpenFoodFacts)
+
   return (
     <>
       <TopBar title="Food database" onBack={pop} solid />
@@ -538,8 +569,8 @@ export function PrefsFoodDb() {
           <Toggle
             label="Search Open Food Facts"
             sub="Adds live product search and barcode lookup. Needs a connection."
-            checked={settings.useOpenFoodFacts}
-            onChange={(v) => saveSettings({ useOpenFoodFacts: v })}
+            checked={useOff}
+            onChange={setUseOff}
           />
         </div>
         <div className="card">
@@ -570,6 +601,14 @@ export function PrefsFoodDb() {
           so it turns up in search from then on — even offline.
         </div>
       </div>
+
+      <SaveBar
+        disabled={useOff === settings.useOpenFoodFacts}
+        onSave={() => {
+          saveSettings({ useOpenFoodFacts: useOff })
+          pop()
+        }}
+      />
     </>
   )
 }
@@ -578,6 +617,8 @@ export function PrefsFoodDb() {
 
 export function PrefsAppearance() {
   const { pop, settings, saveSettings } = useApp()
+  const [theme, setTheme] = useState(settings.theme)
+
   return (
     <>
       <TopBar title="Appearance" onBack={pop} solid />
@@ -585,8 +626,8 @@ export function PrefsAppearance() {
         <div className="card" style={{ marginTop: 12 }}>
           <SelectField
             label="Theme"
-            value={settings.theme}
-            onChange={(v) => saveSettings({ theme: v })}
+            value={theme}
+            onChange={setTheme}
             options={[
               { value: 'system', label: 'Match system' },
               { value: 'light', label: 'Light' },
@@ -594,7 +635,18 @@ export function PrefsAppearance() {
             ]}
           />
         </div>
+        <div className="hint">
+          The theme changes when you save, so backing out leaves it as it was.
+        </div>
       </div>
+
+      <SaveBar
+        disabled={theme === settings.theme}
+        onSave={() => {
+          saveSettings({ theme })
+          pop()
+        }}
+      />
     </>
   )
 }
