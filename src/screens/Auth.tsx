@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { requireClient } from '../lib/supabase'
 
 type Mode = 'in' | 'up'
@@ -46,6 +46,31 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   const [notice, setNotice] = useState<string | null>(null)
 
   const signingUp = mode === 'up'
+
+  /* A failed OAuth round trip comes back as parameters on the return URL and
+     nothing else — no exception, no rejected promise, just the user landing
+     back on this screen as though they had never left. Without this, a
+     misconfigured Google client is indistinguishable from a mis-click. */
+  useEffect(() => {
+    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const fromQuery = new URLSearchParams(window.location.search)
+    const code = fromHash.get('error') ?? fromQuery.get('error')
+    if (!code) return
+
+    const description =
+      fromHash.get('error_description') ?? fromQuery.get('error_description') ?? ''
+
+    setError(
+      /redirect|redirect_uri/i.test(description)
+        ? 'Sign-in came back to an address this project does not allow. Add this page’s URL under Authentication → URL Configuration in Supabase.'
+        : /provider is not enabled/i.test(description)
+          ? 'Google sign-in is not switched on for this project yet.'
+          : description.replace(/\+/g, ' ') || `Sign-in failed (${code}).`,
+    )
+
+    // Strip the parameters so a reload does not resurrect a stale error.
+    window.history.replaceState({}, '', window.location.pathname)
+  }, [])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
