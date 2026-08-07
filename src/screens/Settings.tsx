@@ -666,7 +666,7 @@ export function About() {
       <TopBar title="About" onBack={pop} solid />
       <div className="scroll">
         <div className="card" style={{ marginTop: 12 }}>
-          <Row title="Version" value="0.1.0" />
+          <Row title="Version" value={`0.1.0 · ${__BUILD_SHA__}`} />
           <Row title="Food data" value="USDA + Open Food Facts" />
           <Row title="Calorie equation" value="Mifflin-St Jeor" />
         </div>

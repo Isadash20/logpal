@@ -12,3 +12,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/** Commit this bundle was built from; see vite.config.ts. */
+declare const __BUILD_SHA__: string
