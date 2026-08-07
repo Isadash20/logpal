@@ -17,7 +17,53 @@ const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase: SupabaseClient | null =
-  url && key ? createClient(url, key) : null
+  url && key
+    ? createClient(url, key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
+    : null
+
+/**
+ * Completes an OAuth return that arrived as a URL fragment.
+ *
+ * Supabase can hand the session back two ways. The PKCE flow returns
+ * `?code=…`, which the client exchanges by itself. The implicit flow returns
+ * `#access_token=…&refresh_token=…`, and that is what Google sign-in was
+ * actually producing here — the tokens were valid, the client never looked at
+ * them, and the user landed back on the sign-in screen already authenticated
+ * and apparently rejected.
+ *
+ * Rather than depend on which flow the server picks, the fragment is handled
+ * explicitly. Returns true when a session was established.
+ */
+export async function consumeAuthFragment(): Promise<boolean> {
+  if (!supabase) return false
+  const hash = window.location.hash.replace(/^#/, '')
+  if (!hash.includes('access_token')) return false
+
+  const params = new URLSearchParams(hash)
+  const access_token = params.get('access_token')
+  const refresh_token = params.get('refresh_token')
+  if (!access_token || !refresh_token) return false
+
+  try {
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+    if (error) throw error
+    return true
+  } catch {
+    // A stale or malformed fragment is not worth blocking startup over; the
+    // sign-in screen is the right place to land.
+    return false
+  } finally {
+    // Cleared either way, so a reload cannot replay a spent token, and so the
+    // address bar stops showing a credential.
+    window.history.replaceState({}, '', window.location.pathname + window.location.search)
+  }
+}
 
 export function cloudEnabled(): boolean {
   return supabase !== null

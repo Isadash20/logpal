@@ -28,7 +28,7 @@ import type {
 import { MEAL_KEYS, periodForDate } from '../types'
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
-import { cloudEnabled, supabase } from '../lib/supabase'
+import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
 import { deleteAll, fetchAll, pushChanges } from '../services/cloud'
 import { today } from '../lib/dates'
 
@@ -240,11 +240,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) return
-    supabase.auth.getSession().then(({ data: d }) => {
-      setSession(d.session)
-      setAuthReady(true)
-    })
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    const client = supabase
+    /* The fragment has to be consumed before the first getSession, or an OAuth
+       return resolves as "signed out" and paints the sign-in screen over a
+       session that actually exists. */
+    void consumeAuthFragment().then(() =>
+      client.auth.getSession().then(({ data: d }) => {
+        setSession(d.session)
+        setAuthReady(true)
+      }),
+    )
+    const { data: sub } = client.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => sub.subscription.unsubscribe()
   }, [])
 
