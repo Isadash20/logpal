@@ -55,6 +55,31 @@ Leaving them unset is supported and runs the app device-local.
 wipe-and-restore on a simulated second device, and sign-out. Row level security
 was checked by attempting an anonymous insert, which Postgres rejected (42501).
 
+**Production URL:** https://logpal-two.vercel.app — the stable one. Vercel also
+mints a per-deployment URL with a random hash on every push; never put that in
+an OAuth or redirect allow-list, it changes each time.
+
+**Google sign-in.** Google Cloud project `logpal-504803`, OAuth client
+"LogPal Web". Scope is `email profile` only — non-sensitive, so Google requires
+no app verification. Three places have to agree, and a mismatch in any one of
+them is the usual cause of a failure:
+
+| Where | Value |
+|---|---|
+| Google → Authorised redirect URIs | `https://egqetljdvslvfdmnecfk.supabase.co/auth/v1/callback` |
+| Google → Authorised JavaScript origins | the app's own URLs, `https://logpal-two.vercel.app` and `http://localhost:5180` |
+| Supabase → URL Configuration → Redirect URLs | the same app URLs, with `/**` |
+
+The redirect URI points at *Supabase*, not at the app — Google returns the user
+to Supabase, which then forwards them to whichever allowed app URL they came
+from. If `redirect_to` is not on Supabase's list it silently falls back to the
+Site URL rather than erroring, which makes a missing entry look like a
+successful sign-in that landed on the wrong page.
+
+The consent screen is in **Testing** mode, so only Google accounts listed under
+Test users can sign in; everyone else gets `403: access_denied` on Google's own
+page before ever reaching the app. Switch to In production before sharing.
+
 Note that database also holds `habits`, `trackers`, `schedules`, `mental` from
 an abandoned Daily Planner setup. Unrelated and harmless — everything here is
 prefixed `logpal_` — but it is not a clean database, so do not assume a table
