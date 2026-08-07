@@ -22,62 +22,64 @@ export const supabase: SupabaseClient | null =
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true,
+          /* Off on purpose. Left on, the client reads the OAuth fragment during
+             its own initialisation while `consumeAuthFragment` reads the same
+             fragment from the store — two owners of a one-shot value, and
+             whichever loses leaves the app signed out holding a spent token.
+             That produced a fix that passed locally and failed on Vercel.
+             One owner, below. */
+          detectSessionInUrl: false,
         },
       })
     : null
 
 /**
- * Completes an OAuth return that arrived as a URL fragment.
+ * Completes an OAuth return, whichever shape Supabase sends it in.
  *
- * Supabase can hand the session back two ways. The PKCE flow returns
- * `?code=…`, which the client exchanges by itself. The implicit flow returns
- * `#access_token=…&refresh_token=…`, and that is what Google sign-in was
- * actually producing here — the tokens were valid, the client never looked at
- * them, and the user landed back on the sign-in screen already authenticated
- * and apparently rejected.
+ * Two shapes exist. The implicit flow returns `#access_token=…&refresh_token=…`
+ * in the fragment; the PKCE flow returns `?code=…` in the query, which has to be
+ * exchanged. Google sign-in here was producing the first, and nothing in the app
+ * read it — so the tokens were valid, the user was authenticated, and they
+ * landed back on the sign-in screen looking rejected, with a bearer token
+ * sitting in the address bar.
  *
- * Rather than depend on which flow the server picks, the fragment is handled
- * explicitly. Returns true when a session was established.
+ * This is now the only thing that touches the URL. `detectSessionInUrl` is off,
+ * so there is no second reader competing for a one-shot value — that contest is
+ * what made the previous attempt pass locally and fail on Vercel.
+ *
+ * Returns true when a session was established.
  */
 export async function consumeAuthFragment(): Promise<boolean> {
   if (!supabase) return false
-  const hash = window.location.hash.replace(/^#/, '')
-  if (!hash.includes('access_token')) return false
 
-  const clear = () =>
-    window.history.replaceState({}, '', window.location.pathname + window.location.search)
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+  const query = new URLSearchParams(window.location.search)
+  const access_token = hash.get('access_token')
+  const refresh_token = hash.get('refresh_token')
+  const code = query.get('code')
+  if (!access_token && !code) return false
 
-  /* Ask for the session first, and not just as an optimisation.
-     `detectSessionInUrl` means the client may already be reading this very
-     fragment, and both paths spend the same single-use refresh token — so
-     whichever finishes second fails. Calling getSession() first is what
-     resolves it: internally it awaits the client's initialisation, so by the
-     time it answers, the built-in handling has either claimed the fragment or
-     declined it. Racing it produced a fix that worked locally and failed in
-     production, which is the worst possible outcome. */
-  const { data } = await supabase.auth.getSession()
-  if (data.session) {
-    clear()
-    return true
-  }
-
-  const params = new URLSearchParams(hash)
-  const access_token = params.get('access_token')
-  const refresh_token = params.get('refresh_token')
-  if (!access_token || !refresh_token) return false
+  const clear = () => window.history.replaceState({}, '', window.location.pathname)
 
   try {
-    const { error } = await supabase.auth.setSession({ access_token, refresh_token })
-    if (error) throw error
-    return true
+    if (access_token && refresh_token) {
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token })
+      if (error) throw error
+      return true
+    }
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) throw error
+      return true
+    }
+    return false
   } catch {
-    // A stale or malformed fragment is not worth blocking startup over; the
+    // A stale or half-formed return is not worth blocking startup over; the
     // sign-in screen is the right place to land.
     return false
   } finally {
-    // Cleared either way, so a reload cannot replay a spent token, and so the
-    // address bar stops showing a credential.
+    // Cleared either way, so a reload cannot replay a spent token and the
+    // address bar stops displaying a credential.
     clear()
   }
 }
