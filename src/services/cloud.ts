@@ -495,3 +495,35 @@ export async function deleteAll(): Promise<void> {
     if (error) throw error
   }
 }
+
+/* ------------------------------------------------------------- usernames -- */
+
+/** The signed-in user's handle, or null if they have not claimed one. */
+export async function fetchUsername(): Promise<string | null> {
+  const db = requireClient()
+  const { data, error } = await db
+    .from('logpal_usernames')
+    .select('username')
+    .maybeSingle()
+  if (error) throw error
+  return (data?.username as string) ?? null
+}
+
+/**
+ * Claims or changes a handle.
+ *
+ * Upsert on user_id rather than insert, so someone who already has a handle can
+ * change it; the case-insensitive unique index is what actually rejects a
+ * collision, and its error is translated into something a person can act on.
+ */
+export async function setUsername(handle: string): Promise<void> {
+  const db = requireClient()
+  const value = handle.trim().toLowerCase()
+  const { error } = await db
+    .from('logpal_usernames')
+    .upsert({ username: value }, { onConflict: 'user_id' })
+  if (error) {
+    if (error.code === '23505') throw new Error('That username is taken. Try another.')
+    throw error
+  }
+}

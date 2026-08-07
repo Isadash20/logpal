@@ -1192,3 +1192,10 @@ button.row:active {
   transition: width 0.25s ease;
   border-radius: var(--r-full);
 }
+
+/* "3 days" rather than a bare "3" — the flame alone does not say what unit. */
+.streak__unit {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.75;
+}

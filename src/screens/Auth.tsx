@@ -22,6 +22,25 @@ async function claimPendingUsername(db: SupabaseClient): Promise<void> {
   window.localStorage.removeItem(PENDING_USERNAME_KEY)
 }
 
+/**
+ * Writes the chosen display name straight into the stored profile.
+ *
+ * Onboarding asks for a name too, and asking twice in the space of a minute is
+ * the kind of thing that makes an app feel careless — this pre-fills it.
+ */
+function rememberDisplayName(name: string): void {
+  const value = name.trim()
+  if (!value) return
+  try {
+    const raw = window.localStorage.getItem('logpal.v1')
+    const data = raw ? JSON.parse(raw) : {}
+    data.profile = { ...(data.profile ?? {}), name: value }
+    window.localStorage.setItem('logpal.v1', JSON.stringify(data))
+  } catch {
+    /* A pre-filled name is a nicety, never a reason to fail a sign-up. */
+  }
+}
+
 function usernameProblem(name: string): string | null {
   const v = name.trim().toLowerCase()
   if (v.length < 3) return 'Usernames need at least three characters.'
@@ -70,6 +89,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   const [mode, setMode] = useState<Mode>('in')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -136,8 +156,10 @@ export function Auth({ onSkip }: { onSkip(): void }) {
             .from('logpal_usernames')
             .insert({ username: handle })
           if (claimError) throw claimError
+          rememberDisplayName(displayName)
         } else {
           window.localStorage.setItem(PENDING_USERNAME_KEY, handle)
+          rememberDisplayName(displayName)
           setNotice('Check your email to confirm the address, then sign in.')
         }
       } else {
@@ -222,6 +244,20 @@ export function Auth({ onSkip }: { onSkip(): void }) {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
+
+          {signingUp && (
+            <label className="authfield">
+              <span className="authfield__label">Display name</span>
+              <input
+                className="authinput"
+                type="text"
+                autoComplete="name"
+                placeholder="Phillip"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+              />
+            </label>
+          )}
 
           {signingUp && (
             <label className="authfield">

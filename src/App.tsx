@@ -10,12 +10,10 @@ import { MealScan } from './screens/MealScan'
 import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
 import {
   About,
-  Account,
   FoodsHub,
   More,
   PlanHub,
   PrefsAppearance,
-  PrefsFoodDb,
   PrefsProfile,
   PrefsUnits,
 } from './screens/Settings'
@@ -211,11 +209,7 @@ function Shell() {
       case 'prefsUnits':
         return <PrefsUnits />
 
-      case 'prefsFoodDb':
-        return <PrefsFoodDb />
 
-      case 'account':
-        return <Account />
 
       case 'prefsAppearance':
         return <PrefsAppearance />

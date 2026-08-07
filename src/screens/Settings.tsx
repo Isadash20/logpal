@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
+import { Icon } from '../components/Icon'
 import { Banner, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
-import { SEED_FOODS } from '../data/seedFoods'
 import {
   displayToIn,
   displayToMl,
@@ -13,14 +13,8 @@ import {
 } from '../lib/units'
 import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
-import {
-  extendedDbLoaded,
-  foodDbSize,
-  loadExtendedFoodDb,
-  loadFoodDb,
-  onFoodDbGrown,
-} from '../services/foodDb'
 import { cloudEnabled } from '../lib/supabase'
+import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
 
 /* ------------------------------------------------------------------ hub -- */
 
@@ -37,11 +31,17 @@ export function More() {
       <div className="scroll">
         <div className="pagetitle">Settings</div>
 
-        <div
+        {/* The summary card is the way in to the profile. It used to be inert,
+            with "Account" and "Profile" banners below repeating the same idea in
+            two more places — three entry points for one screen. */}
+        <button
+          onClick={() => push({ name: 'prefsProfile' })}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 14,
+            width: 'calc(100% - 28px)',
+            textAlign: 'left',
             margin: '0 14px 16px',
             padding: '16px 14px',
             background: 'var(--surface)',
@@ -65,13 +65,24 @@ export function More() {
           >
             {(profile.name || 'You').slice(0, 1).toUpperCase()}
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 18, fontWeight: 700 }}>{profile.name || 'Your profile'}</div>
             <div style={{ color: 'var(--text-2)', fontSize: 13.5 }}>
-              {cal(plan.calories)} cal/day · {data.foodEntries.length} entries logged
+              {syncError
+                ? 'Sync problem — tap for details'
+                : session
+                  ? syncing
+                    ? 'Syncing…'
+                    : (session.user.email ?? 'Signed in')
+                  : cloudEnabled()
+                    ? 'Not signed in — this device only'
+                    : `${cal(plan.calories)} cal/day · ${data.foodEntries.length} entries logged`}
             </div>
           </div>
-        </div>
+          <span style={{ color: 'var(--text-3)', flex: 'none', display: 'flex' }}>
+            <Icon name="forward" size={18} strokeWidth={2.2} />
+          </span>
+        </button>
 
         <Banner
           icon="bookmark"
@@ -95,39 +106,11 @@ export function More() {
           }
           onClick={() => push({ name: 'fasting' })}
         />
-        {cloudEnabled() && (
-          <Banner
-            icon="user"
-            title="Account"
-            sub={
-              syncError
-                ? 'Sync problem — tap for details'
-                : session
-                  ? syncing
-                    ? 'Syncing…'
-                    : (session.user.email ?? 'Signed in')
-                  : 'Not signed in — this device only'
-            }
-            onClick={() => push({ name: 'account' })}
-          />
-        )}
-        <Banner
-          icon="user"
-          title="Profile"
-          sub="Name, sex, date of birth, height"
-          onClick={() => push({ name: 'prefsProfile' })}
-        />
         <Banner
           icon="ruler"
           title="Units"
           sub={`${settings.weightUnit} · ${settings.heightUnit} · ${waterUnitLabel(settings.waterUnit)}`}
           onClick={() => push({ name: 'prefsUnits' })}
-        />
-        <Banner
-          icon="search"
-          title="Food database"
-          sub={settings.useOpenFoodFacts ? 'Online search on' : 'Built-in foods only'}
-          onClick={() => push({ name: 'prefsFoodDb' })}
         />
         <Banner
           icon="star"
@@ -313,21 +296,140 @@ export function PlanHub() {
 
 /* -------------------------------------------------------------- profile -- */
 
+/**
+ * Profile — identity, account and physical details on one screen.
+ *
+ * Account used to be its own banner beside Profile, and the Settings hub showed
+ * a third profile summary above both. Three places for one idea; this is all of
+ * it in the place the summary card already pointed at.
+ */
 export function PrefsProfile() {
-  const { pop, profile, settings, saveProfile } = useApp()
+  const { pop, profile, settings, saveProfile, session, syncing, syncError, signOut } =
+    useApp()
   const [name, setName] = useState(profile.name)
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [birthDate, setBirthDate] = useState(profile.birthDate)
   const [heightIn, setHeightIn] = useState(profile.heightIn)
   const { feet, inches } = splitFeetInches(heightIn)
 
+  /* The handle lives server-side, in its own world-readable table, so it is
+     loaded separately from the rest of the profile and saved separately too —
+     it can fail on its own (taken) without losing the other edits. */
+  const [username, setUsername] = useState('')
+  const [savedUsername, setSavedUsername] = useState<string | null>(null)
+  const [handleError, setHandleError] = useState<string | null>(null)
+  const [handleBusy, setHandleBusy] = useState(false)
+
+  useEffect(() => {
+    if (!session) return
+    let live = true
+    void fetchUsername()
+      .then((u) => {
+        if (!live) return
+        setSavedUsername(u)
+        setUsername(u ?? '')
+      })
+      .catch(() => {
+        /* Not worth surfacing; the field simply starts empty. */
+      })
+    return () => {
+      live = false
+    }
+  }, [session])
+
+  async function saveHandle() {
+    setHandleBusy(true)
+    setHandleError(null)
+    try {
+      await setUsernameRemote(username)
+      setSavedUsername(username.trim().toLowerCase())
+    } catch (err) {
+      setHandleError((err as Error).message)
+    } finally {
+      setHandleBusy(false)
+    }
+  }
+
   return (
     <>
       <TopBar title="Profile" onBack={pop} solid />
       <div className="scroll">
-        <div className="card" style={{ marginTop: 12 }}>
+        {session && (
+          <>
+            <div className="section-label">Account</div>
+            <div className="card">
+              <Row title="Signed in as" value={session.user.email ?? '—'} />
+              <Row
+                title="Sync"
+                value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
+              />
+              <label className="field">
+                <span className="field__label">Username</span>
+                <span className="field__control">
+                  <input
+                    className="input"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    placeholder="yourname"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </span>
+              </label>
+            </div>
+
+            {handleError && (
+              <div className="hint" style={{ color: 'var(--danger)' }}>
+                {handleError}
+              </div>
+            )}
+            {username.trim().toLowerCase() !== (savedUsername ?? '') && (
+              <div className="btn-wrap">
+                <button
+                  className="btn btn--ghost"
+                  disabled={handleBusy || username.trim().length < 3}
+                  onClick={() => void saveHandle()}
+                >
+                  {handleBusy ? 'Checking…' : 'Save username'}
+                </button>
+              </div>
+            )}
+            <div className="hint">
+              Your username is how friends will find you, and you can sign in with
+              it instead of your email. Your display name below is what shows up in
+              the app.
+            </div>
+
+            <div className="btn-wrap">
+              <button className="btn btn--ghost" onClick={() => void signOut()}>
+                Sign out
+              </button>
+            </div>
+            <div className="hint" style={{ color: 'var(--text-3)' }}>
+              Signing out leaves this device&apos;s copy in place. It does not delete
+              anything from your account.
+            </div>
+          </>
+        )}
+
+        {cloudEnabled() && !session && (
+          <>
+            <div className="section-label">Account</div>
+            <div className="card">
+              <Row title="Status" value="This device only" />
+            </div>
+            <div className="hint">
+              You are using LogPal without an account, so the diary lives only in
+              this browser and your phone and laptop do not share.
+            </div>
+            <SignInPrompt />
+          </>
+        )}
+
+        <div className="section-label">About you</div>
+        <div className="card">
           <label className="field">
-            <span className="field__label">Name</span>
+            <span className="field__label">Display name</span>
             <span className="field__control">
               <input
                 className="input"
@@ -470,148 +572,7 @@ export function PrefsUnits() {
   )
 }
 
-/* -------------------------------------------------------------- account -- */
 
-export function Account() {
-  const { pop, session, syncing, syncError, signOut, setLocalOnly, data } = useApp()
-
-  const logged =
-    data.foodEntries.length + data.exerciseEntries.length + data.weights.length
-
-  return (
-    <>
-      <TopBar title="Account" onBack={pop} solid />
-      <div className="scroll">
-        {session ? (
-          <>
-            <div className="card" style={{ marginTop: 12 }}>
-              <Row title="Signed in as" value={session.user.email ?? '—'} />
-              <Row
-                title="Sync"
-                value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
-              />
-              <Row title="Records synced" value={logged.toLocaleString()} />
-            </div>
-
-            {syncError && (
-              <div className="hint" style={{ color: 'var(--danger)' }}>
-                {syncError}
-              </div>
-            )}
-            <div className="hint">
-              {syncError
-                ? 'Your changes are saved on this device and will be retried automatically. Nothing has been lost.'
-                : 'Your diary, weight, measurements, fasts, custom foods and recipes sync to every device you sign in on.'}
-            </div>
-
-            <div className="btn-wrap">
-              <button className="btn btn--ghost" onClick={() => void signOut()}>
-                Sign out
-              </button>
-            </div>
-            <div className="hint" style={{ color: 'var(--text-3)' }}>
-              Signing out leaves this device's copy in place. It does not delete
-              anything from your account.
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="card" style={{ marginTop: 12 }}>
-              <Row title="Status" value="This device only" />
-              <Row title="Records held" value={logged.toLocaleString()} />
-            </div>
-            <div className="hint">
-              You are using LogPal without an account. Everything works, but the
-              diary lives only in this browser — clearing site data erases it, and
-              your phone and laptop do not share.
-            </div>
-            <div className="btn-wrap">
-              {/* Clearing the flag drops back to the auth screen, and whatever
-                  is on this device is lifted up on first sign-in. */}
-              <button className="btn" onClick={() => setLocalOnly(false)}>
-                Sign in to sync
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </>
-  )
-}
-
-/* -------------------------------------------------------- food database -- */
-
-export function PrefsFoodDb() {
-  const { pop, settings, saveSettings, data } = useApp()
-
-  /* The offline database loads in two stages and its size changes underneath
-     this screen, so it is mirrored into state rather than read once at render. */
-  const [size, setSize] = useState(foodDbSize())
-  const [full, setFull] = useState(extendedDbLoaded())
-  useEffect(() => {
-    void loadFoodDb()
-    const sync = () => {
-      setSize(foodDbSize())
-      setFull(extendedDbLoaded())
-    }
-    sync()
-    return onFoodDbGrown(sync)
-  }, [])
-
-  // Draft until saved, like every other preferences screen.
-  const [useOff, setUseOff] = useState(settings.useOpenFoodFacts)
-
-  return (
-    <>
-      <TopBar title="Food database" onBack={pop} solid />
-      <div className="scroll">
-        <div className="card" style={{ marginTop: 12 }}>
-          <Toggle
-            label="Search Open Food Facts"
-            sub="Adds live product search and barcode lookup. Needs a connection."
-            checked={useOff}
-            onChange={setUseOff}
-          />
-        </div>
-        <div className="card">
-          <Row title="Curated foods" value={SEED_FOODS.length} />
-          <Row title="Offline database" value={size ? size.toLocaleString() : '—'} />
-          <Row title="Your custom foods" value={data.customFoods.length} />
-          <Row title="Scanned and saved" value={Object.keys(data.foodCache).length} />
-        </div>
-
-        {/* Never fetched automatically: it is a large download and a large
-            amount of memory once loaded, which is a fair thing to offer and an
-            unfair thing to impose on a phone. */}
-        {!full && (
-          <div className="btn-wrap">
-            <button className="btn btn--ghost" onClick={() => void loadExtendedFoodDb()}>
-              Add the extended database
-            </button>
-          </div>
-        )}
-
-        <div className="hint">
-          {full
-            ? 'The extended database is loaded for this session. Search covers the full long tail of packaged products.'
-            : 'Every generic food and the most common packaged products are already on this device. The extended set adds 175,000 more niche products — a larger download, and heavier on memory.'}
-        </div>
-        <div className="hint">
-          Anything you scan is checked for real nutrition data, then saved to this device
-          so it turns up in search from then on — even offline.
-        </div>
-      </div>
-
-      <SaveBar
-        disabled={useOff === settings.useOpenFoodFacts}
-        onSave={() => {
-          saveSettings({ useOpenFoodFacts: useOff })
-          pop()
-        }}
-      />
-    </>
-  )
-}
 
 /* ----------------------------------------------------------- appearance -- */
 
@@ -684,5 +645,17 @@ export function About() {
         </div>
       </div>
     </>
+  )
+}
+
+/** Drops back to the auth screen so someone local-only can sign in. */
+function SignInPrompt() {
+  const { setLocalOnly } = useApp()
+  return (
+    <div className="btn-wrap">
+      <button className="btn" onClick={() => setLocalOnly(false)}>
+        Sign in to sync
+      </button>
+    </div>
   )
 }

@@ -11,8 +11,8 @@ import {
   activeFast,
   fastElapsedMs,
   fastProgress,
-  fastStats,
   formatDuration,
+  targetHoursFor,
 } from '../lib/fasting'
 
 /**
@@ -109,7 +109,6 @@ export function Today() {
     return () => window.clearInterval(t)
   }, [fast])
 
-  const fastStreak = useMemo(() => fastStats(data.fasts).streak, [data.fasts])
 
   const lastWeigh = [...data.weights].sort((a, b) => (a.date < b.date ? 1 : -1))[0]
   const fmtW = (ml: number) => {
@@ -145,6 +144,9 @@ export function Today() {
             <span className="streak" title={`${logStreak} days logged in a row`}>
               <Icon name="flame" size={14} />
               <span className="num">{logStreak}</span>
+              <span className="streak__unit">
+                {logStreak === 1 ? 'day' : 'days'}
+              </span>
             </span>
           )}
         </div>
@@ -296,15 +298,16 @@ export function Today() {
                 </span>
               </>
             ) : (
+              /* A stopwatch at rest, not a streak count. The number that
+                 belongs on this tile is the one that moves while you fast;
+                 "0 day streak" reported a statistic nobody asked for and read
+                 as a scolding. */
               <>
                 <span className="tile__value">
-                  <span className="num">{fastStreak}</span>
-                  <span className="tile__unit">
-                    {fastStreak === 1 ? 'day streak' : 'day streak'}
-                  </span>
+                  <span className="num">0:00</span>
                 </span>
                 <span className="tile__sub">
-                  {data.fasts.length ? 'Not fasting — tap to start' : 'Tap to start a fast'}
+                  Not fasting · {targetHoursFor(data.fasting)}h plan
                 </span>
                 <span className="tile__bar">
                   <span className="tile__fill" style={{ width: '0%' }} />

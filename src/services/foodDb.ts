@@ -17,10 +17,8 @@ import type { Food, Nutrients, Serving } from '../types'
  * `food-db-ext.json` holds the long tail of branded products — three times
  * larger, for the obscure end of the shelf.
  *
- * The tail is **not** fetched automatically. It costs several megabytes of
- * transfer and, once parsed, a few hundred megabytes of heap, which is enough
- * to get a tab killed on a phone. That is a reasonable thing to opt into and an
- * unreasonable thing to impose, so Settings → Food database asks.
+ * Both load automatically. The tail is fetched right behind the core rather
+ * than waiting to be asked for.
  *
  * ## Rows stay packed
  *
@@ -156,6 +154,12 @@ export function loadFoodDb(): Promise<void> {
       append(rows)
       coreLoaded = true
       announce()
+      /* The long tail follows automatically. It used to be opt-in behind a
+         setting, because it roughly triples the heap — but a food that only
+         turns up once you have found and enabled a preference is, for
+         practical purposes, missing. Deliberately not awaited: the first
+         search must never wait on it. */
+      void loadExtendedFoodDb()
     })
     .catch(() => {
       // An absent database is not an error — the app still has its seed foods.
@@ -168,10 +172,7 @@ export function loadFoodDb(): Promise<void> {
   return coreInflight
 }
 
-/**
- * Fetches the long tail. Only ever called from Settings, deliberately: see the
- * note at the top of this file. Safe to call repeatedly.
- */
+/** Fetches the long tail. Safe to call repeatedly; only the first does work. */
 export function loadExtendedFoodDb(): Promise<void> {
   if (extLoaded) return Promise.resolve()
   if (extInflight) return extInflight

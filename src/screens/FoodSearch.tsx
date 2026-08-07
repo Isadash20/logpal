@@ -60,7 +60,7 @@ export function FoodSearch({ date }: { date: string }) {
      exhausts the budget in seconds and the service then fails opaquely. The
      service layer additionally caches and throttles. */
   useEffect(() => {
-    if (!settings.useOpenFoodFacts || tab !== 'all') {
+    if (tab !== 'all') {
       setRemote([])
       return
     }

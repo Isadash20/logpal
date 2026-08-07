@@ -91,8 +91,6 @@ export type Route =
   | { name: 'planHub' }
   | { name: 'prefsProfile' }
   | { name: 'prefsUnits' }
-  | { name: 'prefsFoodDb' }
-  | { name: 'account' }
   | { name: 'prefsAppearance' }
   | { name: 'about' }
 
