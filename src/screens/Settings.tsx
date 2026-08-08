@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { Banner, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
+import { Banner, Dialog, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
 import {
   displayToIn,
   displayToMl,
@@ -504,6 +504,8 @@ export function PrefsProfile() {
           Sex, age and height all feed the calorie equation, so changing any of them
           reshapes your daily targets.
         </div>
+
+        <ClearData />
       </div>
       <SaveBar
         onSave={() => {
@@ -657,5 +659,63 @@ function SignInPrompt() {
         Sign in to sync
       </button>
     </div>
+  )
+}
+
+/**
+ * Clear everything.
+ *
+ * Was removed from About by request, then asked for again — it earns its place
+ * during testing, and the honest home for it is beside the account it affects
+ * rather than on an otherwise harmless information screen.
+ *
+ * Behind a confirmation, and the wording changes with the situation: signed in
+ * it takes the account with it, because clearing only this device would be a
+ * lie — the next sync would pull everything straight back down.
+ */
+function ClearData() {
+  const { resetAll, session } = useApp()
+  const [confirming, setConfirming] = useState(false)
+
+  return (
+    <>
+      <div className="section-label">Clear data</div>
+      <div className="btn-wrap" style={{ paddingTop: 0 }}>
+        <button className="btn btn--danger" onClick={() => setConfirming(true)}>
+          Clear all data
+        </button>
+      </div>
+      <div className="hint" style={{ color: 'var(--text-3)' }}>
+        {session
+          ? 'Deletes your diary, weight, measurements, fasts, custom foods and recipes — from this device and from your account on every other device.'
+          : 'Deletes your diary, weight, measurements, fasts, custom foods and recipes from this browser.'}
+      </div>
+
+      {confirming && (
+        <Dialog title="Clear everything?" onClose={() => setConfirming(false)}>
+          <div style={{ color: 'var(--text-2)', marginBottom: 16, fontSize: 14 }}>
+            {session
+              ? 'This deletes your whole history from this device and from your account. Other devices lose it the next time they sync. It cannot be undone.'
+              : 'This deletes your whole history from this browser. It cannot be undone.'}
+          </div>
+          <button
+            className="btn btn--danger"
+            onClick={() => {
+              resetAll()
+              setConfirming(false)
+            }}
+          >
+            Delete everything
+          </button>
+          <button
+            className="btn btn--ghost"
+            style={{ marginTop: 8 }}
+            onClick={() => setConfirming(false)}
+          >
+            Cancel
+          </button>
+        </Dialog>
+      )}
+    </>
   )
 }
