@@ -35,6 +35,7 @@ import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
 import { BarcodeScanner } from './screens/Scanner'
 import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
+import { AccountSetup } from './screens/AccountSetup'
 import { cloudEnabled } from './lib/supabase'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
@@ -47,7 +48,7 @@ const TABS: { key: TabKey; label: string; icon: IconName }[] = [
 function Shell() {
   const app = useApp()
   const { route, activeTab, setTab, profile, settings, date } = app
-  const { session, authReady, localOnly, setLocalOnly } = app
+  const { session, authReady, localOnly, setLocalOnly, username } = app
   const [addOpen, setAddOpen] = useState(false)
 
   /* Theme is applied to <html> so the tokens cascade everywhere, including
@@ -75,6 +76,17 @@ function Shell() {
       return (
         <div className="app">
           <Auth onSkip={() => setLocalOnly(true)} />
+        </div>
+      )
+    }
+    /* Signed in but no handle yet — the rest of signing up. Reached both by
+       Google, which hands back only an address, and by an email sign-up that
+       had to wait for confirmation. Undefined means the lookup is still in
+       flight, and gating on that would flash this screen at everyone. */
+    if (session && username === null) {
+      return (
+        <div className="app">
+          <AccountSetup />
         </div>
       )
     }

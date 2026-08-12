@@ -13,6 +13,7 @@ import {
 } from '../lib/units'
 import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
+import { displayNameFrom } from '../lib/storage'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
 
@@ -306,7 +307,10 @@ export function PlanHub() {
 export function PrefsProfile() {
   const { pop, profile, settings, saveProfile, session, syncing, syncError, signOut } =
     useApp()
-  const [name, setName] = useState(profile.name)
+  /* First and last, not the derived display name — editing the derived value
+     directly would leave the parts it came from disagreeing with it. */
+  const [firstName, setFirstName] = useState(profile.firstName ?? profile.name)
+  const [lastName, setLastName] = useState(profile.lastName ?? '')
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [birthDate, setBirthDate] = useState(profile.birthDate)
   const [heightIn, setHeightIn] = useState(profile.heightIn)
@@ -429,13 +433,23 @@ export function PrefsProfile() {
         <div className="section-label">About you</div>
         <div className="card">
           <label className="field">
-            <span className="field__label">Display name</span>
+            <span className="field__label">First name</span>
             <span className="field__control">
               <input
                 className="input"
-                value={name}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </span>
+          </label>
+          <label className="field">
+            <span className="field__label">Last name</span>
+            <span className="field__control">
+              <input
+                className="input"
+                value={lastName}
                 placeholder="Optional"
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setLastName(e.target.value)}
               />
             </span>
           </label>
@@ -509,7 +523,14 @@ export function PrefsProfile() {
       </div>
       <SaveBar
         onSave={() => {
-          saveProfile({ name, sex, birthDate, heightIn })
+          saveProfile({
+            firstName: firstName.trim(),
+            lastName: lastName.trim() || undefined,
+            name: displayNameFrom(firstName, lastName),
+            sex,
+            birthDate,
+            heightIn,
+          })
           pop()
         }}
       />

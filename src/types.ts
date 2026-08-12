@@ -238,7 +238,15 @@ export interface MacroSplit {
 }
 
 export interface Profile {
+  /**
+   * Display name — what the app shows. Derived from `firstName`/`lastName` at
+   * sign-up, but kept as its own field because it predates them and everything
+   * that renders a name already reads it.
+   */
   name: string
+  firstName?: string
+  /** Optional. A display name is the first name alone when this is absent. */
+  lastName?: string
   sex: Sex
   birthDate: string // YYYY-MM-DD
   heightIn: number

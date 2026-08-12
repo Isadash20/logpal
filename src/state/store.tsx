@@ -29,7 +29,7 @@ import { MEAL_KEYS, periodForDate } from '../types'
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
 import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
-import { deleteAll, fetchAll, pushChanges } from '../services/cloud'
+import { deleteAll, fetchAll, fetchUsername, pushChanges } from '../services/cloud'
 import { today } from '../lib/dates'
 
 /** Set when someone declines an account; keeps them out of the auth screen. */
@@ -185,6 +185,11 @@ interface Ctx {
   syncing: boolean
   /** Last sync failure, or null. Changes are kept locally and retried. */
   syncError: string | null
+  /** The signed-in account's handle, or null if it has not been claimed yet.
+   *  Undefined while it is still being looked up. */
+  username: string | null | undefined
+  /** Called after claiming a handle, so the sign-up gate lets go. */
+  setUsername(u: string): void
   signOut(): Promise<void>
   /** True when the user chose to carry on without an account on this device. */
   localOnly: boolean
@@ -226,6 +231,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [authReady, setAuthReady] = useState(!cloudEnabled())
   const [syncing, setSyncing] = useState(false)
   const [syncError, setSyncError] = useState<string | null>(null)
+  /* undefined = not looked up yet, null = signed in with no handle. The
+     distinction matters: the gate must not flash on a slow lookup. */
+  const [username, setUsernameState] = useState<string | null | undefined>(undefined)
 
   /* The last snapshot known to match the server. `pushChanges` diffs against
      it, so it must only advance when a push actually succeeds — otherwise a
@@ -262,9 +270,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) {
       syncedRef.current = null
+      setUsernameState(undefined)
       return
     }
     let live = true
+    setUsernameState(undefined)
+    void fetchUsername()
+      .then((u) => live && setUsernameState(u))
+      .catch(() => live && setUsernameState(null))
     setSyncing(true)
     setSyncError(null)
     ;(async () => {
@@ -722,6 +735,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     session,
     authReady,
+    username,
+    setUsername: setUsernameState,
     syncing,
     syncError,
     localOnly,

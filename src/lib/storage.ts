@@ -108,6 +108,14 @@ function migrate(data: Partial<AppData>): AppData {
   }
 }
 
+/**
+ * A display name from its parts. Last name is optional, so someone who gave
+ * only a first name is shown that alone rather than a trailing space.
+ */
+export function displayNameFrom(first?: string, last?: string): string {
+  return [first?.trim(), last?.trim()].filter(Boolean).join(' ')
+}
+
 export function defaultProfile(): Profile {
   return {
     name: '',

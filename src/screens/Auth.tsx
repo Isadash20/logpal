@@ -1,55 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireClient } from '../lib/supabase'
 
 type Mode = 'in' | 'up'
 
-/** Handles are the thing other people will search for, so keep them plain. */
-const USERNAME_RE = /^[a-z0-9_.]{3,20}$/
-
-/**
- * A handle chosen at sign-up but not yet claimable, because email confirmation
- * meant there was no session to write it under. Claimed on the next sign-in.
- */
-const PENDING_USERNAME_KEY = 'logpal.pendingUsername'
-
-async function claimPendingUsername(db: SupabaseClient): Promise<void> {
-  const handle = window.localStorage.getItem(PENDING_USERNAME_KEY)
-  if (!handle) return
-  // Failure here is not worth blocking a sign-in over; Settings can offer it
-  // again later. Clearing regardless stops it retrying forever.
-  await db.from('logpal_usernames').insert({ username: handle })
-  window.localStorage.removeItem(PENDING_USERNAME_KEY)
-}
-
-/**
- * Writes the chosen display name straight into the stored profile.
- *
- * Onboarding asks for a name too, and asking twice in the space of a minute is
- * the kind of thing that makes an app feel careless — this pre-fills it.
- */
-function rememberDisplayName(name: string): void {
-  const value = name.trim()
-  if (!value) return
-  try {
-    const raw = window.localStorage.getItem('logpal.v1')
-    const data = raw ? JSON.parse(raw) : {}
-    data.profile = { ...(data.profile ?? {}), name: value }
-    window.localStorage.setItem('logpal.v1', JSON.stringify(data))
-  } catch {
-    /* A pre-filled name is a nicety, never a reason to fail a sign-up. */
-  }
-}
-
-function usernameProblem(name: string): string | null {
-  const v = name.trim().toLowerCase()
-  if (v.length < 3) return 'Usernames need at least three characters.'
-  if (v.length > 20) return 'Usernames can be at most twenty characters.'
-  if (!USERNAME_RE.test(v)) {
-    return 'Usernames can use letters, numbers, full stops and underscores only.'
-  }
-  return null
-}
 
 /** Google's mark, drawn inline — an OAuth button without it reads as generic. */
 function GoogleMark() {
@@ -88,8 +41,6 @@ function GoogleMark() {
 export function Auth({ onSkip }: { onSkip(): void }) {
   const [mode, setMode] = useState<Mode>('in')
   const [email, setEmail] = useState('')
-  const [username, setUsername] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -130,36 +81,13 @@ export function Auth({ onSkip }: { onSkip(): void }) {
     try {
       const db = requireClient()
       if (signingUp) {
-        const problem = usernameProblem(username)
-        if (problem) throw new Error(problem)
-        const handle = username.trim().toLowerCase()
-
-        /* Checked before creating the account. Claiming it afterwards can fail
-           on the unique index, and that would leave a signed-up user with no
-           handle and no obvious way to get one. */
-        const { data: taken, error: lookupError } = await db
-          .from('logpal_usernames')
-          .select('username')
-          .ilike('username', handle)
-          .maybeSingle()
-        if (lookupError) throw lookupError
-        if (taken) throw new Error('That username is taken. Try another.')
-
         const { data, error } = await db.auth.signUp({ email, password })
         if (error) throw error
 
-        /* Only possible once there is a session — the insert policy checks
-           auth.uid(). With email confirmation on there is no session yet, so
-           the handle is claimed on first sign-in instead. */
-        if (data.session) {
-          const { error: claimError } = await db
-            .from('logpal_usernames')
-            .insert({ username: handle })
-          if (claimError) throw claimError
-          rememberDisplayName(displayName)
-        } else {
-          window.localStorage.setItem(PENDING_USERNAME_KEY, handle)
-          rememberDisplayName(displayName)
+        // The handle and name are collected by AccountSetup once there is a
+        // session to write them under; with email confirmation on there is not
+        // one yet, so that happens after the first sign-in instead.
+        if (!data.session) {
           setNotice('Check your email to confirm the address, then sign in.')
         }
       } else {
@@ -177,7 +105,6 @@ export function Auth({ onSkip }: { onSkip(): void }) {
         }
         const { error } = await db.auth.signInWithPassword({ email: address, password })
         if (error) throw error
-        await claimPendingUsername(db)
       }
     } catch (err) {
       const m = (err as Error).message
@@ -245,43 +172,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
             />
           </label>
 
-          {signingUp && (
-            <label className="authfield">
-              <span className="authfield__label">Display name</span>
-              <input
-                className="authinput"
-                type="text"
-                autoComplete="name"
-                placeholder="Phillip"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-              />
-            </label>
-          )}
 
-          {signingUp && (
-            <label className="authfield">
-              <span className="authfield__label">Username</span>
-              <input
-                className="authinput"
-                type="text"
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                placeholder="yourname"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <span
-                className="tile__sub"
-                style={{ display: 'block', marginTop: 6, color: 'var(--text-3)' }}
-              >
-                Letters, numbers, full stops and underscores. This is how friends
-                will find you, and you can sign in with it.
-              </span>
-            </label>
-          )}
 
           <label className="authfield">
             <span className="authfield__label">Password</span>

@@ -498,12 +498,25 @@ export async function deleteAll(): Promise<void> {
 
 /* ------------------------------------------------------------- usernames -- */
 
-/** The signed-in user's handle, or null if they have not claimed one. */
+/**
+ * The signed-in user's handle, or null if they have not claimed one.
+ *
+ * The filter is not optional. Unlike every other table here, this one is
+ * world-readable by design — a friend search has to be able to see other
+ * people's handles — so an unfiltered select returns the whole table and
+ * `maybeSingle()` then fails on "more than one row". The symptom is the
+ * sign-up gate reappearing for an account that already has a handle.
+ */
 export async function fetchUsername(): Promise<string | null> {
   const db = requireClient()
+  const { data: auth } = await db.auth.getUser()
+  const id = auth.user?.id
+  if (!id) return null
+
   const { data, error } = await db
     .from('logpal_usernames')
     .select('username')
+    .eq('user_id', id)
     .maybeSingle()
   if (error) throw error
   return (data?.username as string) ?? null
