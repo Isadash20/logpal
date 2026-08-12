@@ -1,6 +1,16 @@
 # LogPal — handoff
 
-Everything needed to pick this up cold in a new session. Written 2026-08-05.
+Everything needed to pick this up cold in a new session. Started 2026-08-05,
+current as of **2026-08-12**, commit `803a5ac`.
+
+**Read this before touching anything.** It is not an overview — it is the set of
+things that cost real time to learn, including several where the obvious
+approach is wrong and the reason why. In particular: §2's incident note,
+§4 on accounts and the OAuth fragment, §8's alphabetical-truncation bug, and
+§10's testing notes.
+
+**Fastest orientation:** run it (§2), open Settings → About to see which commit
+you are on, then read §3 for what is verified and what is not.
 
 ---
 
@@ -133,20 +143,34 @@ without the prefix belongs to this app.
 
 ## 3. Current state
 
-Eight commits. **Six are unpushed** — `git push` to deploy them:
+**Everything is pushed and deployed.** 25 commits, working tree clean, HEAD is
+`803a5ac`, and production is confirmed running it. 45 TypeScript files in
+`src/`, plus 40 MB of food database in `public/`.
 
-```
-(head)   Sync to Supabase behind accounts                         ← unpushed
-7afea2a  Rebuild the food database from USDA FoodData Central     ← unpushed
-d6b0f14  Drop the last traces of the notes feature                ← unpushed
-fc98c85  Add HANDOFF.md                                           ← unpushed
-700fbba  Restructure navigation, sharpen goals, surface fasting   ← unpushed
-5456dcb  Recolour macros to the calorie accent's family           ← unpushed
-565e8e1  Rename FitLog to LogPal
-e087a77  FitLog: calorie and nutrition tracker
+Verify what production is actually running — do not infer it from behaviour:
+
+```bash
+curl -s https://logpal-two.vercel.app/ | grep -o '/assets/[^"]*\.js' |
+  head -1 | xargs -I{} curl -s https://logpal-two.vercel.app{} |
+  grep -o 'BUILD[^"]*' | head -1
 ```
 
-39 TypeScript files in `src/`, plus a 3.4 MB `public/food-db.json`.
+Easier: Settings → About shows the commit. See §2's incident note for why this
+exists.
+
+### Working end to end, verified against the live project
+
+Email sign-up, Google sign-in, the three-step account setup, username
+uniqueness, cross-device sync, the 233k-food search, and Clear all data. Each
+was exercised on production, not just locally.
+
+### Never verified
+
+**The barcode scanner's decode loop on a real device camera.** Everything
+around it is proven — permission denial falls back correctly, manual entry
+resolves through Open Food Facts and saves to the account — but the in-app
+browser blocks camera access, so the ZXing decode itself has still never run
+against a real lens. It needs a phone on the https URL.
 
 ### Notes — settled 2026-08-06
 
@@ -199,6 +223,83 @@ that can silently lose a diary, so change it with tests rather than by eye.
 signed out, device-local, no auth screen. Deliberate: a misconfigured deploy
 degrades instead of showing a white screen.
 
+### Accounts, sign-up and usernames
+
+Three gates in `App.tsx`, in this order. Each returns early, so read them as a
+funnel:
+
+1. `!authReady` → blank. The session check reads localStorage and resolves in
+   milliseconds; a spinner here reads as jank.
+2. `!session && !localOnly` → `<Auth>`. Sign in, or create an account, or
+   "Continue without an account" (which sets `logpal.localOnly` and gives the
+   old device-local app).
+3. `session && username === null` → `<AccountSetup>`. **This is the rest of
+   signing up.**
+
+That third gate is the important one. Google hands back an address and nothing
+else, so without it a Google account would have no handle — and the handle is
+the only thing other people can search on. The gate is phrased as "signed in
+with no handle" rather than "just signed up", so it also catches an email
+sign-up that waited on confirmation, and any account predating usernames.
+
+`username` is `string | null | undefined` and the three states are load-bearing:
+**undefined means still looking up**. Gating on undefined flashes the setup
+screen at everyone on a slow lookup.
+
+**The flow, either entry point:**
+
+| Step | Collected | Where |
+|---|---|---|
+| 1 | Email + password, or Google | `Auth.tsx` |
+| 2 | Username | `AccountSetup.tsx` |
+| 3 | First name, optional last name | `AccountSetup.tsx` |
+
+Two steps rather than one form, because step 2 can fail on something outside
+the user's control (taken) and that should not discard what they typed in 3.
+
+**Uniqueness** is guaranteed by a case-insensitive unique index in Postgres
+(`logpal_usernames_lower`), plus `unique (user_id)` for one handle per account.
+The check while typing is only an early warning; two people racing for the same
+handle are settled by the index. Verified: `ISADASH20` is refused while
+`isadash20` exists.
+
+**Display name** is `firstName` + optional `lastName`, composed by
+`displayNameFrom()` into `profile.name`, which is what every screen renders.
+Profile edits the *parts*; editing the composed value directly would leave it
+disagreeing with them.
+
+**`logpal_usernames` is world-readable on purpose** — friend search needs to see
+other people's handles. It holds nothing but the handle and a user id: no email,
+no display name. Two consequences that have already bitten once:
+
+- Any query against it **must filter by user_id**. An unfiltered
+  `.maybeSingle()` returns the whole table and fails on "more than one row".
+  That exact bug made the sign-up gate reappear for accounts that already had a
+  handle.
+- `email_for_username` is `SECURITY DEFINER` and turns a handle into the address
+  behind it, because Supabase authenticates on email and username sign-in needs
+  the translation. **Anyone who knows a handle can learn its email.** That is
+  the price of username sign-in with no server of our own; the function returns
+  one column for one row and exposes nothing else.
+
+There is no delete policy on that table, so a handle can be *changed* but never
+released. Deleting the account frees it, via the cascade.
+
+**Sign-in accepts either identifier.** Anything without an `@` is treated as a
+handle and resolved first. The field stops being `type="email"` in that mode, or
+the browser rejects a username before the form submits.
+
+### OAuth returns — one owner, deliberately
+
+`detectSessionInUrl` is **off**. Supabase returns a session either as
+`?code=` (PKCE) or `#access_token=…` (implicit), and `consumeAuthFragment()` in
+`src/lib/supabase.ts` handles both. With the built-in reader also enabled, two
+things read the same one-shot value and whichever lost left the app signed out
+holding a spent token — which passed locally and failed on Vercel. One owner.
+
+It runs before the first `getSession()`, or that call resolves as "signed out"
+and paints the sign-in screen over a session that exists.
+
 ### Navigation
 
 There is **no router**. `src/state/store.tsx` holds a `Route[]` stack with
@@ -250,10 +351,35 @@ cool / blue-biased.**
 
 ## 6. Features
 
-**Home** — week strip (weekday letters over circles, tick = logged), calories
-card, macros card (3 columns + segmented bar), diary rows per period with a
-blue "Log" pill, **intermittent fasting** card with dial + history bars +
-streak, healthy habits (water, exercise), weight.
+**Home**, in this order — the order was specified and matters:
+
+1. Page title, with a **logging streak** chip beside it (flame + "3 days")
+2. Week strip
+3. Calories card
+4. Macros card (3 columns + segmented bar)
+5. **Fasting and Water tiles, side by side** — each a whole-card button through
+   to its own screen
+6. Diary rows per period, with a blue "Log" pill
+7. Healthy habits (exercise only — water has its own tile)
+8. Weight
+
+Fasting and water used to sit *below* the diary, which on a phone meant
+scrolling past four meal cards, so in practice nobody saw them.
+
+**The week strip carries three states** and they are easy to collapse into each
+other. Logged fills dark with a tick; the *viewed* day fills accent-blue with a
+ring, and shows a white dot when nothing is logged; *today* keeps a dot above
+its letter, which starts mattering the moment you navigate away from it. Before
+this, a fully-logged week was seven identical circles.
+
+**The streak** counts consecutive days with calories — the same rule as the
+strip's ticks, so the two can never disagree. It counts back from *yesterday*
+when today is still empty; anchoring on today would reset a long streak every
+midnight and hand it back after breakfast. Hidden at zero.
+
+**The fasting tile is a stopwatch, not a streak.** `0:00 · Not fasting · 16h
+plan` at rest, elapsed time against target while one runs. It used to report
+"0 day streak", which is a statistic nobody asked for that reads as a scolding.
 
 **Diary** — pushed screen. `Goal − Food + Exercise = Remaining`, macro bars,
 week strip, water, entries grouped by period, exercise, "Complete this day"
@@ -266,9 +392,28 @@ shortcuts.
 six body measurements each with their own history, calories tab with a 14-day
 bar chart and averages.
 
-**Settings** — banners: Foods · Plan · Intermittent fasting · Profile · Units ·
-Food database · Appearance · About. Profile and Units commit via a save bar;
-the rest are single toggles that apply immediately.
+**Settings** — a **clickable profile card** at the top, then banners: Foods ·
+Plan · Intermittent fasting · Units · Appearance · About.
+
+The card is the only way into the profile. There used to be an inert summary
+card *plus* an Account banner *plus* a Profile banner — three entry points for
+one idea. **Profile** now holds all of it: email, sync state, username, sign
+out, first/last name, sex, date of birth, height, and **Clear all data** at the
+bottom.
+
+**Every preferences screen commits through a save bar**, and backing out
+discards. Plan, Food database and Appearance used to write on each keystroke,
+so a mistyped digit in "minutes per workout" was saved — and pushed to the
+account — before it could be corrected. Save is disabled until something
+differs. Appearance therefore no longer previews the theme as you pick it;
+consistency across the screens was judged worth more than the preview.
+
+**Clear all data** deletes the account's rows too when signed in, not just the
+device — clearing one side only would be a lie, since the next sync pulls it
+straight back.
+
+There is **no Food database screen**. Nothing about the food data is optional
+any more; see §8.
 
 **Nutrition screen** — Calories (donut by period), Nutrients (Total/Goal/Left
 across 17 nutrients), Macros.
@@ -348,10 +493,12 @@ exercise minute. Clamped 1.4–5.0 L. Shown in the user's chosen unit everywhere
    gzipped). Every USDA generic food plus the 45,000 best-ranked branded
    products. Fetched on the first search, then HTTP-cached for a week.
 3. **Extended offline DB** — 175,000 more branded products in
-   `public/food-db-ext.json` (29.7 MB, 7.7 MB gzipped). **Never fetched
-   automatically** — Settings → Food database has a button. It is a large
-   download and takes the heap from ~44 MB to ~117 MB, which is a fair thing to
-   offer and an unfair thing to impose on a phone.
+   `public/food-db-ext.json` (29.7 MB, 7.7 MB gzipped). **Loads automatically**,
+   right behind the core. It was opt-in behind a setting until the user asked
+   for everything on by default; a food that only appears once you have found
+   and enabled a preference is, in practice, missing. The cost is real and worth
+   knowing: the heap goes from ~44 MB to ~117 MB once it lands. If the app ever
+   gets sluggish or reloads itself on a phone, suspect this first.
 4. **Open Food Facts live** — barcode lookup, and search for non-US products.
 
 Rows stay packed in memory and are only turned into `Food` objects for results
@@ -437,9 +584,11 @@ src/
     seedFoods.ts            324 curated foods
     exercises.ts            70 cardio (MET) + 60 strength
     nutrients.ts            17 nutrients, order, daily values
-  lib/supabase.ts           client, or null when unconfigured
+  lib/
+    supabase.ts             client, OAuth fragment handling, __BUILD_SHA__
+    storage.ts              PersistenceAdapter, migrate(), displayNameFrom()
   services/
-    cloud.ts                snapshot differ, fetchAll, pushChanges
+    cloud.ts                snapshot differ, fetchAll, pushChanges, usernames
     cloud.test.ts           differ tests — npm test
     openFoodFacts.ts        live search + barcode, cache + throttle
     foodDb.ts               two-stage loader, packed rows, lazy unpack
@@ -448,11 +597,13 @@ src/
   components/
     Icon.tsx charts.tsx ui.tsx nutrition.tsx
   screens/                  one file per screen
+    Auth.tsx                sign in / create account (email + Google)
+    AccountSetup.tsx        steps 2 and 3: username, then names
 supabase/schema.sql         tables + row level security
 scripts/                    build-usda-db.mjs (ships the DB),
                             build-food-db.mjs + trim-food-db.mjs (OFF, legacy)
 public/food-db.json         58k core foods
-public/food-db-ext.json     175k extended, opt-in
+public/food-db-ext.json     175k extended, loaded automatically
 ```
 
 **Nutrition is stored per serving as logged** on each diary entry, never
@@ -474,12 +625,45 @@ history.
 ### Testing technique that works
 
 Seed `localStorage` directly with `javascript_tool`, reload, screenshot. Faster
-and far more reliable than clicking through onboarding each time. A ready-made
-seed payload is in the session history; the shape is `AppData` from `types.ts`.
+and far more reliable than clicking through onboarding each time. The shape is
+`AppData` from `types.ts`; setting `profile.onboarded = true` plus sex,
+birthDate and heightIn is enough to reach the app.
+
+**Seeding localStorage does not work while signed in.** The cloud copy wins on
+the next reconcile and overwrites it. Either sign out first, or write to the
+`logpal_profile` row directly and reload *immediately* — the store's 250 ms
+debounce will otherwise push the local copy back over your edit.
+
+**Mint a session without the UI** when you need an authenticated fetch:
+
+```js
+await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+  method: 'POST',
+  headers: { apikey: ANON, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+})
+```
 
 **Synthetic clicks in the browser tool sometimes double-fire** — a row click can
 navigate and then immediately pop back. Tab-bar clicks are idempotent so they
 survive it. If a click seems to do nothing, that's usually why, not a bug.
+Calling `.click()` on the element via `javascript_tool` fires exactly once and
+sidesteps it.
+
+**A hash-only URL change does not reload the page.** Testing an OAuth return by
+setting `location.href = '…#access_token=…'` runs no app code at all; the
+mount-time handler never fires. Follow it with `location.reload()`, or navigate
+to a URL whose *query* also differs. This wasted a full round of debugging.
+
+### Verifying a deploy
+
+Never conclude anything about production from behaviour alone. Wait until the
+bundle contains the commit you just pushed, then test:
+
+```js
+const js = await (await fetch(base + assetPath, { cache: 'no-store' })).text()
+js.includes('<short-sha>')   // must be true before drawing conclusions
+```
 
 ---
 
@@ -514,18 +698,65 @@ survive it. If a click seems to do nothing, that's usually why, not a bug.
   budget and is more reliable.
 - About 1% of branded rows still carry cosmetic artefacts from the source data
   (a stray separator in a serving label, a repeated flavour in a name).
-- No account system, no social feed, no step counting (no web pedometer API).
+- **The extended food database roughly triples the heap** — ~44 MB to ~117 MB —
+  and now loads automatically. Fine on a recent phone. If the app gets sluggish
+  or a tab reloads itself on mobile, this is the first thing to suspect, and
+  `loadFoodDb()` in `src/services/foodDb.ts` is the one line to change back.
+- **Anyone who knows a handle can learn the email behind it**, via
+  `email_for_username`. Unavoidable for username sign-in with no server of our
+  own. See §4.
+- **A username can be changed but never released.** There is no delete policy on
+  `logpal_usernames`; deleting the account frees the handle via the cascade.
+- No social feed and no step counting (no web pedometer API). Friend search is
+  **not built** — the data model supports it (handles are unique, world-readable
+  and map to a user id) but nothing consumes it yet.
+- **No Sign in with Apple.** It needs a paid Apple Developer account, a service
+  ID and a key. The account-setup flow already handles "provider gave us an
+  address and nothing else", so adding it is small once those exist.
+- **Email confirmation is currently OFF** in Supabase — switched off during
+  testing so accounts could be created without an inbox round trip. Turn it back
+  on before anyone else uses the app, or people can register with addresses they
+  do not own. Authentication → Sign In / Providers → Email → Confirm email.
+- **Google consent screen is in Testing mode**, so only listed test users can
+  sign in with Google.
 
 ---
 
 ## 12. Deploying
 
-Already connected. Every push to `main` redeploys automatically.
+Every push to `main` redeploys automatically.
 
 ```bash
 cd ~/Documents/Projects/logpal && git push
 ```
 
-`vercel.json` handles the SPA rewrite, a one-week cache on `food-db.json`, and
-immutable caching on hashed assets. Vercel auto-detects Vite — build
-`npm run build`, output `dist`. Nothing to configure, no env vars.
+**The user pushes, not you.** Ask before pushing; they have said so explicitly,
+and the one time it was done it was on a direct instruction.
+
+`vercel.json` handles the SPA rewrite, a one-week cache on both database files,
+and immutable caching on hashed assets. Vercel auto-detects Vite — build
+`npm run build`, output `dist`.
+
+Environment variables live in **Vercel → Settings → Environments → Production →
+Environment Variables** on this account's layout; there is no top-level
+"Environment Variables" entry in the sidebar. They are read at *build* time, so
+changing one does nothing until the next deploy.
+
+After pushing, confirm the deploy identifies itself as your commit before
+testing anything — see §10.
+
+---
+
+## 13. Open threads
+
+Nothing is half-finished in the code; these are things discussed and not built.
+
+1. **Friend search.** Discussed at length as the reason usernames must be
+   unique. Data model is ready; no UI, no follow/friend relationship, no
+   profile-viewing screen.
+2. **Progress photo journal.** Asked for, then explicitly dropped ("okay how
+   about no progress photo"). Would need a Supabase Storage bucket and its
+   policies; nothing was built.
+3. **Sign in with Apple**, blocked on a paid developer account.
+4. **The barcode decode loop on a real camera** — the one piece of shipped
+   functionality never verified.
