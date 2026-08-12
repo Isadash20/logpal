@@ -36,6 +36,7 @@ import { BarcodeScanner } from './screens/Scanner'
 import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
+import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { cloudEnabled } from './lib/supabase'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
@@ -221,7 +222,14 @@ function Shell() {
       case 'prefsUnits':
         return <PrefsUnits />
 
+      case 'friends':
+        return <Friends />
 
+      case 'friendProfile':
+        return <FriendProfile userId={route.userId} username={route.username} />
+
+      case 'friendsSharing':
+        return <FriendsSharing />
 
       case 'prefsAppearance':
         return <PrefsAppearance />

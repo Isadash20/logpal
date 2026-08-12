@@ -32,6 +32,7 @@ export function Today() {
     macroTargets,
     waterTarget,
     latestWeight,
+    logStreak,
     data,
     push,
     setTab,
@@ -76,29 +77,10 @@ export function Today() {
     return out
   }, [date, totalsFor])
 
-  /**
-   * Consecutive days logged, counting back from today.
-   *
-   * A day counts as logged when it has calories on it — the same rule the week
-   * strip ticks use, so the streak can never disagree with the row of circles
-   * directly above it.
-   *
-   * Counting starts at yesterday when today has nothing on it yet. Anchoring on
-   * today would reset a long streak to zero every midnight and only restore it
-   * after the first meal, which reads as losing the streak for breakfast.
-   */
-  const logStreak = useMemo(() => {
-    const realToday = today()
-    const loggedOn = (d: string) => totalsFor(d).nutrients.calories > 0
-    let cursor = loggedOn(realToday) ? realToday : addDays(realToday, -1)
-    let count = 0
-    // Bounded so a corrupt date can never spin here forever.
-    while (count < 3650 && loggedOn(cursor)) {
-      count++
-      cursor = addDays(cursor, -1)
-    }
-    return count
-  }, [totalsFor])
+  /* The streak lives in the store now: a day counts as logged when it has
+     calories on it, the same rule the week strip's ticks use above, and the
+     same number followers are shown. One rule, one place, so the three cannot
+     disagree. */
 
   /* Only tick while a fast is actually running — no timer otherwise. */
   const fast = activeFast(data.fasts)

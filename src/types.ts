@@ -280,6 +280,24 @@ export interface Settings {
   exerciseAddsCalories: boolean
   /** Search live Open Food Facts alongside the built-in database. */
   useOpenFoodFacts: boolean
+
+  /**
+   * What followers are shown.
+   *
+   * These live in settings rather than beside the published row so they sync
+   * like every other preference, and so the choice itself stays private. They
+   * are filters on what the client *writes*: switching one off removes the
+   * column's value from the server on the next publish, rather than hiding a
+   * value that is still sitting there. Turning all three off deletes the row.
+   *
+   * Whether the account is private is not here — the server has to read that
+   * one to decide whether a follow needs approving, so it lives on the
+   * published row.
+   */
+  shareName: boolean
+  shareStreak: boolean
+  /** Today's calories against the day's target. Off by default. */
+  shareCalories: boolean
 }
 
 /* ---------------------------------------------------- intermittent fasting -- */

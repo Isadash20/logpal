@@ -1199,3 +1199,48 @@ button.row:active {
   font-weight: 700;
   opacity: 0.75;
 }
+
+/* --------------------------------------------------------------- social -- */
+
+/* Initial-letter avatar. There is no photo upload and no gravatar call — a
+   letter on the accent wash identifies a row well enough and keeps the whole
+   feature free of a third-party request per person shown. */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-content: center;
+  font-weight: 800;
+  font-size: 16px;
+  flex: none;
+}
+
+.avatar--lg {
+  width: 76px;
+  height: 76px;
+  font-size: 30px;
+}
+
+/* Profile header: avatar over name, centred, above whatever they publish. */
+.personhead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px 20px;
+  text-align: center;
+}
+
+.personhead__name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.personhead__handle {
+  color: var(--text-2);
+  font-size: 14.5px;
+}

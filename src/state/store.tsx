@@ -30,7 +30,8 @@ import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
 import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
 import { deleteAll, fetchAll, fetchUsername, pushChanges } from '../services/cloud'
-import { today } from '../lib/dates'
+import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
+import { addDays, today } from '../lib/dates'
 
 /** Set when someone declines an account; keeps them out of the auth screen. */
 const LOCAL_ONLY_KEY = 'logpal.localOnly'
@@ -92,6 +93,9 @@ export type Route =
   | { name: 'prefsProfile' }
   | { name: 'prefsUnits' }
   | { name: 'prefsAppearance' }
+  | { name: 'friends' }
+  | { name: 'friendProfile'; userId: string; username: string }
+  | { name: 'friendsSharing' }
   | { name: 'about' }
 
 /* ------------------------------------------------------------- selectors -- */
@@ -135,6 +139,10 @@ interface Ctx {
   dayLog(date: string): DayLog
   resolveFood(id: string): Food | undefined
   latestWeight: number
+  /** Consecutive days logged. Shown on Home, and published to followers. */
+  logStreak: number
+  /** The most recent day with anything on it, or null. */
+  lastLogged: string | null
 
   // mutations
   update(fn: (d: AppData) => void): void
@@ -234,6 +242,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* undefined = not looked up yet, null = signed in with no handle. The
      distinction matters: the gate must not flash on a slow lookup. */
   const [username, setUsernameState] = useState<string | null | undefined>(undefined)
+  /* The account whose cloud copy has finished landing. Publishing waits on it;
+     see the publish effect for why `syncing` cannot do that job. */
+  const [reconciledFor, setReconciledFor] = useState<string | null>(null)
 
   /* The last snapshot known to match the server. `pushChanges` diffs against
      it, so it must only advance when a push actually succeeds — otherwise a
@@ -271,6 +282,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!userId) {
       syncedRef.current = null
       setUsernameState(undefined)
+      setReconciledFor(null)
       return
     }
     let live = true
@@ -295,6 +307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (!live) return
           syncedRef.current = local
         }
+        setReconciledFor(userId)
       } catch (err) {
         if (live) setSyncError((err as Error).message)
       } finally {
@@ -457,6 +470,95 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [data.customFoods, data.foodCache]
   )
 
+  /* ------------------------------------------------------------- streaks -- */
+
+  /**
+   * Days with calories on them. One rule, in one place: Home's week strip fills
+   * a circle by it, the streak counts by it, and followers are shown it, so the
+   * three cannot drift apart. It used to live inside Home, which was fine until
+   * something outside Home needed it.
+   */
+  const loggedDates = useMemo(() => {
+    const s = new Set<string>()
+    for (const e of data.foodEntries) if (e.nutrients.calories > 0) s.add(e.date)
+    return s
+  }, [data.foodEntries])
+
+  /* Counting starts at yesterday when today is still empty. Anchoring on today
+     would reset a long streak every midnight and hand it back after breakfast,
+     which reads as losing the streak for having not eaten yet. */
+  const logStreak = useMemo(() => {
+    const realToday = today()
+    let cursor = loggedDates.has(realToday) ? realToday : addDays(realToday, -1)
+    let count = 0
+    // Bounded so a corrupt date can never spin here forever.
+    while (count < 3650 && loggedDates.has(cursor)) {
+      count++
+      cursor = addDays(cursor, -1)
+    }
+    return count
+  }, [loggedDates])
+
+  const lastLogged = useMemo(() => {
+    let best: string | null = null
+    for (const d of loggedDates) if (!best || d > best) best = d
+    return best
+  }, [loggedDates])
+
+  /* ---------------------------------------------------------- publishing -- */
+
+  /**
+   * What this account shows its followers.
+   *
+   * Filtered here, on the way out, rather than at read time. A value the user
+   * has not agreed to share is never written, so it is not sitting in a
+   * world-adjacent table waiting on a policy to keep being correct. Turning a
+   * toggle off therefore *removes* the value on the next publish rather than
+   * hiding it.
+   */
+  const published = useMemo<PublishedProfile>(() => {
+    const s = data.settings
+    if (!s.shareName && !s.shareStreak && !s.shareCalories) return NOTHING_PUBLISHED
+
+    const totals = totalsFor(today())
+    return {
+      display_name: s.shareName ? data.profile.name || null : null,
+      streak: s.shareStreak ? logStreak : null,
+      last_logged: s.shareStreak ? lastLogged : null,
+      calories: s.shareCalories ? Math.round(totals.nutrients.calories) : null,
+      calorie_goal: s.shareCalories ? Math.round(totals.goal) : null,
+    }
+  }, [data.settings, data.profile.name, logStreak, lastLogged, totalsFor])
+
+  /* Held so an unchanged summary does not become a write on every keystroke —
+     this sits downstream of the whole diary, which changes constantly, while
+     what it publishes changes a few times a day. Cleared on failure so the
+     next change retries rather than assuming the server agrees. */
+  const publishedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!userId || !cloudEnabled()) {
+      publishedRef.current = null
+      return
+    }
+    /* Not until this account's cloud copy has landed. Before that `data` is
+       still whatever the device happened to hold, which after switching
+       accounts is the *previous* user's name — and publishing it, even for a
+       moment, puts it in front of the new account's followers.
+       `syncing` cannot gate this. It is set inside the reconcile effect, which
+       runs in the same commit as this one, so the value read here is still the
+       `false` from before sign-in and the stale publish goes out anyway. This
+       flag is written when the read finishes, so by the time it matches there
+       is nothing stale left to send. */
+    if (reconciledFor !== userId) return
+
+    const json = JSON.stringify(published)
+    if (publishedRef.current === json) return
+    publishedRef.current = json
+    publishProfile(published).catch(() => {
+      publishedRef.current = null
+    })
+  }, [userId, reconciledFor, published])
+
   /* ----------------------------------------------------------- mutations -- */
 
   const logFood = useCallback<Ctx['logFood']>(
@@ -547,6 +649,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dayLog,
     resolveFood,
     latestWeight,
+    logStreak,
+    lastLogged,
     update,
     logFood,
     logItems,

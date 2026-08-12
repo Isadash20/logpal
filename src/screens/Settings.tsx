@@ -16,6 +16,7 @@ import { PROTOCOL_BY_KEY } from '../lib/fasting'
 import { displayNameFrom } from '../lib/storage'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
+import { pendingRequestCount } from '../services/social'
 
 /* ------------------------------------------------------------------ hub -- */
 
@@ -85,6 +86,11 @@ export function More() {
           </span>
         </button>
 
+        {/* Only with credentials to sign in against — following needs two
+            accounts, so on a device-local build the banner would open a screen
+            whose only content is an explanation of why it is empty. */}
+        {cloudEnabled() && <FriendsBanner />}
+
         <Banner
           icon="bookmark"
           title="Foods"
@@ -127,6 +133,45 @@ export function More() {
         />
       </div>
     </>
+  )
+}
+
+/**
+ * Friends, with a count of anyone waiting on approval.
+ *
+ * The count is the only reason this is a component rather than a `Banner` in
+ * the list above: a request made on a private account has nowhere else to
+ * surface, so it would sit unanswered until its recipient happened to open the
+ * screen. A failed count is silently no badge — a settings list is not the
+ * place to report a network problem.
+ */
+function FriendsBanner() {
+  const { push, session } = useApp()
+  const [pending, setPending] = useState(0)
+
+  useEffect(() => {
+    if (!session) return
+    let live = true
+    void pendingRequestCount(session.user.id)
+      .then((n) => live && setPending(n))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [session])
+
+  return (
+    <Banner
+      icon="user"
+      title="Friends"
+      sub={
+        session
+          ? 'Find people, follow their streaks, choose what you share'
+          : 'Sign in to follow people'
+      }
+      value={pending ? <span className="badge">{pending} waiting</span> : undefined}
+      onClick={() => push({ name: 'friends' })}
+    />
   )
 }
 

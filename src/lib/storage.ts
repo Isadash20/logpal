@@ -152,6 +152,13 @@ export function defaultSettings(): Settings {
     theme: 'system',
     exerciseAddsCalories: true,
     useOpenFoodFacts: true,
+    /* Name and streak are what make a followers list worth opening at all, and
+       neither is health data. Today's calories against a target is, so it is
+       off until someone asks for it. `migrate` spreads defaults over saved
+       settings, so accounts written before this get the same. */
+    shareName: true,
+    shareStreak: true,
+    shareCalories: false,
   }
 }
 

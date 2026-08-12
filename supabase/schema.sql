@@ -253,3 +253,167 @@ $$;
 
 revoke all on function email_for_username(text) from public;
 grant execute on function email_for_username(text) to anon, authenticated;
+
+-- ----------------------------------------------------------------- social --
+
+/*
+ * Following, and the small amount each account chooses to publish.
+ *
+ * Two tables and one hard rule: *nothing readable here was put there by
+ * anything but its own owner's client, and only after that owner switched the
+ * corresponding sharing toggle on.* The diary, weight, measurements and goals
+ * stay where they are, behind `own_rows`. Nothing below can reach them.
+ *
+ * That is why this is a published summary rather than a policy that opens up
+ * logpal_profile to followers. A policy has to be right forever; a column that
+ * was never written cannot leak whatever a future policy gets wrong.
+ */
+
+-- What an account publishes. One row per user, and only for users who share
+-- something — the client deletes the row when every toggle is turned off,
+-- which is the only honest implementation of "share nothing".
+--
+-- Every column but `private` is nullable and null means *not shared*. The
+-- client filters before writing, so a value the owner has not agreed to share
+-- is never in the table to begin with.
+create table if not exists logpal_social_profile (
+  user_id      uuid primary key default auth.uid() references auth.users on delete cascade,
+  -- The owner's call, and the only field here the server itself reads: it
+  -- decides whether a new follow is accepted immediately or held for approval.
+  private      boolean not null default false,
+  display_name text,
+  streak       integer,
+  last_logged  date,
+  calories     integer,
+  calorie_goal integer,
+  updated_at   timestamptz not null default now()
+);
+
+-- Directed edges: `follower` follows `followee`. Asymmetric on purpose — this
+-- is following, not mutual friendship — so the pair is ordered and both
+-- directions can exist independently.
+create table if not exists logpal_follows (
+  follower   uuid not null default auth.uid() references auth.users on delete cascade,
+  followee   uuid not null references auth.users on delete cascade,
+  status     text not null default 'pending' check (status in ('pending', 'accepted')),
+  created_at timestamptz not null default now(),
+  primary key (follower, followee),
+  constraint logpal_follows_not_self check (follower <> followee)
+);
+
+-- Requests are listed by the person receiving them, so that is the direction
+-- the index covers.
+create index if not exists logpal_follows_by_followee
+  on logpal_follows (followee, status);
+
+alter table logpal_social_profile enable row level security;
+alter table logpal_follows enable row level security;
+
+/*
+ * Whether a follow needs approval is the *target's* decision, so the server
+ * makes it. Left to the client, anyone could insert their own row with
+ * status 'accepted' against a private account and read it by simply asking.
+ *
+ * An account with no row here has not opted into any of this and has nothing
+ * published, so there is nothing for approval to protect — the follow is
+ * accepted and sees an empty profile.
+ */
+create or replace function logpal_follow_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  new.status := case
+    when coalesce(
+      (select p.private from logpal_social_profile p where p.user_id = new.followee),
+      false
+    )
+    then 'pending'
+    else 'accepted'
+  end;
+  return new;
+end
+$$;
+
+drop trigger if exists logpal_follows_set_status on logpal_follows;
+create trigger logpal_follows_set_status
+  before insert on logpal_follows
+  for each row execute function logpal_follow_status();
+
+/*
+ * Accepting is the only thing an update may do.
+ *
+ * The update policy below has to let the followee write the row — that is what
+ * accepting a request is — and a policy cannot see the row's previous values,
+ * so on its own it would also let them move `follower` to an arbitrary account
+ * and forge "this person follows me". Nobody gains access that way, but the
+ * forged account would find a follow it never made sitting in its own list.
+ * Freezing the pair here is what a `with check` cannot express.
+ */
+create or replace function logpal_follows_freeze_pair()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.follower := old.follower;
+  new.followee := old.followee;
+  new.created_at := old.created_at;
+  return new;
+end
+$$;
+
+drop trigger if exists logpal_follows_pair_frozen on logpal_follows;
+create trigger logpal_follows_pair_frozen
+  before update on logpal_follows
+  for each row execute function logpal_follows_freeze_pair();
+
+-- Both ends of an edge can see it: you see who you follow, and who follows you.
+drop policy if exists follows_visible on logpal_follows;
+create policy follows_visible on logpal_follows for select
+  using (auth.uid() = follower or auth.uid() = followee);
+
+-- You may only follow on your own behalf. `status` is the trigger's to set.
+drop policy if exists follows_own_insert on logpal_follows;
+create policy follows_own_insert on logpal_follows for insert
+  with check (auth.uid() = follower);
+
+-- Accepting a request is the followee's act and nobody else's.
+drop policy if exists follows_accept on logpal_follows;
+create policy follows_accept on logpal_follows for update
+  using (auth.uid() = followee) with check (auth.uid() = followee);
+
+-- Covers all four ways an edge ends: unfollow, cancel a request, decline one,
+-- and remove a follower.
+drop policy if exists follows_own_delete on logpal_follows;
+create policy follows_own_delete on logpal_follows for delete
+  using (auth.uid() = follower or auth.uid() = followee);
+
+-- Your own row, always. Everyone else needs to be signed in, and then either
+-- the account is public or they are an accepted follower of it.
+--
+-- Signed-in is not incidental: without it `not private` would hand every
+-- public display name to an anonymous request.
+drop policy if exists social_visible on logpal_social_profile;
+create policy social_visible on logpal_social_profile for select
+  using (
+    auth.uid() = user_id
+    or (
+      auth.uid() is not null
+      and (
+        not private
+        or exists (
+          select 1
+          from logpal_follows f
+          where f.followee = logpal_social_profile.user_id
+            and f.follower = auth.uid()
+            and f.status = 'accepted'
+        )
+      )
+    )
+  );
+
+drop policy if exists social_own_write on logpal_social_profile;
+create policy social_own_write on logpal_social_profile for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
