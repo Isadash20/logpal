@@ -99,9 +99,17 @@ function RecipeCard({
 
 const DAYS_SHOWN = 7
 
-export function Planner() {
+/**
+ * Prep: the calendar half.
+ *
+ * A pane rather than a screen — it lives inside the Plan tab beside the
+ * browsing half, because choosing meals and scheduling them are two halves of
+ * one sitting. Making Prep its own pushed screen meant leaving the recipes to
+ * go and place them, then coming back for the next one.
+ */
+export function PrepPane() {
   const app = useApp()
-  const { pop, push, data, calorieTarget, planFor, plannedCalories } = app
+  const { push, data, calorieTarget, planFor, plannedCalories } = app
 
   const days = useMemo(
     () => Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(today(), i)),
@@ -109,51 +117,38 @@ export function Planner() {
   )
 
   const planned = data.planEntries.length
+  const unbought = data.shopping.filter((s) => !s.checked).length
 
   return (
     <>
-      <TopBar
-        title="Meal plan"
-        onBack={pop}
-        solid
-        right={
-          <button
-            className="iconbtn"
-            onClick={() => push({ name: 'shoppingList' })}
-            aria-label="Shopping list"
-          >
-            <Icon name="bookmark" size={21} />
-          </button>
-        }
-      />
-
-      <div className="scroll">
-        {!planned && (
-          <div className="hint" style={{ paddingTop: 14 }}>
-            Put a recipe on a day and it shows up here with its calories counted
-            against your target. Nothing is logged to your diary until you say so.
-          </div>
-        )}
-
-        {days.map((d) => (
-          <PlannerDay
-            key={d}
-            date={d}
-            target={calorieTarget}
-            entries={planFor(d)}
-            planned={plannedCalories(d)}
-          />
-        ))}
-
-        <div className="btn-wrap">
-          <button
-            className="btn btn--ghost"
-            onClick={() => push({ name: 'shoppingList' })}
-          >
-            Shopping list
-          </button>
+      {!planned && (
+        <div className="hint" style={{ paddingTop: 14 }}>
+          Pick something from Plan and it lands on a day here, with its calories
+          counted against your target. Nothing reaches your diary until you say so.
         </div>
+      )}
+
+      {days.map((d) => (
+        <PlannerDay
+          key={d}
+          date={d}
+          target={calorieTarget}
+          entries={planFor(d)}
+          planned={plannedCalories(d)}
+        />
+      ))}
+
+      <div style={{ height: 8 }} />
+      <div className="card">
+        <Row
+          title="Grocery list"
+          sub="Built from everything on the calendar above"
+          value={unbought || undefined}
+          chevron
+          onClick={() => push({ name: 'shoppingList' })}
+        />
       </div>
+      <div style={{ height: 16 }} />
     </>
   )
 }
@@ -227,8 +222,15 @@ function PlannerDay({
 
 /* ----------------------------------------------------------------- browse -- */
 
-export function RecipeBrowse({ date, slot }: { date?: string; slot?: MealSlot }) {
-  const { pop, push, data } = useApp()
+/**
+ * Plan: the browsing half.
+ *
+ * Meal ideas to choose from, and the door to writing your own. Both routes end
+ * in the same place — a recipe you can put on a day — which is why they share
+ * one surface rather than sitting behind separate menu items.
+ */
+export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
+  const { push, data } = useApp()
   const [query, setQuery] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
@@ -239,14 +241,15 @@ export function RecipeBrowse({ date, slot }: { date?: string; slot?: MealSlot })
     () => searchRecipes(recipes, query, { tags }),
     [recipes, query, tags],
   )
+  const mine = data.recipes
 
   const toggleTag = (t: string) =>
     setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]))
 
+  const browsing = !query.trim() && tags.length === 0
+
   return (
     <>
-      <TopBar title={date ? `Add to ${friendlyDate(date)}` : 'Recipes'} onBack={pop} solid />
-
       <div className="searchbar">
         <div className="searchbar__box">
           <Icon name="search" size={17} />
@@ -290,26 +293,85 @@ export function RecipeBrowse({ date, slot }: { date?: string; slot?: MealSlot })
         </div>
       )}
 
-      <div className="scroll">
-        {results.length === 0 ? (
-          <Empty title="Nothing matches">
-            <div style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 8px' }}>
-              Try a different word, or clear the filters. Your own recipes are searched
-              alongside the built-in ones.
-            </div>
-          </Empty>
-        ) : (
-          <div className="rgrid">
-            {results.map((r) => (
+      {/* Writing your own is offered up front, not buried under the catalogue.
+          It is one of the two ways to get a meal into the plan, so it should not
+          take a scroll past a hundred and twenty other people's ideas to find. */}
+      {browsing && (
+        <div className="card" style={{ marginTop: 12 }}>
+          <Row
+            title="Create your own recipe"
+            sub="Your ingredients, your method — planned the same way"
+            chevron
+            onClick={() => push({ name: 'recipeEditor' })}
+          />
+        </div>
+      )}
+
+      {browsing && mine.length > 0 && (
+        <>
+          <div className="section-head">
+            <span>Your recipes</span>
+          </div>
+          <div className="rrail">
+            {mine.map((r) => (
               <RecipeCard
                 key={r.id}
                 recipe={r}
+                variant="rail"
                 onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
               />
             ))}
           </div>
-        )}
-        <div style={{ height: 20 }} />
+        </>
+      )}
+
+      {browsing && (
+        <div className="section-head">
+          <span>Meal ideas</span>
+        </div>
+      )}
+
+      {results.length === 0 ? (
+        <Empty title="Nothing matches">
+          <div style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 8px' }}>
+            Try a different word, or clear the filters. Your own recipes are searched
+            alongside the built-in ones.
+          </div>
+        </Empty>
+      ) : (
+        <div className="rgrid">
+          {results.map((r) => (
+            <RecipeCard
+              key={r.id}
+              recipe={r}
+              onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
+            />
+          ))}
+        </div>
+      )}
+      <div style={{ height: 20 }} />
+    </>
+  )
+}
+
+/**
+ * The same browsing pane as a pushed screen, for adding to one specific day.
+ *
+ * Reached from a day's "+" on the calendar, where the date is already decided —
+ * so the recipe it opens carries that date through and planning takes one tap
+ * instead of asking again.
+ */
+export function RecipeBrowse({ date, slot }: { date?: string; slot?: MealSlot }) {
+  const { pop } = useApp()
+  return (
+    <>
+      <TopBar
+        title={date ? `Add to ${friendlyDate(date)}` : 'Meal ideas'}
+        onBack={pop}
+        solid
+      />
+      <div className="scroll">
+        <PlanPane date={date} slot={slot} />
       </div>
     </>
   )

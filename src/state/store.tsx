@@ -179,7 +179,6 @@ export type Route =
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
-  | { name: 'planner' }
   | { name: 'recipeBrowse'; slot?: MealSlot; date?: string }
   | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
   | { name: 'shoppingList' }

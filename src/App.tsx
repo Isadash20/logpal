@@ -37,7 +37,7 @@ import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
-import { Planner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
+import { RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
@@ -231,9 +231,6 @@ function Shell() {
 
       case 'friendsSharing':
         return <FriendsSharing />
-
-      case 'planner':
-        return <Planner />
 
       case 'recipeBrowse':
         return <RecipeBrowse date={route.date} slot={route.slot} />

@@ -8,6 +8,7 @@ import {
 } from '../lib/ingredients'
 import { searchLocal } from './foodSearch'
 import { SEED_RECIPES } from '../data/seedRecipes'
+import { CATALOG_RECIPES } from '../data/catalogRecipes'
 import { healthScore, type HealthScore } from '../lib/healthScore'
 
 /**
@@ -86,7 +87,10 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
   let items: MealItem[]
 
   if (written.length) {
-    const search = (q: string) => searchLocal(q, extraFoods, 1)
+    /* A shortlist, not a single answer. `matchIngredient` reranks these by how
+       well the name actually fits, so handing it one row would leave it
+       nothing to choose between and reintroduce the bad-guess problem. */
+    const search = (q: string) => searchLocal(q, extraFoods, 25)
     lines = written.map((l) => resolveIngredient(parseIngredient(l), search))
     items = lines.map(toMealItem).filter((i): i is MealItem => i !== null)
   } else {
@@ -138,13 +142,21 @@ export function ingredientCount(r: Recipe): number {
 }
 
 /**
- * Everything the user can plan from: what they have written or saved, then the
- * built-ins. Theirs first — a recipe someone typed in should never be ranked
- * below one that shipped with the app.
+ * Everything the user can plan from: what they wrote, then what shipped.
+ *
+ * Theirs first, always — a recipe someone typed in should never rank below one
+ * that came with the app. After that the eight hand-written seeds, then the
+ * USDA catalogue, which is the largest but the least personal.
  */
 export function allRecipes(userRecipes: Recipe[]): Recipe[] {
   const seen = new Set(userRecipes.map((r) => r.id))
-  return [...userRecipes, ...SEED_RECIPES.filter((r) => !seen.has(r.id))]
+  const shipped = [...SEED_RECIPES, ...CATALOG_RECIPES].filter((r) => !seen.has(r.id))
+  return [...userRecipes, ...shipped]
+}
+
+/** Just the ones the user made, for the "your recipes" shelf. */
+export function ownRecipes(userRecipes: Recipe[]): Recipe[] {
+  return userRecipes
 }
 
 export function findRecipe(userRecipes: Recipe[], id: string): Recipe | undefined {

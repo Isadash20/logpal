@@ -1,5 +1,5 @@
 import type { Food, MealItem, Nutrients, Serving } from '../types'
-import { scaleNutrients } from './nutrition'
+import { emptyNutrients, scaleNutrients } from './nutrition'
 
 /**
  * Turning a written ingredient line into something with calories on it.
@@ -112,7 +112,16 @@ interface UnitDef {
 const UNITS: UnitDef[] = [
   { key: 'tsp', kind: 'volume', base: 4.92892, aliases: ['tsp', 't', 'teaspoon'] },
   { key: 'tbsp', kind: 'volume', base: 14.7868, aliases: ['tbsp', 'tbs', 'tb', 'T', 'tablespoon'] },
-  { key: 'fl oz', kind: 'volume', base: 29.5735, aliases: ['fl oz', 'floz', 'fluid ounce'] },
+  {
+    key: 'fl oz',
+    kind: 'volume',
+    base: 29.5735,
+    /* "us fluid ounce" is how USDA writes it, and missing it is not a rounding
+       error: the unit stays unparsed, the words fall into the food name, and
+       "16 us fluid ounces orange juice" went looking for a food called that and
+       came back with a Snickers bar priced sixteen times over. */
+    aliases: ['fl oz', 'floz', 'fluid ounce', 'us fluid ounce', 'fl. oz'],
+  },
   { key: 'cup', kind: 'volume', base: 236.588, aliases: ['cup', 'c'] },
   { key: 'pint', kind: 'volume', base: 473.176, aliases: ['pint', 'pt'] },
   { key: 'quart', kind: 'volume', base: 946.353, aliases: ['quart', 'qt'] },
@@ -210,13 +219,24 @@ export function parseIngredient(line: string): ParsedIngredient {
   const qty = q ? q.qty : null
   text = (q ? q.rest : text).trim()
 
-  // Unit, if the next word is one. Checked longest-first so "fl oz" wins.
+  /* Unit, longest phrase first so "us fluid ounce" beats "us" and "fl oz"
+     beats "fl". Plurals are singularised before lookup at each width. */
   let unit: string | null = null
-  const twoWord = text.match(/^(\w+\s+\w+)\b/)
-  if (twoWord && UNIT_BY_ALIAS.has(twoWord[1].toLowerCase())) {
-    unit = UNIT_BY_ALIAS.get(twoWord[1].toLowerCase())!.key
-    text = text.slice(twoWord[1].length).trim()
-  } else {
+  const multi = text.match(/^(\w+\.?\s+\w+\.?\s+\w+\.?)\b/)
+  const two = text.match(/^(\w+\.?\s+\w+\.?)\b/)
+  for (const m of [multi, two]) {
+    if (!m) continue
+    const phrase = m[1].toLowerCase().replace(/\./g, '')
+    const singular = phrase.endsWith('es') ? phrase.slice(0, -2) : phrase.replace(/s$/, '')
+    const def = UNIT_BY_ALIAS.get(phrase) ?? UNIT_BY_ALIAS.get(singular)
+    if (def) {
+      unit = def.key
+      text = text.slice(m[1].length).trim()
+      break
+    }
+  }
+
+  if (!unit) {
     const oneWord = text.match(/^([A-Za-z]+)\.?\b/)
     if (oneWord) {
       const w = oneWord[1].toLowerCase()
@@ -271,6 +291,88 @@ export function parseIngredient(line: string): ParsedIngredient {
 /* --------------------------------------------------------------- matching -- */
 
 /**
+ * Things that are genuinely zero, resolved before any search runs.
+ *
+ * Water and ice carry no calories, and the database has no clean entry for
+ * either — searching sent "cold water" to Cold Water Sardines and "1 cup ice"
+ * to a 530-calorie cup of ice cream. Neither is a near miss to be tuned away;
+ * they are the search doing its job on a query that has no right answer.
+ */
+const ZERO_CALORIE = /^(cold |warm |hot |boiling |cool |iced )?(water|ice|ice cubes?|crushed ice)$/i
+
+const STOP = new Set([
+  'and', 'or', 'the', 'with', 'into', 'for', 'plus', 'about', 'your', 'any',
+  'fresh', 'frozen', 'dried', 'ground', 'chopped', 'sliced', 'raw', 'cooked',
+  'low', 'free', 'reduced', 'nonfat', 'non', 'fat', 'lean', 'skinless',
+  'boneless', 'unsalted', 'salted', 'sweetened', 'unsweetened', 'canned',
+])
+
+function tokens(s: string): string[] {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9%\s-]/g, ' ')
+    .split(/[\s-]+/)
+    .filter((w) => w.length > 1)
+}
+
+/**
+ * The word an ingredient is really about.
+ *
+ * English compounds are head-final — "orange juice" is a juice, "black pepper"
+ * is a pepper, "fat-free dry milk" is a milk — so the last meaningful word is
+ * the thing itself and the ones before it are modifiers. Requiring a candidate
+ * to contain that word is what stops "cinnamon" landing on a cinnamon bun and
+ * "salt" on a chocolate sea salt bar.
+ */
+function headNoun(name: string): string {
+  const words = tokens(name).filter((w) => !STOP.has(w))
+  return words.length ? words[words.length - 1] : (tokens(name).pop() ?? '')
+}
+
+/**
+ * Picks the best food for an ingredient, or nothing.
+ *
+ * `searchLocal` is built for a person choosing from a list: it always returns
+ * its best guess, however poor, because a human will simply not tap the wrong
+ * one. Used automatically that becomes a liability — every bad guess silently
+ * becomes calories. This narrows the result to candidates that plausibly *are*
+ * the ingredient, and returns null rather than settling.
+ *
+ * Two rules, in order:
+ *   1. The candidate must contain the ingredient's head noun.
+ *   2. Among those, fewest extra words wins. "Spices, cinnamon, ground" carries
+ *      two words the query did not ask for; "Cinnamon buns, frosted (includes
+ *      honey buns)" carries five. The first is the spice, the second is cake.
+ */
+export function matchIngredient(name: string, search: (q: string) => Food[]): Food | null {
+  const head = headNoun(name)
+  if (!head) return null
+
+  const asked = new Set(tokens(name))
+  const candidates = search(name)
+  let best: Food | null = null
+  let bestExtra = Infinity
+
+  for (let i = 0; i < candidates.length; i++) {
+    const food = candidates[i]
+    const words = tokens(`${food.name} ${food.brand ?? ''}`)
+    if (!words.includes(head)) continue
+
+    let extra = 0
+    for (const w of words) if (!asked.has(w) && !STOP.has(w)) extra++
+    /* Ties go to the earlier candidate, which is the one the ranked search
+       already preferred — this reorders within the shortlist, it does not
+       replace the ranking. */
+    if (extra < bestExtra) {
+      bestExtra = extra
+      best = food
+    }
+  }
+
+  return best
+}
+
+/**
  * Picks the serving that best expresses the parsed amount.
  *
  * Preferring a serving whose label already uses the ingredient's own unit is
@@ -319,6 +421,16 @@ function servingFor(
     if (withGrams) return { serving: withGrams, servings: (qty * unitDef.base) / withGrams.grams! }
   }
 
+  /* Tins and packets are deliberately left unpriced.
+   *
+   * The size is often right there — "1 can pumpkin (15 ounce)" — and converting
+   * it was tried. It made things worse, because a can multiplies whatever the
+   * match happened to be: "pumpkin" resolves to Pumpkin Seeds in this database,
+   * and fifteen ounces of those is 2,400 calories arriving silently. Leaving the
+   * line uncounted understates the recipe, but it says so on screen, and an
+   * undercount you can see beats an overcount you cannot. Worth revisiting once
+   * ingredient matching can express confidence rather than just a best guess. */
+
   // No unit at all — "2 eggs", "1 avocado". The food's own first serving is
   // exactly the right notion of "one of them".
   if (!parsed.unit) return { serving: servings[0], servings: qty }
@@ -364,6 +476,16 @@ export function resolveIngredient(
   }
   if (!parsed.name) return { ...empty, reason: 'no-match' }
 
+  /* Water and ice are zero, and are answered here rather than searched for. */
+  if (ZERO_CALORIE.test(parsed.name.trim())) {
+    return {
+      ...empty,
+      nutrients: emptyNutrients(),
+      servingLabel: parsed.raw,
+      servings: 1,
+    }
+  }
+
   /* A line with no amount is not priced, deliberately.
    *
    * "Salt and pepper, to taste", "Cooking spray", "Lettuce, as needed" name a
@@ -375,12 +497,10 @@ export function resolveIngredient(
    * The match is still returned: the shopping list wants the name even though
    * the calorie count cannot have it. */
   if (parsed.qty == null) {
-    const guess = search(parsed.name)[0] ?? null
-    return { ...empty, food: guess, reason: 'no-amount' }
+    return { ...empty, food: matchIngredient(parsed.name, search), reason: 'no-amount' }
   }
 
-  const hits = search(parsed.name)
-  const food = hits[0] ?? null
+  const food = matchIngredient(parsed.name, search)
   if (!food) return { ...empty, reason: 'no-match' }
 
   const chosen = servingFor(food, parsed)
