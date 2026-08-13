@@ -30,7 +30,7 @@ import type {
 import { MEAL_KEYS, periodForDate } from '../types'
 import { aisleFor } from '../data/aisles'
 import { findRecipe, resolveRecipe } from '../services/recipes'
-import { formatAmount, parseIngredient } from '../lib/ingredients'
+import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredients'
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
 import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
@@ -86,6 +86,10 @@ function scaleNutrientsLocal(n: Nutrients, by: number): Nutrients {
  */
 function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
   const lines = recipe.ingredients ?? []
+  // The list is written in the reader's own units, like the recipe it came
+  // from — a shopping list in cups for someone who buys in grams is a list
+  // they have to convert in the aisle.
+  const prefs = unitPrefsFrom(d.settings)
   let added = 0
 
   for (const line of lines) {
@@ -107,7 +111,7 @@ function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
          worse than showing the recipe count. */
       const prev = existing.amount ? parseIngredient(existing.amount) : null
       if (prev && qty != null && prev.qty != null && prev.unit === parsed.unit) {
-        existing.amount = formatAmount(prev.qty + qty, parsed.unit)
+        existing.amount = formatAmountFor(prev.qty + qty, parsed.unit, prefs)
       }
       if (!existing.fromRecipeIds?.includes(recipe.id)) {
         existing.fromRecipeIds = [...(existing.fromRecipeIds ?? []), recipe.id]
@@ -118,7 +122,7 @@ function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
     d.shopping.push({
       id: uid('s'),
       name,
-      amount: qty != null ? formatAmount(qty, parsed.unit) : undefined,
+      amount: qty != null ? formatAmountFor(qty, parsed.unit, prefs) : undefined,
       aisle: aisleFor(name),
       checked: false,
       fromRecipeIds: [recipe.id],

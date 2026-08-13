@@ -7,7 +7,12 @@ import { Empty, Row, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
-import { formatAmount, formatQuantity, parseIngredient } from '../lib/ingredients'
+import {
+  formatAmountFor,
+  formatQuantity,
+  parseIngredient,
+  unitPrefsFrom,
+} from '../lib/ingredients'
 import { sortAisles } from '../data/aisles'
 import {
   allRecipes,
@@ -420,8 +425,11 @@ export function RecipeView({
   slot?: MealSlot
 }) {
   const app = useApp()
-  const { pop, data, planMeal, logItems, addRecipeToShoppingList } = app
+  const { pop, data, settings, planMeal, logItems, addRecipeToShoppingList } = app
   const dbSize = useFoodDb()
+  // Amounts are shown in whatever the Units screen says, so a recipe reads the
+  // way this particular person cooks rather than the way it was written down.
+  const prefs = useMemo(() => unitPrefsFrom(settings), [settings])
 
   const recipe = useMemo(
     () => allRecipes(data.recipes).find((r) => r.id === recipeId),
@@ -578,9 +586,11 @@ export function RecipeView({
                     className={`ing ${r && !r.food ? 'ing--unmatched' : ''}`}
                   >
                     <span className="ing__amount">
-                      {parsed.qty != null
-                        ? formatAmount(parsed.qty * scale, parsed.unit)
-                        : ''}
+                      {formatAmountFor(
+                        parsed.qty != null ? parsed.qty * scale : null,
+                        parsed.unit,
+                        prefs,
+                      )}
                     </span>
                     <span className="ing__name">
                       {parsed.name}

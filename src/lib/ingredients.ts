@@ -639,3 +639,100 @@ export function formatAmount(qty: number | null, unit: string | null): string {
   const plural = qty > 1 && !ABBREVIATIONS.has(unit) ? `${unit}s` : unit
   return `${n} ${plural}`
 }
+
+/* --------------------------------------------------- the reader's units -- */
+
+/**
+ * How this reader wants amounts written.
+ *
+ * Weight and volume are asked separately because people genuinely mix them:
+ * someone can weigh in kilograms and still cook in cups, which is the normal
+ * British and Australian kitchen. Taken straight from the existing Units
+ * screen — `weightUnit` decides pounds against grams, `waterUnit` decides cups
+ * against millilitres — so there is no new preference to set and no way for the
+ * two to disagree with the rest of the app.
+ */
+export interface UnitPrefs {
+  weight: 'imperial' | 'metric'
+  volume: 'cup' | 'ml' | 'floz'
+}
+
+export function unitPrefsFrom(settings: {
+  weightUnit: 'lb' | 'kg'
+  waterUnit: 'cup' | 'ml' | 'floz'
+}): UnitPrefs {
+  return {
+    weight: settings.weightUnit === 'kg' ? 'metric' : 'imperial',
+    volume: settings.waterUnit,
+  }
+}
+
+/** Grams below this read better as grams than as a fraction of a kilo. */
+const KG_THRESHOLD = 1000
+/** Ounces below this read better as ounces than as a fraction of a pound. */
+const LB_THRESHOLD = 16
+
+/**
+ * Rewrites an amount into the reader's own units.
+ *
+ * Only converts across the same kind — a weight becomes another weight, a
+ * volume another volume. Counts are left exactly as written, because "3 cloves
+ * garlic" has no metric equivalent and inventing one would be worse than
+ * leaving it. An amount already in the wanted unit is returned untouched rather
+ * than round-tripped, so "1 cup" never becomes "0.99 cups".
+ */
+export function convertAmount(
+  qty: number,
+  unit: string | null,
+  prefs: UnitPrefs,
+): { qty: number; unit: string | null } {
+  if (!unit) return { qty, unit }
+  const def = UNIT_BY_KEY.get(unit)
+  if (!def?.base) return { qty, unit }
+
+  if (def.kind === 'weight') {
+    const grams = qty * def.base
+    if (prefs.weight === 'metric') {
+      return grams >= KG_THRESHOLD
+        ? { qty: grams / 1000, unit: 'kg' }
+        : { qty: grams, unit: 'g' }
+    }
+    const ounces = grams / 28.3495
+    return ounces >= LB_THRESHOLD
+      ? { qty: ounces / 16, unit: 'lb' }
+      : { qty: ounces, unit: 'oz' }
+  }
+
+  // Volume. Teaspoons and tablespoons survive in every kitchen and are how
+  // recipes write small amounts, so they are never converted away.
+  if (unit === 'tsp' || unit === 'tbsp') return { qty, unit }
+
+  const ml = qty * def.base
+  if (prefs.volume === 'ml') return { qty: ml, unit: 'ml' }
+  if (prefs.volume === 'floz') return { qty: ml / 29.5735, unit: 'fl oz' }
+  return { qty: ml / 236.588, unit: 'cup' }
+}
+
+/**
+ * An amount written for this reader.
+ *
+ * Metric rounds to whole numbers — "237 ml", not "236.588 ml" and not "1 ⅕" —
+ * because that is how metric recipes are written. Imperial and cup measures
+ * keep the fractions, because that is how theirs are.
+ */
+export function formatAmountFor(
+  qty: number | null,
+  unit: string | null,
+  prefs: UnitPrefs,
+): string {
+  if (qty == null) return ''
+  const c = convertAmount(qty, unit, prefs)
+  if (c.unit === 'g' || c.unit === 'ml') {
+    return `${Math.round(c.qty)} ${c.unit}`
+  }
+  if (c.unit === 'kg' || c.unit === 'lb' || c.unit === 'oz' || c.unit === 'fl oz') {
+    const rounded = Math.round(c.qty * 100) / 100
+    return `${formatQuantity(rounded)} ${c.unit}`
+  }
+  return formatAmount(c.qty, c.unit)
+}

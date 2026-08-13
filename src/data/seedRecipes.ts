@@ -102,7 +102,12 @@ export const SEED_RECIPES: Recipe[] = [
       '½ cup feta cheese',
       '2 tablespoons olive oil',
       '1 tablespoon lemon juice',
-      '1 teaspoon salt',
+      /* A quarter teaspoon, not one. The feta brings most of the salt already,
+         and the original teaspoon worked out at 1,150 mg a serving — which the
+         health score was quite right to mark down. The recipe was wrong, not
+         the score. */
+      '¼ teaspoon salt',
+      'Black pepper, to taste',
     ],
     [
       'Combine the tomatoes, cucumber and onion in a bowl.',

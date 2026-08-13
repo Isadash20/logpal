@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { formatAmount, formatQuantity, parseIngredient } from './ingredients'
+import {
+  formatAmount,
+  formatAmountFor,
+  formatQuantity,
+  parseIngredient,
+  unitPrefsFrom,
+} from './ingredients'
 
 /**
  * Every line below is copied verbatim from a real recipe — the Samsung Food and
@@ -152,5 +158,56 @@ describe('formatAmount', () => {
 
   it('renders a bare count with no unit', () => {
     expect(formatAmount(2, null)).toBe('2')
+  })
+})
+
+describe('formatAmountFor', () => {
+  const us = unitPrefsFrom({ weightUnit: 'lb', waterUnit: 'cup' })
+  const metric = unitPrefsFrom({ weightUnit: 'kg', waterUnit: 'ml' })
+  // The mixed kitchen: weighs in kilos, still cooks in cups.
+  const mixed = unitPrefsFrom({ weightUnit: 'kg', waterUnit: 'cup' })
+
+  it('leaves a recipe alone for someone already in its units', () => {
+    expect(formatAmountFor(1, 'lb', us)).toBe('1 lb')
+    expect(formatAmountFor(2, 'cup', us)).toBe('2 cups')
+  })
+
+  it('rewrites weights into grams for someone using kilograms', () => {
+    expect(formatAmountFor(1, 'lb', metric)).toBe('454 g')
+    expect(formatAmountFor(8, 'oz', metric)).toBe('227 g')
+  })
+
+  it('steps up to the larger unit only when the number earns it', () => {
+    // 3 lb is past a kilo, so kilos read better; 8 oz is not, so grams do.
+    expect(formatAmountFor(3, 'lb', metric)).toBe('1 ⅜ kg')
+    expect(formatAmountFor(4, 'oz', us)).toBe('4 oz')
+    expect(formatAmountFor(24, 'oz', us)).toBe('1 ½ lb')
+  })
+
+  it('rewrites volumes into millilitres when that is what was picked', () => {
+    expect(formatAmountFor(1, 'cup', metric)).toBe('237 ml')
+    expect(formatAmountFor(0.5, 'cup', metric)).toBe('118 ml')
+  })
+
+  it('honours weight and volume choices independently', () => {
+    // Kilograms for weight, cups for volume — one person, both preferences.
+    expect(formatAmountFor(1, 'lb', mixed)).toBe('454 g')
+    expect(formatAmountFor(2, 'cup', mixed)).toBe('2 cups')
+  })
+
+  it('never converts spoons, which survive every kitchen', () => {
+    expect(formatAmountFor(2, 'tbsp', metric)).toBe('2 tbsp')
+    expect(formatAmountFor(1, 'tsp', metric)).toBe('1 tsp')
+  })
+
+  it('leaves counted things exactly as written', () => {
+    // There is no metric equivalent of a clove of garlic.
+    expect(formatAmountFor(3, 'clove', metric)).toBe('3 cloves')
+    expect(formatAmountFor(2, null, metric)).toBe('2')
+  })
+
+  it('rounds metric to whole numbers, as metric recipes are written', () => {
+    // "236.588 ml" is arithmetic, not a recipe.
+    expect(formatAmountFor(1, 'cup', metric)).not.toContain('.')
   })
 })
