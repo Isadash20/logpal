@@ -169,6 +169,24 @@ export const UNIT_BY_KEY = new Map(UNITS.map((u) => [u.key, u]))
    phantom measure, and would strip the word before the database, which does
    stock "Egg, Large" as its own entry, ever got to see it. */
 
+/**
+ * Looks a unit up, plural or not.
+ *
+ * Both singular forms are tried rather than picking one by rule. Dropping "es"
+ * turns "boxes" into "box" correctly and "ounces" into "ounc", which is how
+ * "8 ounces low-fat cheddar cheese" ended up with no unit at all and a food
+ * named "ounces low-fat cheddar cheese" that nothing could match.
+ */
+function unitFor(word: string): UnitDef | null {
+  const w = word.toLowerCase().replace(/\./g, '').trim()
+  const forms = [w, w.replace(/s$/, ''), w.replace(/es$/, '')]
+  for (const f of forms) {
+    const def = UNIT_BY_ALIAS.get(f)
+    if (def) return def
+  }
+  return null
+}
+
 /** Words between the amount and the food that carry no measurement. */
 const FILLER = new Set(['of', 'a', 'an'])
 
@@ -226,9 +244,7 @@ export function parseIngredient(line: string): ParsedIngredient {
   const two = text.match(/^(\w+\.?\s+\w+\.?)\b/)
   for (const m of [multi, two]) {
     if (!m) continue
-    const phrase = m[1].toLowerCase().replace(/\./g, '')
-    const singular = phrase.endsWith('es') ? phrase.slice(0, -2) : phrase.replace(/s$/, '')
-    const def = UNIT_BY_ALIAS.get(phrase) ?? UNIT_BY_ALIAS.get(singular)
+    const def = unitFor(m[1])
     if (def) {
       unit = def.key
       text = text.slice(m[1].length).trim()
@@ -238,19 +254,10 @@ export function parseIngredient(line: string): ParsedIngredient {
 
   if (!unit) {
     const oneWord = text.match(/^([A-Za-z]+)\.?\b/)
-    if (oneWord) {
-      const w = oneWord[1].toLowerCase()
-      // Singularise before lookup so "cups" and "tablespoons" resolve.
-      const singular = w.endsWith('es') && !UNIT_BY_ALIAS.has(w)
-        ? w.slice(0, -2)
-        : w.endsWith('s') && !UNIT_BY_ALIAS.has(w)
-          ? w.slice(0, -1)
-          : w
-      const def = UNIT_BY_ALIAS.get(w) ?? UNIT_BY_ALIAS.get(singular)
-      if (def) {
-        unit = def.key
-        text = text.slice(oneWord[0].length).trim()
-      }
+    const def = oneWord ? unitFor(oneWord[1]) : null
+    if (oneWord && def) {
+      unit = def.key
+      text = text.slice(oneWord[0].length).trim()
     }
   }
 
@@ -316,6 +323,29 @@ function tokens(s: string): string[] {
 }
 
 /**
+ * A word reduced to its stem for comparison.
+ *
+ * Recipes write plurals and the database writes singulars — "4 medium apples"
+ * against "Apple", "acorn squashes" against "Squash, acorn", "broccoli florets"
+ * against "Broccoli". Comparing the surface forms means none of those match,
+ * which was the single largest source of "no match" in the catalogue.
+ */
+function stem(w: string): string {
+  if (w.length > 4 && w.endsWith('ies')) return `${w.slice(0, -3)}y`
+  if (w.length > 4 && (w.endsWith('ses') || w.endsWith('xes') || w.endsWith('hes'))) {
+    return w.slice(0, -2)
+  }
+  if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) return w.slice(0, -1)
+  return w
+}
+
+/** Adjectives that describe a piece of food rather than name one. */
+const SIZE_WORDS = new Set([
+  'large', 'medium', 'small', 'extra', 'jumbo', 'whole', 'half', 'mini',
+  'thick', 'thin', 'baby', 'hot', 'cold', 'warm',
+])
+
+/**
  * The word an ingredient is really about.
  *
  * English compounds are head-final — "orange juice" is a juice, "black pepper"
@@ -325,8 +355,9 @@ function tokens(s: string): string[] {
  * "salt" on a chocolate sea salt bar.
  */
 function headNoun(name: string): string {
-  const words = tokens(name).filter((w) => !STOP.has(w))
-  return words.length ? words[words.length - 1] : (tokens(name).pop() ?? '')
+  const words = tokens(name).filter((w) => !STOP.has(w) && !SIZE_WORDS.has(w))
+  const last = words.length ? words[words.length - 1] : tokens(name).pop()
+  return last ? stem(last) : ''
 }
 
 /**
@@ -348,28 +379,53 @@ export function matchIngredient(name: string, search: (q: string) => Food[]): Fo
   const head = headNoun(name)
   if (!head) return null
 
-  const asked = new Set(tokens(name))
-  const candidates = search(name)
-  let best: Food | null = null
-  let bestExtra = Infinity
+  /* A ladder of progressively plainer queries.
+   *
+   * "1 medium celery stalk (chopped)" is a celery stalk to a cook and a
+   * three-word phrase nothing is filed under to a database. Rather than trying
+   * to guess which words matter, ask for the whole thing, then the same thing
+   * without size adjectives, then the bare noun — and stop at the first rung
+   * that answers. The full phrase still gets first refusal, so "brown rice"
+   * never degrades to "rice" while a brown rice entry exists. */
+  const words = tokens(name)
+  const withoutSize = words.filter((w) => !SIZE_WORDS.has(w))
+  const attempts = [
+    name,
+    withoutSize.join(' '),
+    withoutSize.filter((w) => !STOP.has(w)).join(' '),
+    head,
+  ]
 
-  for (let i = 0; i < candidates.length; i++) {
-    const food = candidates[i]
-    const words = tokens(`${food.name} ${food.brand ?? ''}`)
-    if (!words.includes(head)) continue
+  const asked = new Set(words.map(stem))
+  const seen = new Set<string>()
 
-    let extra = 0
-    for (const w of words) if (!asked.has(w) && !STOP.has(w)) extra++
-    /* Ties go to the earlier candidate, which is the one the ranked search
-       already preferred — this reorders within the shortlist, it does not
-       replace the ranking. */
-    if (extra < bestExtra) {
-      bestExtra = extra
-      best = food
+  for (const attempt of attempts) {
+    const q = attempt.trim()
+    if (!q || seen.has(q)) continue
+    seen.add(q)
+
+    let best: Food | null = null
+    let bestExtra = Infinity
+
+    for (const food of search(q)) {
+      const foodWords = tokens(`${food.name} ${food.brand ?? ''}`).map(stem)
+      if (!foodWords.includes(head)) continue
+
+      let extra = 0
+      for (const w of foodWords) if (!asked.has(w) && !STOP.has(w)) extra++
+      /* Ties go to the earlier candidate, which is the one the ranked search
+         already preferred — this reorders within the shortlist, it does not
+         replace the ranking. */
+      if (extra < bestExtra) {
+        bestExtra = extra
+        best = food
+      }
     }
+
+    if (best) return best
   }
 
-  return best
+  return null
 }
 
 /**

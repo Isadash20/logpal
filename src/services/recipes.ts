@@ -7,6 +7,7 @@ import {
   type ResolvedIngredient,
 } from '../lib/ingredients'
 import { searchLocal } from './foodSearch'
+import { foodDbSize } from './foodDb'
 import { SEED_RECIPES } from '../data/seedRecipes'
 import { CATALOG_RECIPES } from '../data/catalogRecipes'
 import { healthScore, type HealthScore } from '../lib/healthScore'
@@ -49,16 +50,16 @@ export interface ResolvedRecipe {
 const CACHE = new Map<string, ResolvedRecipe>()
 
 /**
- * Rough measure of how much of the food database is in memory. Used only as a
- * cache key — an exact count would be no more useful and costs a full scan.
+ * How much of the food database is in memory, as a cache key.
+ *
+ * `foodDbSize()` reads a length. The first version of this ran a search for
+ * "chicken" and counted the hits, which is a scan of every row in the database
+ * — per recipe, on every render, with a hundred and twenty recipe cards on
+ * screen. The cache meant to make resolution cheap was the most expensive thing
+ * in the feature.
  */
 function dbGeneration(): number {
-  try {
-    // searchLocal against a common word returns more as the database grows.
-    return searchLocal('chicken', [], 200).length
-  } catch {
-    return 0
-  }
+  return foodDbSize()
 }
 
 function fingerprint(recipe: Recipe): string {

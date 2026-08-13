@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
@@ -18,6 +18,33 @@ import {
   searchRecipes,
   totalMinutes,
 } from '../services/recipes'
+import { foodDbSize, loadFoodDb, onFoodDbGrown } from '../services/foodDb'
+
+/**
+ * Makes sure the food database is in memory, and re-renders when it lands.
+ *
+ * Every calorie figure in this feature comes from resolving ingredient text
+ * against that database, and until it loads there are only the 324 curated seed
+ * foods to match against — so nearly every line reads "no match" and every
+ * recipe under-reports. It used to be loaded exclusively by the food search,
+ * voice log and meal scan screens, none of which anyone passes through on the
+ * way to browsing recipes, so the planner was reliably looking at the smallest
+ * possible database.
+ *
+ * The returned size doubles as a render key: resolution is cached against it,
+ * so re-rendering when it changes is what turns "no match" into a real number
+ * the moment the rows arrive.
+ */
+function useFoodDb(): number {
+  const [size, setSize] = useState(() => foodDbSize())
+  useEffect(() => {
+    void loadFoodDb()
+    const off = onFoodDbGrown(() => setSize(foodDbSize()))
+    setSize(foodDbSize())
+    return off
+  }, [])
+  return size
+}
 
 /**
  * Meal planning: browse recipes, put them on days, shop for them, eat them.
@@ -109,6 +136,7 @@ const DAYS_SHOWN = 7
  */
 export function PrepPane() {
   const app = useApp()
+  useFoodDb()
   const { push, data, calorieTarget, planFor, plannedCalories } = app
 
   const days = useMemo(
@@ -231,6 +259,7 @@ function PlannerDay({
  */
 export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   const { push, data } = useApp()
+  useFoodDb()
   const [query, setQuery] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
@@ -392,6 +421,7 @@ export function RecipeView({
 }) {
   const app = useApp()
   const { pop, data, planMeal, logItems, addRecipeToShoppingList } = app
+  const dbSize = useFoodDb()
 
   const recipe = useMemo(
     () => allRecipes(data.recipes).find((r) => r.id === recipeId),
@@ -408,7 +438,9 @@ export function RecipeView({
       recipe
         ? resolveRecipe(recipe, [...data.customFoods, ...Object.values(data.foodCache)])
         : null,
-    [recipe, data.customFoods, data.foodCache],
+    // dbSize is a dependency, not a stray: the resolution changes when the
+    // database grows underneath it, and nothing else here would say so.
+    [recipe, data.customFoods, data.foodCache, dbSize],
   )
 
   if (!recipe || !resolved) {
