@@ -63,6 +63,35 @@ export function Plan() {
           />
         </div>
 
+        {/* Meal planning sits above the repeat/meals/recipes lists because it
+            is the thing you come to this tab to do — the lists below are the
+            raw material it draws on. */}
+        <div className="section-head">
+          <span>Meal planning</span>
+        </div>
+        <div className="card">
+          <Row
+            title="Meal plan"
+            sub="Put recipes on days and see the calories before you eat them"
+            value={data.planEntries.length || undefined}
+            chevron
+            onClick={() => push({ name: 'planner' })}
+          />
+          <Row
+            title="Browse recipes"
+            sub="Search by name or ingredient"
+            chevron
+            onClick={() => push({ name: 'recipeBrowse' })}
+          />
+          <Row
+            title="Shopping list"
+            sub="Built from what you have planned"
+            value={data.shopping.filter((s) => !s.checked).length || undefined}
+            chevron
+            onClick={() => push({ name: 'shoppingList' })}
+          />
+        </div>
+
         <div className="section-head">
           <span>Repeat meals</span>
         </div>

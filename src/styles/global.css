@@ -1244,3 +1244,505 @@ button.row:active {
   color: var(--text-2);
   font-size: 14.5px;
 }
+
+/* --------------------------------------------------------- meal planner -- */
+
+/* Image-led cards, the way every recipe app does it: the photo is the content
+   and the text sits on top of it. This is the single biggest visual difference
+   from the rest of LogPal, where cards are text on a surface — a recipe list
+   that looks like the diary reads as a spreadsheet of dinners. */
+
+.rgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 14px 0;
+}
+
+/* Horizontal rail — used per day in the planner and per section on browse. */
+.rrail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 14px 4px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rrail::-webkit-scrollbar {
+  display: none;
+}
+
+.rrail > * {
+  scroll-snap-align: start;
+}
+
+.rcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
+}
+
+.rcard--rail {
+  width: 168px;
+  flex: none;
+}
+
+.rcard__media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.rcard__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* No photo is the normal case for a recipe someone typed in, so the fallback
+   has to look deliberate rather than broken. */
+.rcard__fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  background: linear-gradient(150deg, var(--accent-soft), var(--surface-3));
+  color: var(--accent);
+}
+
+/* Cuisine or meal-type tag, top-left over the image. */
+.rcard__tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.rcard__save {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-content: center;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+}
+
+/* Time, bottom-right over the image, on a scrim so it survives a light photo. */
+.rcard__time {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: rgba(20, 22, 30, 0.72);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.rcard__body {
+  padding: 9px 10px 11px;
+}
+
+.rcard__title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rcard__meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ---------------------------------------------------------- recipe detail -- */
+
+.rhero {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-3);
+}
+
+.rhero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Three numbers across the top — ingredients, time, score. Doubles as the tab
+   bar for the sections below, which is how Samsung Food does it: the summary
+   and the navigation are the same control, so the header stays short. */
+.rstats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rstats__item {
+  padding: 11px 4px 9px;
+  text-align: center;
+  border-bottom: 2px solid transparent;
+}
+
+.rstats__item--active {
+  border-bottom-color: var(--accent);
+}
+
+.rstats__value {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.rstats__item--active .rstats__value {
+  color: var(--accent);
+}
+
+.rstats__label {
+  font-size: 11.5px;
+  color: var(--text-2);
+  margin-top: 1px;
+}
+
+/* Servings stepper — ⊖ 4 servings ⊕ with the unit toggle beside it. */
+.servings {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.servings__btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  display: grid;
+  place-content: center;
+  flex: none;
+}
+
+.servings__btn:disabled {
+  color: var(--text-3);
+  border-color: var(--border);
+}
+
+.servings__value {
+  font-weight: 700;
+  font-size: 15px;
+  min-width: 92px;
+  text-align: center;
+}
+
+/* One ingredient: amount in bold, food after it, note underneath in grey.
+   That split is the whole reason the parser exists, so the layout shows it. */
+.ing {
+  display: flex;
+  gap: 10px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+
+.ing:last-child {
+  border-bottom: 0;
+}
+
+.ing__amount {
+  font-weight: 700;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.ing__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ing__note {
+  display: block;
+  color: var(--text-2);
+  font-size: 12.5px;
+  margin-top: 1px;
+}
+
+.ing__cal {
+  color: var(--text-2);
+  font-size: 12.5px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* An ingredient the food database could not price. Stated, never hidden. */
+.ing--unmatched .ing__name {
+  color: var(--text-2);
+}
+
+.ing__miss {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--warning);
+  flex: none;
+}
+
+.step {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.step__n {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin-bottom: 5px;
+}
+
+.step__text {
+  line-height: 1.5;
+  font-size: 14.5px;
+}
+
+/* Sticky pair at the bottom of a recipe: plan it, or log it now. Both apps put
+   their primary verb here and never let it scroll away. */
+.ractions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.ractions .btn {
+  margin: 0;
+}
+
+/* -------------------------------------------------------- health score -- */
+
+.hscore {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.hscore__value {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.hscore__out {
+  font-size: 15px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.hbar {
+  padding: 8px 16px;
+}
+
+.hbar__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.hbar__amount {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.hbar__track {
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.hbar__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  display: block;
+}
+
+/* ------------------------------------------------------------- planner -- */
+
+/* A day is a row and its meals run across it. Not a seven-column grid: on a
+   phone that gives each day about fifty pixels, which is not enough for a
+   recipe to be recognisable, and recognising the picture is the entire point. */
+.pday {
+  padding-top: 14px;
+}
+
+.pday__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px 9px;
+}
+
+.pday__name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pday__today {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  flex: none;
+}
+
+/* Planned calories for the day, against the target. */
+.pday__kcal {
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pday__kcal--over {
+  background: color-mix(in srgb, var(--warning) 18%, transparent);
+  color: color-mix(in srgb, var(--warning) 70%, var(--text));
+}
+
+.pday__add {
+  margin-left: auto;
+}
+
+/* An empty slot: a dashed target that says what would go in it. */
+.pslot {
+  width: 168px;
+  flex: none;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--r-lg);
+  background: transparent;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 1 / 1.32;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pslot__plus {
+  color: var(--accent);
+}
+
+/* Slot name under a planned card, and whether it has been eaten yet. */
+.rcard__slot {
+  font-size: 11.5px;
+  color: var(--text-2);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rcard__logged {
+  color: var(--positive);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------- shopping list -- */
+
+.saisle {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-2);
+  letter-spacing: 0.02em;
+  padding: 16px 16px 7px;
+}
+
+.sitem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  text-align: left;
+}
+
+.sitem:last-child {
+  border-bottom: 0;
+}
+
+.sitem__box {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.8px solid var(--border-strong);
+  flex: none;
+  display: grid;
+  place-content: center;
+  color: transparent;
+}
+
+.sitem--done .sitem__box {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.sitem--done .sitem__name {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+
+.sitem__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.sitem__amount {
+  color: var(--text-2);
+  font-size: 13px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
