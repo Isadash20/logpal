@@ -1746,3 +1746,226 @@ button.row:active {
   flex: none;
   font-variant-numeric: tabular-nums;
 }
+
+/* ------------------------------------------------ recipe search & filters -- */
+
+/* Filter chips under the search bar, each opening its section of the sheet.
+   A count rides on the chip when that section has something selected, which is
+   how the row stays honest once the sheet is closed. */
+.fchips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.fchips::-webkit-scrollbar {
+  display: none;
+}
+
+.fchip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fchip--on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+.fchip__count {
+  display: grid;
+  place-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* The filter sheet: sections of selectable pills, then clear/apply. */
+.fsheet {
+  max-height: 78vh;
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.fsheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 16px 10px;
+}
+
+.fsheet__title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.fgroup {
+  padding: 4px 16px 14px;
+}
+
+.fgroup__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.fpills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Selected reads as filled-dark, matching the reference app rather than the
+   accent — an accent-filled pill competes with the Apply button below it. */
+.fpill {
+  padding: 7px 13px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.fpill--on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Sticky footer so Apply is reachable without scrolling a long sheet. */
+.fsheet__actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px calc(6px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.fsheet__actions .btn {
+  margin: 0;
+}
+
+/* A plain-text list of suggested and recent searches, shown before typing. */
+.slist__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.slist__row:last-child {
+  border-bottom: 0;
+}
+
+.slist__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15.5px;
+}
+
+.slist__x {
+  color: var(--text-3);
+  flex: none;
+  display: flex;
+}
+
+/* Sort control, right-aligned above the results. */
+.sortbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 2px;
+}
+
+.sortbar__count {
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.sortbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Save button on a card, filled once saved. */
+.rcard__save--on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Entry to the meal plan, sitting above the recipe search. Styled as a banner
+   rather than a tab so browsing keeps the full width of the screen. */
+.planbanner {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: calc(100% - 28px);
+  margin: 0 14px 12px;
+  padding: 14px;
+  text-align: left;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.planbanner__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-content: center;
+  flex: none;
+}
+
+.planbanner__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.planbanner__title {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.planbanner__sub {
+  display: block;
+  color: var(--text-2);
+  font-size: 13.5px;
+  margin-top: 1px;
+}

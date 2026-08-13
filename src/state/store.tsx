@@ -183,6 +183,7 @@ export type Route =
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
+  | { name: 'mealPlanner' }
   | { name: 'recipeBrowse'; slot?: MealSlot; date?: string }
   | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
   | { name: 'shoppingList' }
@@ -297,6 +298,14 @@ interface Ctx {
   removeShoppingItem(id: string): void
   clearCheckedShopping(): void
   togglePantry(name: string): void
+
+  // recipe library
+  /** Bookmarks a catalogue recipe, or removes the bookmark. */
+  toggleSavedRecipe(id: string): void
+  isRecipeSaved(id: string): boolean
+  /** Remembers a search so the box can offer it back. */
+  rememberSearch(q: string): void
+  forgetSearch(q: string): void
 
   // account + sync
   /** Null when signed out, or when the app has no Supabase credentials. */
@@ -423,6 +432,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             planEntries: local?.planEntries ?? [],
             shopping: local?.shopping ?? [],
             pantry: local?.pantry ?? [],
+            savedRecipeIds: local?.savedRecipeIds ?? [],
+            recentSearches: local?.recentSearches ?? [],
           }
           setData(merged)
           syncedRef.current = merged
@@ -1096,6 +1107,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         d.pantry = d.pantry.includes(clean)
           ? d.pantry.filter((x) => x !== clean)
           : [...d.pantry, clean]
+      }),
+
+    toggleSavedRecipe: (id) =>
+      update((d) => {
+        d.savedRecipeIds = d.savedRecipeIds.includes(id)
+          ? d.savedRecipeIds.filter((x) => x !== id)
+          : [id, ...d.savedRecipeIds]
+      }),
+
+    isRecipeSaved: (id) => data.savedRecipeIds.includes(id),
+
+    rememberSearch: (q) =>
+      update((d) => {
+        const clean = q.trim()
+        if (clean.length < 2) return
+        /* Most recent first, case-insensitively deduplicated, and capped —
+           a search box offering forty past searches is a wall, not a help. */
+        d.recentSearches = [
+          clean,
+          ...d.recentSearches.filter((x) => x.toLowerCase() !== clean.toLowerCase()),
+        ].slice(0, 8)
+      }),
+
+    forgetSearch: (q) =>
+      update((d) => {
+        d.recentSearches = d.recentSearches.filter((x) => x !== q)
       }),
 
     resetAll: () => {

@@ -444,4 +444,8 @@ export interface AppData {
   shopping: ShoppingItem[]
   /** The Food List: what you already have, so it stays off the shopping list. */
   pantry: string[]
+  /** Recipes bookmarked from the catalogue. Ids, since most are not the user's. */
+  savedRecipeIds: string[]
+  /** Most recent searches first, so the box can offer them back. */
+  recentSearches: string[]
 }

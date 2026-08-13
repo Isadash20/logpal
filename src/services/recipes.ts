@@ -6,11 +6,13 @@ import {
   toMealItem,
   type ResolvedIngredient,
 } from '../lib/ingredients'
+export { parseIngredient }
 import { searchLocal } from './foodSearch'
 import { foodDbSize } from './foodDb'
 import { SEED_RECIPES } from '../data/seedRecipes'
 import { CATALOG_RECIPES } from '../data/catalogRecipes'
 import { healthScore, type HealthScore } from '../lib/healthScore'
+import { matchesTerm, nutritionTagsFor, type NutritionTag } from '../lib/recipeTags'
 
 /**
  * Recipes, priced.
@@ -37,6 +39,8 @@ export interface ResolvedRecipe {
   /** Nutrition for the whole recipe. */
   total: Nutrients
   health: HealthScore
+  /** Dietary labels worked out from the nutrition — High Protein, Low Carb… */
+  nutritionTags: NutritionTag[]
   /**
    * Lines that found no food. Surfaced rather than swallowed: a recipe quietly
    * reporting 300 calories because it failed to price the chicken is the exact
@@ -110,6 +114,7 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
     total,
     perServing,
     health: healthScore(perServing),
+    nutritionTags: nutritionTagsFor(perServing),
     // Anything the calorie total does not include, whatever the reason.
     unmatched: lines.filter((l) => !l.nutrients).map((l) => l.parsed.raw),
     approximate: lines.filter((l) => l.approximate).length,
@@ -172,43 +177,116 @@ export function findRecipe(userRecipes: Recipe[], id: string): Recipe | undefine
  * Deliberately simple next to `foodSearch`: that one ranks a quarter of a
  * million rows on every keystroke, this one filters at most a few hundred.
  */
+export interface RecipeFilters {
+  /** Meal type, diet, cuisine and nutrition terms, all matched the same way. */
+  terms?: string[]
+  maxMinutes?: number
+  ingredients?: string[]
+  /** Restrict to recipes the user has saved. */
+  savedOnly?: boolean
+  savedIds?: string[]
+}
+
+export type SortKey = 'relevance' | 'calories' | 'time' | 'health' | 'name'
+
+/**
+ * Recipe search across every facet at once.
+ *
+ * Terms from different groups combine with AND — asking for High Protein *and*
+ * Dinner should narrow — while ingredients combine with OR, because naming
+ * three things in the fridge is an invitation to show anything using any of
+ * them. Getting those two the same way round would make the ingredient picker
+ * useless the moment you added a second ingredient.
+ */
 export function searchRecipes(
   recipes: Recipe[],
   query: string,
-  filters: { tags?: string[]; maxMinutes?: number; ingredients?: string[] } = {},
+  filters: RecipeFilters = {},
+  resolve: (r: Recipe) => { nutritionTags: string[] } = () => ({ nutritionTags: [] }),
 ): Recipe[] {
   const q = query.trim().toLowerCase()
-  const tags = (filters.tags ?? []).map((t) => t.toLowerCase())
+  const terms = filters.terms ?? []
   const wanted = (filters.ingredients ?? []).map((i) => i.toLowerCase())
+  const saved = new Set(filters.savedIds ?? [])
 
   return recipes.filter((r) => {
+    if (filters.savedOnly && !saved.has(r.id)) return false
+
     if (q) {
       const hay = [r.name, r.description ?? '', ...(r.tags ?? []), ...(r.ingredients ?? [])]
         .join(' ')
         .toLowerCase()
       if (!hay.includes(q)) return false
     }
-    if (tags.length) {
-      const rt = (r.tags ?? []).map((t) => t.toLowerCase())
-      if (!tags.every((t) => rt.includes(t))) return false
+
+    if (terms.length) {
+      const nutritionTags = resolve(r).nutritionTags
+      const subject = { tags: r.tags, name: r.name, nutritionTags }
+      if (!terms.every((t) => matchesTerm(t, subject))) return false
     }
+
     if (filters.maxMinutes != null) {
       const t = totalMinutes(r)
       if (t == null || t > filters.maxMinutes) return false
     }
+
     if (wanted.length) {
       const ing = (r.ingredients ?? []).join(' ').toLowerCase()
-      // Any, not all: picking three things you have should widen the results,
-      // not narrow them to recipes needing exactly those three.
       if (!wanted.some((w) => ing.includes(w))) return false
     }
+
     return true
   })
 }
 
-/** Every tag in use, for the filter sheet. */
+/** Orders results. Relevance keeps whatever order the caller assembled. */
+export function sortRecipes(
+  recipes: Recipe[],
+  key: SortKey,
+  resolve: (r: Recipe) => { perServing: { calories: number }; health: { score: number } },
+): Recipe[] {
+  if (key === 'relevance') return recipes
+  const out = [...recipes]
+  if (key === 'name') return out.sort((a, b) => a.name.localeCompare(b.name))
+  if (key === 'time') {
+    return out.sort((a, b) => (totalMinutes(a) ?? 9999) - (totalMinutes(b) ?? 9999))
+  }
+  if (key === 'calories') {
+    return out.sort((a, b) => resolve(a).perServing.calories - resolve(b).perServing.calories)
+  }
+  return out.sort((a, b) => resolve(b).health.score - resolve(a).health.score)
+}
+
+/** Every tag a recipe declares, for building the filter lists. */
 export function allTags(recipes: Recipe[]): string[] {
   const s = new Set<string>()
   for (const r of recipes) for (const t of r.tags ?? []) s.add(t)
   return [...s].sort()
+}
+
+/**
+ * The ingredients that turn up most across the library.
+ *
+ * Feeds the "Search by ingredients" chips, which Samsung Food seeds with
+ * Recent, Favorites and Popular. Popular is the only one of the three that can
+ * be answered without any history, so it is what a first-time list shows.
+ */
+export function popularIngredients(recipes: Recipe[], limit = 24): string[] {
+  const counts = new Map<string, number>()
+  for (const r of recipes) {
+    const seen = new Set<string>()
+    for (const line of r.ingredients ?? []) {
+      const name = parseIngredient(line).name.toLowerCase().trim()
+      // Multi-word ingredient lines are too specific to be a useful chip;
+      // the head word is what someone would actually tap.
+      const key = name.split(/\s+/).slice(-1)[0]
+      if (!key || key.length < 3 || seen.has(key)) continue
+      seen.add(key)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([name]) => name)
 }

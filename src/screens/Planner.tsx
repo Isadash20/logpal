@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { Empty, Row, Tabs, TopBar } from '../components/ui'
+import { Empty, Row, Sheet, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
@@ -16,13 +16,22 @@ import {
 import { sortAisles } from '../data/aisles'
 import {
   allRecipes,
-  allTags,
   formatMinutes,
   ingredientCount,
+  popularIngredients,
   resolveRecipe,
   searchRecipes,
+  sortRecipes,
   totalMinutes,
+  type SortKey,
 } from '../services/recipes'
+import {
+  COOK_TIMES,
+  CUISINES,
+  DIETS,
+  MEAL_TYPES,
+  NUTRITION_TAGS,
+} from '../lib/recipeTags'
 import { foodDbSize, loadFoodDb, onFoodDbGrown } from '../services/foodDb'
 
 /**
@@ -78,12 +87,16 @@ function RecipeCard({
   variant = 'grid',
   slot,
   logged,
+  saved,
+  onSave,
   onClick,
 }: {
   recipe: Recipe
   variant?: 'grid' | 'rail'
   slot?: MealSlot
   logged?: boolean
+  saved?: boolean
+  onSave?(): void
   onClick(): void
 }) {
   const mins = totalMinutes(recipe)
@@ -92,7 +105,25 @@ function RecipeCard({
   const resolved = resolveRecipe(recipe, [...data.customFoods, ...Object.values(data.foodCache)])
 
   return (
-    <button className={`rcard ${variant === 'rail' ? 'rcard--rail' : ''}`} onClick={onClick}>
+    <div className={`rcard ${variant === 'rail' ? 'rcard--rail' : ''}`}>
+      {/* Sits outside the card's own button: nesting one button in another is
+          invalid and swallows the inner click. */}
+      {onSave && (
+        <button
+          className={`rcard__save ${saved ? 'rcard__save--on' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onSave()
+          }}
+          aria-label={saved ? `Unsave ${recipe.name}` : `Save ${recipe.name}`}
+        >
+          <Icon name={saved ? 'star-filled' : 'star'} size={16} />
+        </button>
+      )}
+      <button
+        onClick={onClick}
+        style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', width: '100%' }}
+      >
       <span className="rcard__media">
         {recipe.imageUrl ? (
           <img className="rcard__img" src={recipe.imageUrl} alt="" loading="lazy" />
@@ -123,7 +154,8 @@ function RecipeCard({
           </span>
         )}
       </span>
-    </button>
+      </button>
+    </div>
   )
 }
 
@@ -139,10 +171,10 @@ const DAYS_SHOWN = 7
  * one sitting. Making Prep its own pushed screen meant leaving the recipes to
  * go and place them, then coming back for the next one.
  */
-export function PrepPane() {
+export function MealPlanner() {
   const app = useApp()
   useFoodDb()
-  const { push, data, calorieTarget, planFor, plannedCalories } = app
+  const { pop, push, data, calorieTarget, planFor, plannedCalories } = app
 
   const days = useMemo(
     () => Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(today(), i)),
@@ -154,9 +186,11 @@ export function PrepPane() {
 
   return (
     <>
+      <TopBar title="Meal plan" onBack={pop} solid />
+      <div className="scroll">
       {!planned && (
         <div className="hint" style={{ paddingTop: 14 }}>
-          Pick something from Plan and it lands on a day here, with its calories
+          Add something from Plan and it lands on a day here, with its calories
           counted against your target. Nothing reaches your diary until you say so.
         </div>
       )}
@@ -182,6 +216,7 @@ export function PrepPane() {
         />
       </div>
       <div style={{ height: 16 }} />
+      </div>
     </>
   )
 }
@@ -256,31 +291,135 @@ function PlannerDay({
 /* ----------------------------------------------------------------- browse -- */
 
 /**
- * Plan: the browsing half.
+ * The filter sheet's vocabulary, in the groups the reference app uses.
  *
- * Meal ideas to choose from, and the door to writing your own. Both routes end
- * in the same place — a recipe you can put on a day — which is why they share
- * one surface rather than sitting behind separate menu items.
+ * Nutrition is ours and is computed from each recipe's own numbers, so those
+ * filters cannot lie — a recipe appears under High Protein because it has the
+ * protein, not because somebody typed the words. The rest are matched against
+ * a recipe's declared tags and its title.
+ */
+const FILTER_GROUPS: { key: string; label: string; options: readonly string[] }[] = [
+  { key: 'nutrition', label: 'Nutrition', options: NUTRITION_TAGS },
+  { key: 'meal', label: 'Meal type', options: MEAL_TYPES },
+  { key: 'diet', label: 'Diet', options: DIETS },
+  { key: 'cuisine', label: 'Cuisine', options: CUISINES },
+]
+
+/** Suggested first searches, for a box nobody has typed in yet. */
+const POPULAR_SEARCHES = [
+  'High Protein',
+  'Low Carb',
+  'GLP-1 Friendly',
+  'Breakfast',
+  'Chicken',
+  'Vegetarian',
+  'Under 30 min',
+  'Soup',
+]
+
+interface DraftFilters {
+  terms: string[]
+  maxMinutes: number | null
+  ingredients: string[]
+  savedOnly: boolean
+}
+
+const NO_FILTERS: DraftFilters = {
+  terms: [],
+  maxMinutes: null,
+  ingredients: [],
+  savedOnly: false,
+}
+
+function countFor(group: string, f: DraftFilters, options: readonly string[]): number {
+  if (group === 'time') return f.maxMinutes == null ? 0 : 1
+  if (group === 'ingredients') return f.ingredients.length
+  return f.terms.filter((t) => options.includes(t)).length
+}
+
+/**
+ * Plan — browse, search and organise recipes.
+ *
+ * Modelled on Samsung Food's search, which is the part of that app doing the
+ * most work: a query box, a row of filter chips that open a sheet, facets for
+ * meal type, diet, cuisine, cook time and nutrition, ingredient chips, and the
+ * searches you ran before. Everything narrows the same list, and the list is
+ * the user's own recipes and the shipped catalogue together.
  */
 export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
-  const { push, data } = useApp()
-  useFoodDb()
+  const { push, data, rememberSearch, forgetSearch, toggleSavedRecipe } = useApp()
+  const dbSize = useFoodDb()
+
   const [query, setQuery] = useState('')
-  const [tags, setTags] = useState<string[]>([])
-  const [showFilters, setShowFilters] = useState(false)
+  const [committed, setCommitted] = useState('')
+  const [filters, setFilters] = useState<DraftFilters>(NO_FILTERS)
+  const [sheet, setSheet] = useState<string | null>(null)
+  const [sort, setSort] = useState<SortKey>('relevance')
+  const [sortOpen, setSortOpen] = useState(false)
 
   const recipes = useMemo(() => allRecipes(data.recipes), [data.recipes])
-  const tagOptions = useMemo(() => allTags(recipes), [recipes])
-  const results = useMemo(
-    () => searchRecipes(recipes, query, { tags }),
-    [recipes, query, tags],
+  const extras = useMemo(
+    () => [...data.customFoods, ...Object.values(data.foodCache)],
+    [data.customFoods, data.foodCache],
   )
-  const mine = data.recipes
+  /* Resolution is cached inside the service, so this closure is cheap to hand
+     to the filter and the sort — both need nutrition, neither should compute
+     it twice. dbSize is in the deps because the answers change as the food
+     database loads. */
+  const resolve = useCallback(
+    (r: Recipe) => resolveRecipe(r, extras),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [extras, dbSize],
+  )
 
-  const toggleTag = (t: string) =>
-    setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]))
+  const popular = useMemo(() => popularIngredients(recipes), [recipes])
 
-  const browsing = !query.trim() && tags.length === 0
+  const results = useMemo(() => {
+    const found = searchRecipes(
+      recipes,
+      committed,
+      {
+        terms: filters.terms,
+        maxMinutes: filters.maxMinutes ?? undefined,
+        ingredients: filters.ingredients,
+        savedOnly: filters.savedOnly,
+        savedIds: data.savedRecipeIds,
+      },
+      resolve,
+    )
+    return sortRecipes(found, sort, resolve)
+  }, [recipes, committed, filters, sort, resolve, data.savedRecipeIds])
+
+  const activeCount =
+    filters.terms.length +
+    filters.ingredients.length +
+    (filters.maxMinutes == null ? 0 : 1) +
+    (filters.savedOnly ? 1 : 0)
+
+  /* Before anything is typed or ticked, the screen is a set of suggestions
+     rather than a hundred and twenty cards — which is what the reference app
+     shows, and what makes the box feel like a way in rather than a filter. */
+  const idle = !committed && activeCount === 0
+
+  const toggleTerm = (t: string) =>
+    setFilters((f) => ({
+      ...f,
+      terms: f.terms.includes(t) ? f.terms.filter((x) => x !== t) : [...f.terms, t],
+    }))
+
+  const toggleIngredient = (t: string) =>
+    setFilters((f) => ({
+      ...f,
+      ingredients: f.ingredients.includes(t)
+        ? f.ingredients.filter((x) => x !== t)
+        : [...f.ingredients, t],
+    }))
+
+  const runSearch = (q: string) => {
+    setQuery(q)
+    setCommitted(q)
+    rememberSearch(q)
+  }
 
   return (
     <>
@@ -291,100 +430,407 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
             className="searchbar__input"
             placeholder="Search recipes and ingredients"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setCommitted(e.target.value)
+            }}
+            onBlur={() => query.trim() && rememberSearch(query)}
+            onKeyDown={(e) => e.key === 'Enter' && runSearch(query)}
           />
           {query && (
-            <button onClick={() => setQuery('')} aria-label="Clear">
+            <button
+              onClick={() => {
+                setQuery('')
+                setCommitted('')
+              }}
+              aria-label="Clear"
+            >
               <Icon name="close" size={17} />
             </button>
           )}
         </div>
-        <button
-          className="iconbtn"
-          onClick={() => setShowFilters((v) => !v)}
-          aria-label="Filters"
-        >
-          <Icon name="menu" size={20} />
-        </button>
       </div>
 
-      {showFilters && (
-        <div className="chips" style={{ padding: '10px 14px', flexWrap: 'wrap', gap: 8 }}>
-          {tagOptions.map((t) => (
+      {/* Each chip opens its own section of the sheet, and carries a count so
+          the row still says what is on once the sheet is shut. */}
+      <div className="fchips">
+        <button
+          className={`fchip ${filters.savedOnly ? 'fchip--on' : ''}`}
+          onClick={() => setFilters((f) => ({ ...f, savedOnly: !f.savedOnly }))}
+        >
+          <Icon name={filters.savedOnly ? 'star-filled' : 'star'} size={15} />
+          Saved
+        </button>
+
+        <button
+          className={`fchip ${filters.ingredients.length ? 'fchip--on' : ''}`}
+          onClick={() => setSheet('ingredients')}
+        >
+          Ingredients
+          {filters.ingredients.length > 0 && (
+            <span className="fchip__count">{filters.ingredients.length}</span>
+          )}
+        </button>
+
+        {FILTER_GROUPS.map((g) => {
+          const n = countFor(g.key, filters, g.options)
+          return (
             <button
-              key={t}
-              className={`chip ${tags.includes(t) ? 'chip--active' : ''}`}
-              onClick={() => toggleTag(t)}
+              key={g.key}
+              className={`fchip ${n ? 'fchip--on' : ''}`}
+              onClick={() => setSheet(g.key)}
             >
-              {t}
+              {g.label}
+              {n > 0 && <span className="fchip__count">{n}</span>}
+            </button>
+          )
+        })}
+
+        <button
+          className={`fchip ${filters.maxMinutes != null ? 'fchip--on' : ''}`}
+          onClick={() => setSheet('time')}
+        >
+          Cook time
+          {filters.maxMinutes != null && <span className="fchip__count">1</span>}
+        </button>
+
+        {activeCount > 0 && (
+          <button className="fchip" onClick={() => setFilters(NO_FILTERS)}>
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {idle ? (
+        <IdleSuggestions
+          recent={data.recentSearches}
+          popularIngredients={popular}
+          onSearch={runSearch}
+          onForget={forgetSearch}
+          onPickTerm={toggleTerm}
+          onPickIngredient={toggleIngredient}
+          onCreate={() => push({ name: 'recipeEditor' })}
+          mine={data.recipes}
+          onOpen={(r) => push({ name: 'recipeView', recipeId: r.id, date, slot })}
+        />
+      ) : (
+        <>
+          <div className="sortbar">
+            <span className="sortbar__count">
+              {results.length} recipe{results.length === 1 ? '' : 's'}
+            </span>
+            <button className="sortbar__btn" onClick={() => setSortOpen(true)}>
+              {SORT_LABELS[sort]}
+              <Icon name="down" size={15} strokeWidth={2.4} />
+            </button>
+          </div>
+
+          {results.length === 0 ? (
+            <Empty title="Nothing matches">
+              <div style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 8px' }}>
+                Loosen a filter, or search a different word. Your own recipes are
+                searched alongside the built-in ones.
+              </div>
+            </Empty>
+          ) : (
+            <div className="rgrid">
+              {results.map((r) => (
+                <RecipeCard
+                  key={r.id}
+                  recipe={r}
+                  saved={data.savedRecipeIds.includes(r.id)}
+                  onSave={() => toggleSavedRecipe(r.id)}
+                  onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      <div style={{ height: 20 }} />
+
+      {sheet && (
+        <FilterSheet
+          group={sheet}
+          filters={filters}
+          popularIngredients={popular}
+          onToggleTerm={toggleTerm}
+          onToggleIngredient={toggleIngredient}
+          onSetTime={(m) => setFilters((f) => ({ ...f, maxMinutes: m }))}
+          onClear={() => setFilters(NO_FILTERS)}
+          onClose={() => setSheet(null)}
+        />
+      )}
+
+      {sortOpen && (
+        <Sheet onClose={() => setSortOpen(false)} title="Sort by">
+          {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (
+            <button
+              key={k}
+              className="row"
+              onClick={() => {
+                setSort(k)
+                setSortOpen(false)
+              }}
+            >
+              <span className="row__main row__title">{SORT_LABELS[k]}</span>
+              {sort === k && (
+                <span style={{ color: 'var(--accent)', display: 'flex' }}>
+                  <Icon name="check" size={18} strokeWidth={2.6} />
+                </span>
+              )}
             </button>
           ))}
-          {tags.length > 0 && (
-            <button className="textbtn" style={{ padding: 0 }} onClick={() => setTags([])}>
-              Clear
-            </button>
-          )}
-        </div>
+        </Sheet>
       )}
+    </>
+  )
+}
 
-      {/* Writing your own is offered up front, not buried under the catalogue.
-          It is one of the two ways to get a meal into the plan, so it should not
-          take a scroll past a hundred and twenty other people's ideas to find. */}
-      {browsing && (
-        <div className="card" style={{ marginTop: 12 }}>
-          <Row
-            title="Create your own recipe"
-            sub="Your ingredients, your method — planned the same way"
-            chevron
-            onClick={() => push({ name: 'recipeEditor' })}
-          />
-        </div>
-      )}
+const SORT_LABELS: Record<SortKey, string> = {
+  relevance: 'Best match',
+  calories: 'Fewest calories',
+  time: 'Quickest',
+  health: 'Healthiest',
+  name: 'A to Z',
+}
 
-      {browsing && mine.length > 0 && (
+/**
+ * What the screen shows before anyone has searched.
+ *
+ * A hundred and twenty cards is not a starting point, it is a wall. This is the
+ * reference app's answer: a way in through your own recipes, the things people
+ * search for most, ingredients you might have, and whatever you looked for last
+ * time.
+ */
+function IdleSuggestions({
+  recent,
+  popularIngredients: ingredients,
+  onSearch,
+  onForget,
+  onPickTerm,
+  onPickIngredient,
+  onCreate,
+  mine,
+  onOpen,
+}: {
+  recent: string[]
+  popularIngredients: string[]
+  onSearch(q: string): void
+  onForget(q: string): void
+  onPickTerm(t: string): void
+  onPickIngredient(t: string): void
+  onCreate(): void
+  mine: Recipe[]
+  onOpen(r: Recipe): void
+}) {
+  return (
+    <>
+      <div className="card" style={{ marginTop: 12 }}>
+        <Row
+          title="Create your own recipe"
+          sub="Your ingredients, your method — searched and planned the same way"
+          chevron
+          onClick={onCreate}
+        />
+      </div>
+
+      {mine.length > 0 && (
         <>
           <div className="section-head">
             <span>Your recipes</span>
           </div>
           <div className="rrail">
             {mine.map((r) => (
-              <RecipeCard
-                key={r.id}
-                recipe={r}
-                variant="rail"
-                onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
-              />
+              <RecipeCard key={r.id} recipe={r} variant="rail" onClick={() => onOpen(r)} />
             ))}
           </div>
         </>
       )}
 
-      {browsing && (
-        <div className="section-head">
-          <span>Meal ideas</span>
-        </div>
-      )}
+      <div className="section-head">
+        <span>Eating goals</span>
+      </div>
+      <div className="fpills" style={{ padding: '0 14px 4px' }}>
+        {NUTRITION_TAGS.map((t) => (
+          <button key={t} className="fpill" onClick={() => onPickTerm(t)}>
+            {t}
+          </button>
+        ))}
+      </div>
 
-      {results.length === 0 ? (
-        <Empty title="Nothing matches">
-          <div style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 8px' }}>
-            Try a different word, or clear the filters. Your own recipes are searched
-            alongside the built-in ones.
+      <div className="section-head">
+        <span>Search by ingredient</span>
+      </div>
+      <div className="fpills" style={{ padding: '0 14px 4px' }}>
+        {ingredients.slice(0, 16).map((t) => (
+          <button key={t} className="fpill" onClick={() => onPickIngredient(t)}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="section-head">
+        <span>Popular searches</span>
+      </div>
+      <div className="card">
+        {POPULAR_SEARCHES.map((s) => (
+          <button key={s} className="slist__row" onClick={() => onSearch(s)}>
+            <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+              <Icon name="search" size={16} />
+            </span>
+            <span className="slist__text">{s}</span>
+          </button>
+        ))}
+      </div>
+
+      {recent.length > 0 && (
+        <>
+          <div className="section-head">
+            <span>Recent searches</span>
           </div>
-        </Empty>
-      ) : (
-        <div className="rgrid">
-          {results.map((r) => (
-            <RecipeCard
-              key={r.id}
-              recipe={r}
-              onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
-            />
-          ))}
-        </div>
+          <div className="card">
+            {recent.map((s) => (
+              <div key={s} className="slist__row">
+                <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+                  <Icon name="clock" size={16} />
+                </span>
+                <button
+                  className="slist__text"
+                  style={{ textAlign: 'left' }}
+                  onClick={() => onSearch(s)}
+                >
+                  {s}
+                </button>
+                <button
+                  className="slist__x"
+                  onClick={() => onForget(s)}
+                  aria-label={`Forget ${s}`}
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
-      <div style={{ height: 20 }} />
     </>
+  )
+}
+
+/**
+ * The filter sheet.
+ *
+ * Opens on the section whose chip was tapped but shows all of them, so a wrong
+ * tap costs a scroll rather than a close and a re-open. Selections apply
+ * immediately — the Apply button dismisses rather than commits — because the
+ * result count is visible behind the sheet and watching it move is the fastest
+ * way to understand what a filter did.
+ */
+function FilterSheet({
+  group,
+  filters,
+  popularIngredients: ingredients,
+  onToggleTerm,
+  onToggleIngredient,
+  onSetTime,
+  onClear,
+  onClose,
+}: {
+  group: string
+  filters: DraftFilters
+  popularIngredients: string[]
+  onToggleTerm(t: string): void
+  onToggleIngredient(t: string): void
+  onSetTime(m: number | null): void
+  onClear(): void
+  onClose(): void
+}) {
+  const ordered = useMemo(() => {
+    const groups = [
+      { key: 'ingredients', label: 'Ingredients' },
+      ...FILTER_GROUPS.map((g) => ({ key: g.key, label: g.label })),
+      { key: 'time', label: 'Cook time' },
+    ]
+    const i = groups.findIndex((g) => g.key === group)
+    return i <= 0 ? groups : [groups[i], ...groups.filter((_, k) => k !== i)]
+  }, [group])
+
+  return (
+    <Sheet onClose={onClose}>
+      <div className="fsheet">
+        <div className="fsheet__head">
+          <span className="fsheet__title">Filters</span>
+        </div>
+
+        {ordered.map((g) => (
+          <div key={g.key} className="fgroup">
+            <div className="fgroup__label">
+              {g.label}
+              {countFor(
+                g.key,
+                filters,
+                FILTER_GROUPS.find((x) => x.key === g.key)?.options ?? [],
+              ) > 0 && (
+                <span className="fchip__count">
+                  {countFor(
+                    g.key,
+                    filters,
+                    FILTER_GROUPS.find((x) => x.key === g.key)?.options ?? [],
+                  )}
+                </span>
+              )}
+            </div>
+
+            <div className="fpills">
+              {g.key === 'ingredients' &&
+                ingredients.slice(0, 20).map((t) => (
+                  <button
+                    key={t}
+                    className={`fpill ${filters.ingredients.includes(t) ? 'fpill--on' : ''}`}
+                    onClick={() => onToggleIngredient(t)}
+                  >
+                    {t}
+                  </button>
+                ))}
+
+              {g.key === 'time' &&
+                COOK_TIMES.map((t) => (
+                  <button
+                    key={t.label}
+                    className={`fpill ${filters.maxMinutes === t.maxMinutes ? 'fpill--on' : ''}`}
+                    onClick={() =>
+                      onSetTime(filters.maxMinutes === t.maxMinutes ? null : t.maxMinutes)
+                    }
+                  >
+                    {t.label}
+                  </button>
+                ))}
+
+              {FILTER_GROUPS.find((x) => x.key === g.key)?.options.map((t) => (
+                <button
+                  key={t}
+                  className={`fpill ${filters.terms.includes(t) ? 'fpill--on' : ''}`}
+                  onClick={() => onToggleTerm(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="fsheet__actions">
+        <button className="btn btn--ghost" onClick={onClear}>
+          Clear filters
+        </button>
+        <button className="btn" onClick={onClose}>
+          Show results
+        </button>
+      </div>
+    </Sheet>
   )
 }
 
