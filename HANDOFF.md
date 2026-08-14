@@ -1,7 +1,12 @@
 # LogPal — handoff
 
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
-current as of **2026-08-12**, commit `803a5ac`.
+current as of **2026-08-14**, commit `ac7c271` on `main`, 42 commits, deployed.
+
+**Two large features landed after the original text below was written**, and
+they are documented in §14 and §15 at the end rather than woven through:
+following/friends, and meal planning. Where the older sections disagree with
+those, the later ones are right. §3's "current state" is stale; §14 has it.
 
 **Read this before touching anything.** It is not an overview — it is the set of
 things that cost real time to learn, including several where the obvious
@@ -751,12 +756,179 @@ testing anything — see §10.
 
 Nothing is half-finished in the code; these are things discussed and not built.
 
-1. **Friend search.** Discussed at length as the reason usernames must be
-   unique. Data model is ready; no UI, no follow/friend relationship, no
-   profile-viewing screen.
+1. ~~**Friend search.**~~ Built — see §14.
 2. **Progress photo journal.** Asked for, then explicitly dropped ("okay how
    about no progress photo"). Would need a Supabase Storage bucket and its
    policies; nothing was built.
 3. **Sign in with Apple**, blocked on a paid developer account.
 4. **The barcode decode loop on a real camera** — the one piece of shipped
    functionality never verified.
+5. See §15's closing list for the meal planner's own open threads.
+
+
+---
+
+## 14. Following and friends — built 2026-08-13
+
+`Settings → Friends`. Two tables, `logpal_social_profile` and `logpal_follows`,
+both in `supabase/schema.sql` and **already run against the live project**.
+
+**Following is one-way.** A public account accepts a follow immediately; a
+private one holds it as `pending`. Whether it needs approving is decided by a
+**database trigger** from the target's own `private` flag, never by the client —
+a client that could write `status: 'accepted'` itself could read a private
+account by asking nicely. There is a second trigger freezing `follower` and
+`followee` on update, because the update policy has to let the followee write
+the row (accepting *is* an update) and a policy cannot see previous values.
+
+**Nothing here reads anyone's diary and nothing can.** What one person sees of
+another is only what that person's own client wrote into
+`logpal_social_profile`, filtered by their `shareName` / `shareStreak` /
+`shareCalories` settings *before* it leaves the device. A field they have not
+shared is absent from the table, not hidden at read time. The field toggles live
+in `settings` (so they sync and stay private); `private` lives on the row
+because the server reads it.
+
+**Never verified: the request → accept path.** It needs two signed-in accounts
+and could not be tested from here. Everything either side is proven — the
+trigger auto-accepts against a public target, and `private: true` writes and
+reads back.
+
+The streak moved from Home into the store so Home's badge, the week strip's
+ticks and what followers see are one rule in one place.
+
+---
+
+## 15. Meal planning — built 2026-08-13/14
+
+The Plan tab is now a recipe browser and nothing else. Everything that used to
+be on it — targets, repeat meals, the three food libraries, shortcuts — already
+had another home under Settings, so clearing it lost nothing.
+
+### The shape
+
+`Plan.tsx` is a thin shell over `PlanPane` in `Planner.tsx`, which holds search,
+six filter chips over a sheet, and a stack of shelves: Favourite meals, Your
+recipes, Recipes you may like, Popular (photo tiles), then the catalogue cut by
+high protein, build muscle, GLP-1, fibre, low carb, the diets, and so on. Each
+shelf shows ten with an "All 70" control that opens two columns.
+
+`MealPlanner` (pushed from the banner) is the week; `ShoppingList` is
+aisle-grouped with a pantry that subtracts.
+
+### Where the numbers come from — read this before changing anything
+
+Two paths, deliberately:
+
+- **`summarise()`** — the cheap one, used by every list, card and filter. Reads
+  `recipe.nutritionPerServing`, which the catalogue ships.
+- **`resolveRecipe()`** — parses every ingredient against the 233k food
+  database. Used by the recipe detail screen, the shopping list and logging,
+  where a per-ingredient answer is the point.
+
+**Do not put `resolveRecipe` back into a list.** Five hundred recipes across
+sixteen shelves is thousands of searches over a quarter of a million rows, and
+it locks the renderer solid. It did, twice. The shelves are also built in a
+**single bucketing pass**, not one filter per shelf.
+
+### The ingredient parser
+
+`lib/ingredients.ts`, tested against lines copied verbatim from real Samsung
+Food and MyFitnessPal recipes. Measured against USDA's own published calories
+over 120 recipes: **median ratio 1.05, 60 of 120 within 25%.** It is good enough
+to price a shopping list and not good enough to be the number on a card, which
+is why published nutrition wins where it exists.
+
+Four bugs it has already had, all of which looked like something else:
+
+- `searchLocal` always returns its best guess, which is right for a human
+  picking from a list and dangerous automatically. `matchIngredient` now
+  requires the candidate to contain the ingredient's **stemmed head noun** and
+  prefers fewest extra words. Before that, "salt and pepper" matched a
+  **Chocolate Sea Salt Bar** and added 210 phantom calories.
+- Lines with **no amount are never priced** — "salt to taste" names a food
+  without saying how much, and charging it a whole database serving is how the
+  above happened. They say "to taste" on screen instead.
+- `"ounces"` singularised to `"ounc"`, so `8 ounces cheddar` parsed no unit.
+- Plurals never matched: `4 medium apples` could not reach "Apple".
+
+**Tinned goods are deliberately unpriced.** Reading the size out of
+`1 can pumpkin (15 ounce)` works and was reverted: a can multiplies whatever
+matched, and "pumpkin" resolves to Pumpkin Seeds, so fifteen ounces arrived as
+2,400 silent calories. An undercount the screen admits to beats an overcount it
+does not. Revisit once matching can express confidence.
+
+### The catalogue
+
+`public/recipes.json`, 400 USDA MyPlate recipes, ~644 kB, **fetched not
+bundled** and cached a week. Public domain under CC PD Mark 1.0.
+
+Selected by `scripts/build-recipes.mjs` on **substance**, within calorie bands.
+Sampling evenly across the alphabet reproduced USDA's own mix: median 186
+calories, twenty of five hundred above 400, none above 600. It is a
+public-health library, not a dinner one.
+
+Plus **20 recipes written for LogPal** in `src/data/authoredRecipes.ts`,
+612–986 calories, because USDA's ceiling is 575 and nothing in it serves anyone
+eating to gain. Their nutrition is *stated*, not parsed. Photos come from
+Wikimedia Commons under CC0/PD/CC BY via `scripts/fetch-photos.mjs`, credited on
+the recipe. Share-alike is refused.
+
+**MyFitnessPal's and Samsung Food's libraries cannot be used** — the first is
+paywalled licensed content, the second user-uploaded with rights retained. This
+was asked for more than once; the answer is the authored set above, not a
+workaround.
+
+### Filters are computed, never typed
+
+`lib/recipeTags.ts`. Nutrition tags (High Protein, Low Carb, GLP-1 Friendly…)
+come from each recipe's own numbers on FDA claim thresholds; diets (Vegan,
+Vegetarian, Pescatarian) are read off the **ingredient list**, because USDA
+files by food group and nothing in the data says "vegetarian". The false friends
+matter — almond milk and peanut butter are vegan, and a naive substring check
+disqualifies most of the plant recipes.
+
+Diets nest: vegan implies vegetarian implies pescatarian.
+
+### Star and bookmark are different things
+
+- **Star → foods** → My Favourites (a tab in food search, between All and My
+  Meals)
+- **Bookmark → meals/recipes** → My Meals, and the Favourite meals shelf
+
+Neither turns into the other; both fill solid gold when on. They were briefly
+unified and that was wrong. Bookmarking is a **toggle** — saved meals carry
+`recipeId`, without which nothing could tell a recipe was already saved and
+every tap added another copy.
+
+### Health score
+
+`lib/healthScore.ts`. Ours, not Samsung Food's, and the screen says how it is
+worked out. Nutrients are scored against **the serving's share of a 2,000
+calorie day**, not against a whole day — otherwise every serving of everything
+scores badly. Only *excess* counts against a food, capped per nutrient, so one
+teaspoon of salt cannot sink a dish. Dietary cholesterol is not scored (the
+guidelines dropped the numeric limit, and scoring it made a spinach and feta
+scramble the worst of 128 recipes).
+
+Range across the catalogue is 4.9–10. **It is top-heavy and desserts can
+outscore a salad**, because saturated fat is the only strong negative signal
+among seventeen nutrients. Fixing that properly needs a food-group signal, which
+is a different model.
+
+### Not synced
+
+`planEntries`, `shopping`, `pantry`, `savedRecipeIds` and `recentSearches` are
+**device-local**. The sign-in reconcile explicitly carries them across a cloud
+read so an empty server cannot wipe a planned week. Syncing them needs three
+more tables.
+
+### Open threads
+
+1. **Tinned goods**, above — needs match confidence first.
+2. **Collections** for saved recipes; Saved has no grouping.
+3. **Photo relevance is unverified.** The Commons search matches on words, and
+   at least one authored recipe took a picture whose subject is questionable
+   (the steak bowl). Worth an eye over all twenty.
+4. Nothing above 986 calories, and the Pescatarian shelf leads with whatever is
+   simply meat-free rather than with fish.
