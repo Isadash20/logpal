@@ -391,14 +391,43 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     })
   }, [recipes, resolve])
 
+  /* Recipes saved with the star on any card. */
+  const favourites = useMemo(
+    () => data.savedRecipeIds
+      .map((id) => recipes.find((r) => r.id === id))
+      .filter((r): r is Recipe => !!r),
+    [data.savedRecipeIds, recipes],
+  )
+
+  /* The catalogue cut the ways people actually eat, each its own rail.
+     Cheap because searchRecipes filters an in-memory list and the nutrition
+     behind it is cached — the same resolve closure every other section uses. */
+  const rails = useMemo(() => {
+    const byTerm = (title: string, term: string) => ({
+      title,
+      recipes: searchRecipes(recipes, '', { terms: [term] }, resolve),
+    })
+    return [
+      byTerm('High protein', 'High Protein'),
+      byTerm('Breakfast', 'Breakfast'),
+      { title: 'Ready in 30 minutes', recipes: searchRecipes(recipes, '', { maxMinutes: 30 }, resolve) },
+      byTerm('Low carb', 'Low Carb'),
+      byTerm('Low fat', 'Low Fat'),
+      byTerm('High fibre', 'High Fiber'),
+      byTerm('GLP-1 friendly', 'GLP-1 Friendly'),
+      byTerm('Soups and stews', 'Soup'),
+      byTerm('Salads', 'Salad'),
+      byTerm('Something sweet', 'Dessert'),
+    ].filter((r) => r.recipes.length > 0)
+  }, [recipes, resolve])
+
   /* A stable sample rather than the first nine alphabetically, which would
      make Explore a page about avocados. */
   const suggested = useMemo(() => {
     const withPhotos = recipes.filter((r) => r.imageUrl)
-    const step = Math.max(1, Math.floor(withPhotos.length / 8))
-    return Array.from({ length: Math.min(8, withPhotos.length) }, (_, i) =>
-      withPhotos[i * step],
-    ).filter(Boolean)
+    const want = Math.min(20, withPhotos.length)
+    const step = Math.max(1, Math.floor(withPhotos.length / want))
+    return Array.from({ length: want }, (_, i) => withPhotos[i * step]).filter(Boolean)
   }, [recipes])
 
   const results = useMemo(() => {
@@ -540,6 +569,8 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
       ) : idle ? (
         <Explore
           categories={categories}
+          rails={rails}
+          favourites={favourites}
           suggested={suggested}
           mine={data.recipes}
           saved={data.savedRecipeIds}
@@ -631,19 +662,87 @@ const SORT_LABELS: Record<SortKey, string> = {
   name: 'A to Z',
 }
 
+/** How many a rail shows before it has to be expanded. */
+const RAIL_LIMIT = 10
+
+/**
+ * A titled row of recipes that can open into a grid.
+ *
+ * Collapsed it is a rail of ten, which is a glance. Expanded it is two columns
+ * of everything, which is a browse. One control, and the chevron turns rather
+ * than swapping for a different glyph so it stays recognisably the same thing
+ * in both states. Sections with ten or fewer never offer the control, because
+ * expanding would show exactly what is already there.
+ */
+function RecipeRail({
+  title,
+  recipes,
+  saved,
+  onOpen,
+  onToggleSave,
+  action,
+}: {
+  title: string
+  recipes: Recipe[]
+  saved: string[]
+  onOpen(r: Recipe): void
+  onToggleSave(id: string): void
+  action?: { label: string; onClick(): void }
+}) {
+  const [open, setOpen] = useState(false)
+  if (!recipes.length) return null
+
+  const canExpand = recipes.length > RAIL_LIMIT
+  const shown = open ? recipes : recipes.slice(0, RAIL_LIMIT)
+
+  return (
+    <>
+      <div className="shead">
+        <span className="shead__title">{title}</span>
+        {action ? (
+          <button className="shead__more" onClick={action.onClick}>
+            {action.label}
+          </button>
+        ) : canExpand ? (
+          <button className="shead__toggle" onClick={() => setOpen((v) => !v)}>
+            {open ? 'Less' : `All ${recipes.length}`}
+            <span className={`shead__chev ${open ? 'shead__chev--open' : ''}`}>
+              <Icon name="down" size={16} strokeWidth={2.4} />
+            </span>
+          </button>
+        ) : null}
+      </div>
+
+      <div className={open ? 'rgrid' : 'rrail'}>
+        {shown.map((r) => (
+          <RecipeCard
+            key={r.id}
+            recipe={r}
+            variant={open ? 'grid' : 'rail'}
+            saved={saved.includes(r.id)}
+            onSave={() => onToggleSave(r.id)}
+            onClick={() => onOpen(r)}
+          />
+        ))}
+      </div>
+    </>
+  )
+}
+
 /**
  * Explore: what the screen rests at.
  *
- * Two sections and a lot of air, which is what the reference app shows and what
- * this screen lost when it tried to offer everything at once. Suggestions,
- * ingredient chips and past searches used to sit here as four stacked walls of
- * pills; they now live behind the search field, where they appear the moment
- * you tap into it. A picture of food is a better invitation than a form.
+ * A stack of rails, in the order they are most likely to be wanted — what you
+ * saved, what you wrote, what we would suggest, then the catalogue cut by the
+ * things people actually filter on. Each is a glance rather than a page, and
+ * opens into a grid if you want more than a glance.
  */
 function Explore({
   categories,
-  suggested,
+  rails,
+  favourites,
   mine,
+  suggested,
   saved,
   onPickTerm,
   onOpen,
@@ -651,31 +750,32 @@ function Explore({
   onCreate,
 }: {
   categories: { term: string; imageUrl?: string }[]
-  suggested: Recipe[]
+  rails: { title: string; recipes: Recipe[] }[]
+  favourites: Recipe[]
   mine: Recipe[]
+  suggested: Recipe[]
   saved: string[]
   onPickTerm(t: string): void
   onOpen(r: Recipe): void
   onToggleSave(id: string): void
   onCreate(): void
 }) {
+  const railProps = { saved, onOpen, onToggleSave }
+
   return (
     <>
-      {mine.length > 0 && (
-        <>
-          <div className="shead">
-            <span className="shead__title">Your recipes</span>
-            <button className="shead__more" onClick={onCreate}>
-              Add one
-            </button>
-          </div>
-          <div className="rrail">
-            {mine.map((r) => (
-              <RecipeCard key={r.id} recipe={r} variant="rail" onClick={() => onOpen(r)} />
-            ))}
-          </div>
-        </>
-      )}
+      {/* Favourites lead: the whole reason to save something is to find it
+          again without searching for it twice. */}
+      <RecipeRail title="Your favourites" recipes={favourites} {...railProps} />
+
+      <RecipeRail
+        title="Your recipes"
+        recipes={mine}
+        {...railProps}
+        action={mine.length <= RAIL_LIMIT ? { label: 'Add one', onClick: onCreate } : undefined}
+      />
+
+      <RecipeRail title="Recipes you may like" recipes={suggested} {...railProps} />
 
       <div className="shead">
         <span className="shead__title">Popular</span>
@@ -695,20 +795,10 @@ function Explore({
         ))}
       </div>
 
-      <div className="shead">
-        <span className="shead__title">Recipes you may like</span>
-      </div>
-      <div className="rgrid">
-        {suggested.map((r) => (
-          <RecipeCard
-            key={r.id}
-            recipe={r}
-            saved={saved.includes(r.id)}
-            onSave={() => onToggleSave(r.id)}
-            onClick={() => onOpen(r)}
-          />
-        ))}
-      </div>
+      {/* The catalogue, cut the ways people actually eat. */}
+      {rails.map((r) => (
+        <RecipeRail key={r.title} title={r.title} recipes={r.recipes} {...railProps} />
+      ))}
 
       {mine.length === 0 && (
         <div className="card" style={{ marginTop: 18 }}>

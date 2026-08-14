@@ -2031,3 +2031,24 @@ button.row:active {
   background: var(--surface);
   min-height: 60vh;
 }
+
+/* Expand control on a section header: a rail of ten becomes a two-column grid
+   of everything. The chevron turns rather than swapping glyph, so the control
+   reads as the same thing in both states. */
+.shead__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.shead__chev {
+  display: flex;
+  transition: transform 0.18s ease;
+}
+
+.shead__chev--open {
+  transform: rotate(180deg);
+}
