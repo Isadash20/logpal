@@ -299,9 +299,9 @@ function PlannerDay({
  * a recipe's declared tags and its title.
  */
 const FILTER_GROUPS: { key: string; label: string; options: readonly string[] }[] = [
-  { key: 'nutrition', label: 'Nutrition', options: NUTRITION_TAGS },
   { key: 'meal', label: 'Meal type', options: MEAL_TYPES },
   { key: 'diet', label: 'Diet', options: DIETS },
+  { key: 'nutrition', label: 'Nutrition', options: NUTRITION_TAGS },
   { key: 'cuisine', label: 'Cuisine', options: CUISINES },
 ]
 
@@ -356,6 +356,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   const [sheet, setSheet] = useState<string | null>(null)
   const [sort, setSort] = useState<SortKey>('relevance')
   const [sortOpen, setSortOpen] = useState(false)
+  const [focused, setFocused] = useState(false)
 
   const recipes = useMemo(() => allRecipes(data.recipes), [data.recipes])
   const extras = useMemo(
@@ -373,6 +374,32 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   )
 
   const popular = useMemo(() => popularIngredients(recipes), [recipes])
+
+  /* Photo tiles for Explore. Each category borrows a picture from the first
+     recipe that answers to it, so the row is illustrated without shipping any
+     artwork of its own. */
+  const categories = useMemo(() => {
+    const terms = [
+      'Breakfast', 'High Protein', 'Low Carb', 'Soup', 'Salad',
+      'Chicken', 'Vegetarian', 'GLP-1 Friendly', 'Dessert',
+    ]
+    return terms.map((term) => {
+      const hit = searchRecipes(recipes, '', { terms: [term] }, resolve).find(
+        (r) => r.imageUrl,
+      )
+      return { term, imageUrl: hit?.imageUrl }
+    })
+  }, [recipes, resolve])
+
+  /* A stable sample rather than the first nine alphabetically, which would
+     make Explore a page about avocados. */
+  const suggested = useMemo(() => {
+    const withPhotos = recipes.filter((r) => r.imageUrl)
+    const step = Math.max(1, Math.floor(withPhotos.length / 8))
+    return Array.from({ length: Math.min(8, withPhotos.length) }, (_, i) =>
+      withPhotos[i * step],
+    ).filter(Boolean)
+  }, [recipes])
 
   const results = useMemo(() => {
     const found = searchRecipes(
@@ -419,6 +446,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     setQuery(q)
     setCommitted(q)
     rememberSearch(q)
+    setFocused(false)
   }
 
   return (
@@ -434,7 +462,11 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
               setQuery(e.target.value)
               setCommitted(e.target.value)
             }}
-            onBlur={() => query.trim() && rememberSearch(query)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => {
+              setFocused(false)
+              if (query.trim()) rememberSearch(query)
+            }}
             onKeyDown={(e) => e.key === 'Enter' && runSearch(query)}
           />
           {query && (
@@ -451,17 +483,10 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
         </div>
       </div>
 
-      {/* Each chip opens its own section of the sheet, and carries a count so
-          the row still says what is on once the sheet is shut. */}
+      {/* Five chips, in the reference app's own order. Saved and Nutrition
+          moved into the sheet: seven chips overflowed the row on a phone, and
+          a row you have to scroll to discover is a row that hides things. */}
       <div className="fchips">
-        <button
-          className={`fchip ${filters.savedOnly ? 'fchip--on' : ''}`}
-          onClick={() => setFilters((f) => ({ ...f, savedOnly: !f.savedOnly }))}
-        >
-          <Icon name={filters.savedOnly ? 'star-filled' : 'star'} size={15} />
-          Saved
-        </button>
-
         <button
           className={`fchip ${filters.ingredients.length ? 'fchip--on' : ''}`}
           onClick={() => setSheet('ingredients')}
@@ -501,17 +526,27 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
         )}
       </div>
 
-      {idle ? (
-        <IdleSuggestions
+      {focused && !committed ? (
+        <SearchFocus
           recent={data.recentSearches}
-          popularIngredients={popular}
+          ingredients={popular}
           onSearch={runSearch}
           onForget={forgetSearch}
-          onPickTerm={toggleTerm}
-          onPickIngredient={toggleIngredient}
-          onCreate={() => push({ name: 'recipeEditor' })}
+          onPickIngredient={(t) => {
+            toggleIngredient(t)
+            setFocused(false)
+          }}
+        />
+      ) : idle ? (
+        <Explore
+          categories={categories}
+          suggested={suggested}
           mine={data.recipes}
+          saved={data.savedRecipeIds}
+          onPickTerm={toggleTerm}
           onOpen={(r) => push({ name: 'recipeView', recipeId: r.id, date, slot })}
+          onToggleSave={toggleSavedRecipe}
+          onCreate={() => push({ name: 'recipeEditor' })}
         />
       ) : (
         <>
@@ -597,49 +632,42 @@ const SORT_LABELS: Record<SortKey, string> = {
 }
 
 /**
- * What the screen shows before anyone has searched.
+ * Explore: what the screen rests at.
  *
- * A hundred and twenty cards is not a starting point, it is a wall. This is the
- * reference app's answer: a way in through your own recipes, the things people
- * search for most, ingredients you might have, and whatever you looked for last
- * time.
+ * Two sections and a lot of air, which is what the reference app shows and what
+ * this screen lost when it tried to offer everything at once. Suggestions,
+ * ingredient chips and past searches used to sit here as four stacked walls of
+ * pills; they now live behind the search field, where they appear the moment
+ * you tap into it. A picture of food is a better invitation than a form.
  */
-function IdleSuggestions({
-  recent,
-  popularIngredients: ingredients,
-  onSearch,
-  onForget,
-  onPickTerm,
-  onPickIngredient,
-  onCreate,
+function Explore({
+  categories,
+  suggested,
   mine,
+  saved,
+  onPickTerm,
   onOpen,
+  onToggleSave,
+  onCreate,
 }: {
-  recent: string[]
-  popularIngredients: string[]
-  onSearch(q: string): void
-  onForget(q: string): void
-  onPickTerm(t: string): void
-  onPickIngredient(t: string): void
-  onCreate(): void
+  categories: { term: string; imageUrl?: string }[]
+  suggested: Recipe[]
   mine: Recipe[]
+  saved: string[]
+  onPickTerm(t: string): void
   onOpen(r: Recipe): void
+  onToggleSave(id: string): void
+  onCreate(): void
 }) {
   return (
     <>
-      <div className="card" style={{ marginTop: 12 }}>
-        <Row
-          title="Create your own recipe"
-          sub="Your ingredients, your method — searched and planned the same way"
-          chevron
-          onClick={onCreate}
-        />
-      </div>
-
       {mine.length > 0 && (
         <>
-          <div className="section-head">
-            <span>Your recipes</span>
+          <div className="shead">
+            <span className="shead__title">Your recipes</span>
+            <button className="shead__more" onClick={onCreate}>
+              Add one
+            </button>
           </div>
           <div className="rrail">
             {mine.map((r) => (
@@ -649,73 +677,137 @@ function IdleSuggestions({
         </>
       )}
 
-      <div className="section-head">
-        <span>Eating goals</span>
+      <div className="shead">
+        <span className="shead__title">Popular</span>
       </div>
-      <div className="fpills" style={{ padding: '0 14px 4px' }}>
-        {NUTRITION_TAGS.map((t) => (
-          <button key={t} className="fpill" onClick={() => onPickTerm(t)}>
+      <div className="rrail">
+        {categories.map((c) => (
+          <button key={c.term} className="cattile" onClick={() => onPickTerm(c.term)}>
+            {c.imageUrl ? (
+              <img className="cattile__img" src={c.imageUrl} alt="" loading="lazy" />
+            ) : (
+              <span className="rcard__fallback">
+                <Icon name="note" size={26} strokeWidth={1.6} />
+              </span>
+            )}
+            <span className="cattile__label">{c.term}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="shead">
+        <span className="shead__title">Recipes you may like</span>
+      </div>
+      <div className="rgrid">
+        {suggested.map((r) => (
+          <RecipeCard
+            key={r.id}
+            recipe={r}
+            saved={saved.includes(r.id)}
+            onSave={() => onToggleSave(r.id)}
+            onClick={() => onOpen(r)}
+          />
+        ))}
+      </div>
+
+      {mine.length === 0 && (
+        <div className="card" style={{ marginTop: 18 }}>
+          <Row
+            title="Create your own recipe"
+            sub="Your ingredients, your method — searched and planned the same way"
+            chevron
+            onClick={onCreate}
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
+/**
+ * What the search field shows while it has focus and nothing typed.
+ *
+ * Exactly where the reference app puts these: tapping the box replaces the
+ * screen with ways to fill it, and leaving it puts the screen back. Keeping
+ * them on the resting screen is what made this feel like a form.
+ */
+function SearchFocus({
+  recent,
+  ingredients,
+  onSearch,
+  onForget,
+  onPickIngredient,
+}: {
+  recent: string[]
+  ingredients: string[]
+  onSearch(q: string): void
+  onForget(q: string): void
+  onPickIngredient(t: string): void
+}) {
+  return (
+    <div className="sfocus">
+      <div className="shead" style={{ paddingTop: 14 }}>
+        <span className="shead__title" style={{ fontSize: 16 }}>
+          Search by ingredient
+        </span>
+      </div>
+      <div className="fpills" style={{ padding: '0 16px 6px' }}>
+        {ingredients.slice(0, 12).map((t) => (
+          <button key={t} className="fpill" onMouseDown={(e) => e.preventDefault()} onClick={() => onPickIngredient(t)}>
             {t}
           </button>
         ))}
       </div>
 
-      <div className="section-head">
-        <span>Search by ingredient</span>
+      <div className="shead">
+        <span className="shead__title" style={{ fontSize: 16 }}>
+          Popular searches
+        </span>
       </div>
-      <div className="fpills" style={{ padding: '0 14px 4px' }}>
-        {ingredients.slice(0, 16).map((t) => (
-          <button key={t} className="fpill" onClick={() => onPickIngredient(t)}>
-            {t}
-          </button>
-        ))}
-      </div>
-
-      <div className="section-head">
-        <span>Popular searches</span>
-      </div>
-      <div className="card">
-        {POPULAR_SEARCHES.map((s) => (
-          <button key={s} className="slist__row" onClick={() => onSearch(s)}>
-            <span style={{ color: 'var(--text-3)', display: 'flex' }}>
-              <Icon name="search" size={16} />
-            </span>
-            <span className="slist__text">{s}</span>
-          </button>
-        ))}
-      </div>
+      {POPULAR_SEARCHES.map((q) => (
+        <button
+          key={q}
+          className="slist__row"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onSearch(q)}
+        >
+          <span className="slist__text">{q}</span>
+        </button>
+      ))}
 
       {recent.length > 0 && (
         <>
-          <div className="section-head">
-            <span>Recent searches</span>
+          <div className="shead">
+            <span className="shead__title" style={{ fontSize: 16 }}>
+              Recent
+            </span>
           </div>
-          <div className="card">
-            {recent.map((s) => (
-              <div key={s} className="slist__row">
-                <span style={{ color: 'var(--text-3)', display: 'flex' }}>
-                  <Icon name="clock" size={16} />
-                </span>
-                <button
-                  className="slist__text"
-                  style={{ textAlign: 'left' }}
-                  onClick={() => onSearch(s)}
-                >
-                  {s}
-                </button>
-                <button
-                  className="slist__x"
-                  onClick={() => onForget(s)}
-                  aria-label={`Forget ${s}`}
-                >
-                  <Icon name="close" size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
+          {recent.map((q) => (
+            <div key={q} className="slist__row">
+              <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+                <Icon name="clock" size={16} />
+              </span>
+              <button
+                className="slist__text"
+                style={{ textAlign: 'left' }}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => onSearch(q)}
+              >
+                {q}
+              </button>
+              <button
+                className="slist__x"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => onForget(q)}
+                aria-label={`Forget ${q}`}
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+          ))}
         </>
       )}
-    </>
+    </div>
   )
 }
 
