@@ -187,6 +187,98 @@ function slugToId(slug) {
   return `usda_${slug.replace(/[^a-z0-9]+/g, '_')}`
 }
 
+/**
+ * How much of a recipe a recipe is.
+ *
+ * "Microwave Baked Potato" tells you to put a potato in a microwave. "Frozen
+ * Banana Pops" is a banana, a stick and some foil. Both are real entries and
+ * neither is worth a card on a browse screen, so the catalogue is chosen on
+ * whether there is a dish here rather than on where it falls in the alphabet.
+ *
+ * Length of method matters more than count of steps: a recipe can be three
+ * long paragraphs or eight words split over three lines, and only the first is
+ * something you would cook.
+ */
+function substance(r) {
+  const ingredients = r.ingredients.length
+  const method = r.steps.join(' ')
+  let score = 0
+
+  score += Math.min(10, ingredients) * 3
+  score += Math.min(8, r.steps.length) * 2
+  score += Math.min(600, method.length) / 40
+
+  if (r.imageUrl) score += 8
+  // A dish, rather than a dip or a dressing to put on one.
+  if (/main dish|main course|entree|dinner/i.test((r.tags ?? []).join(' '))) score += 10
+
+  const n = r.nutritionPerServing
+  if (n) {
+    // Enough to be a meal, and enough protein to be worth eating as one.
+    if (n.calories >= 300) score += 8
+    if (n.calories >= 450) score += 8
+    if (n.protein >= 15) score += 6
+    if (n.protein >= 25) score += 6
+  }
+
+  // The floor: three things and a sentence is an instruction, not a recipe.
+  if (ingredients <= 3) score -= 25
+  if (r.steps.length <= 1) score -= 20
+  if (method.length < 160) score -= 15
+
+  return score
+}
+
+/**
+ * Picks the catalogue, keeping the calorie range wide.
+ *
+ * Taking the top N by substance alone would still under-serve anyone bulking,
+ * because USDA simply publishes few calorie-dense recipes and they would be
+ * outnumbered however the list is sorted. So the substantial ones are chosen
+ * within calorie bands, and the sparse upper bands are taken as fully as they
+ * can be. A catalogue where the biggest meal is 500 calories is not a
+ * catalogue for everybody.
+ */
+function chooseRecipes(all, limit) {
+  const scored = all
+    .map((r) => ({ r, s: substance(r), cal: r.nutritionPerServing?.calories ?? 0 }))
+    // Never ship the ones that are barely recipes, whatever the quota.
+    .filter((x) => x.s > 0)
+
+  const BANDS = [
+    { min: 450, max: Infinity, share: 0.3 },
+    { min: 300, max: 450, share: 0.3 },
+    { min: 150, max: 300, share: 0.25 },
+    { min: 0, max: 150, share: 0.15 },
+  ]
+
+  const out = []
+  const taken = new Set()
+  for (const band of BANDS) {
+    const quota = Math.round(limit * band.share)
+    const pool = scored
+      .filter((x) => x.cal >= band.min && x.cal < band.max && !taken.has(x.r.id))
+      .sort((a, b) => b.s - a.s)
+    for (const x of pool.slice(0, quota)) {
+      taken.add(x.r.id)
+      out.push(x.r)
+    }
+  }
+
+  /* Bands that could not fill their quota — the top one always falls short —
+     give their remainder back to whatever else scored well, so the catalogue
+     still reaches its size. */
+  if (out.length < limit) {
+    for (const x of scored.filter((y) => !taken.has(y.r.id)).sort((a, b) => b.s - a.s)) {
+      if (out.length >= limit) break
+      taken.add(x.r.id)
+      out.push(x.r)
+    }
+  }
+
+  return out
+}
+
 async function main() {
   process.stdout.write(`Fetching index…\n`)
   const index = await get(`${BASE}/recipes`)
@@ -197,20 +289,18 @@ async function main() {
   ]
   process.stdout.write(`  ${slugs.length} recipes listed, taking ${limit}\n`)
 
-  /* Spread across the whole list, not the first N.
+  /* Everything, then chosen on merit.
    *
-   * The index is alphabetical, so slicing the head returns sixty ways to cook
-   * an avocado and nothing past B. This codebase has been bitten by exactly
-   * that once already — the shipped food database was alphabetically truncated
-   * at "C" and had thirty-seven foods for D through Z (see §8 of HANDOFF.md).
-   * Sampling at an even stride costs nothing and cannot fail the same way. */
-  const picked = []
-  const want = Math.min(limit, slugs.length)
-  for (let i = 0; i < want; i++) {
-    // Proportional rather than a fixed stride: a stride of floor(n/limit)
-    // stops short of the end and quietly drops the tail of the alphabet.
-    picked.push(slugs[Math.floor((i * slugs.length) / want)])
-  }
+   * Sampling evenly across the alphabet avoided the truncation bug but
+   * faithfully reproduced USDA's own mix, which is mostly dips, sides and
+   * vegetable preparations: the median recipe came out at 186 calories, only
+   * twenty of five hundred cleared 400, and none cleared 600. That is a fine
+   * public-health library and a poor one to cook dinner from, and useless to
+   * anyone eating to gain.
+   *
+   * So the whole index is fetched and the catalogue is selected afterwards —
+   * see `chooseRecipes` — on how substantial each recipe actually is. */
+  const picked = slugs
   const recipes = []
   const checks = []
 
@@ -266,6 +356,11 @@ async function main() {
     await sleep(DELAY_MS)
   }
 
+  const chosen = chooseRecipes(recipes, limit)
+  process.stdout.write(
+    `\nSelected ${chosen.length} of ${recipes.length} on substance\n`,
+  )
+
   const payload = {
     /* Provenance travels with the data rather than living only in a comment,
        so anything that reads this file knows where it came from and under what
@@ -273,17 +368,19 @@ async function main() {
     source: 'USDA MyPlate Kitchen, via myplate.food',
     license: 'https://creativecommons.org/publicdomain/mark/1.0/',
     generatedBy: 'scripts/build-recipes.mjs',
-    count: recipes.length,
+    count: chosen.length,
     /** Per-serving calories as USDA published them, for checking our parser. */
-    publishedCalories: Object.fromEntries(checks.map((c) => [c.id, c.published])),
-    recipes,
+    publishedCalories: Object.fromEntries(
+      checks.filter((c) => chosen.some((r) => r.id === c.id)).map((c) => [c.id, c.published]),
+    ),
+    recipes: chosen,
   }
 
   const out = join(ROOT, 'public/recipes.json')
   writeFileSync(out, JSON.stringify(payload))
   const mb = (JSON.stringify(payload).length / 1024 / 1024).toFixed(2)
   process.stdout.write(
-    `\nWrote ${recipes.length} recipes to public/recipes.json (${mb} MB)\n` +
+    `\nWrote ${chosen.length} recipes to public/recipes.json (${mb} MB)\n` +
       `  with published calories for ${checks.length} of them\n`,
   )
 }
