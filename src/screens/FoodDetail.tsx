@@ -7,6 +7,7 @@ import { MacroSummary, NutritionLabel } from '../components/nutrition'
 import { Donut } from '../components/charts'
 import { cal } from '../lib/format'
 import { macroPercents, scaleNutrients } from '../lib/nutrition'
+import { uid } from '../lib/id'
 
 export function FoodDetail({
   food,
@@ -39,6 +40,37 @@ export function FoodDetail({
 
   const percents = macroPercents(n)
   const isFavorite = data.favoriteFoodIds.includes(food.id)
+  const [savedNote, setSavedNote] = useState<string | null>(null)
+
+  /**
+   * Keeps this food, at this portion, as a one-item meal.
+   *
+   * Starring a food remembers the food; this remembers the *amount* — the
+   * 170 g pot of the Greek yogurt you actually buy, rather than a generic
+   * entry you have to re-portion every time. That is the difference between
+   * the star and the bookmark, and why both are here.
+   */
+  function saveAsMeal() {
+    const qty = parseFloat(count)
+    if (!Number.isFinite(qty) || qty <= 0) return
+    const label = food.brand ? `${food.name} (${food.brand})` : food.name
+    app.saveMeal({
+      id: uid('m'),
+      name: label,
+      items: [
+        {
+          foodId: food.id,
+          name: food.name,
+          brand: food.brand,
+          servingLabel: serving.label,
+          servings: qty,
+          nutrients: n,
+        },
+      ],
+      createdAt: Date.now(),
+    })
+    setSavedNote('Saved to My meals')
+  }
 
   function save() {
     const qty = parseFloat(count)
@@ -72,6 +104,13 @@ export function FoodDetail({
             >
               <Icon name={isFavorite ? 'star-filled' : 'star'} size={21} />
             </button>
+            <button
+              className="iconbtn"
+              onClick={saveAsMeal}
+              aria-label="Save this portion to My meals"
+            >
+              <Icon name="bookmark" size={20} />
+            </button>
             <button className="iconbtn iconbtn--accent" onClick={save} aria-label="Save">
               <Icon name="check" size={24} strokeWidth={2.6} />
             </button>
@@ -80,6 +119,16 @@ export function FoodDetail({
       />
 
       <div className="scroll">
+        {savedNote && (
+          <div className="hint" style={{ color: 'var(--accent)', paddingBottom: 0 }}>
+            {savedNote}
+          </div>
+        )}
+        {isFavorite && !savedNote && (
+          <div className="hint" style={{ color: 'var(--text-2)', paddingBottom: 0 }}>
+            In your favourites — find it under Foods → My favourites.
+          </div>
+        )}
         <div style={{ padding: '18px 16px 12px', background: 'var(--surface)' }}>
           <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>{food.name}</div>
           {food.brand && (

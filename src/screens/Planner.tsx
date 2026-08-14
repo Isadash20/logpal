@@ -441,6 +441,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     const buckets = new Map<string, Recipe[]>()
     RAILS.forEach((r) => buckets.set(r.title, []))
     const tileImage = new Map<string, string>()
+    const termsByRecipe = new Map<string, Set<string>>()
 
     for (const recipe of recipes) {
       const summary = resolve(recipe)
@@ -454,6 +455,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
       for (const term of TERMS_IN_USE) {
         if (matchesTerm(term, subject)) answers.add(term)
       }
+      termsByRecipe.set(recipe.id, answers)
       const mins = totalMinutes(recipe)
 
       for (const rail of RAILS) {
@@ -463,17 +465,34 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
         buckets.get(rail.title)!.push(recipe)
       }
 
-      if (recipe.imageUrl) {
-        for (const t of TILES) {
-          if (!tileImage.has(t) && answers.has(t)) tileImage.set(t, recipe.imageUrl)
-        }
+    }
+
+    /* Each tile gets a picture no other tile is using.
+     *
+     * Taking the first match per category handed the same photograph to High
+     * Protein, Vegetarian and Vegan, because one recipe often answers to
+     * several — and a row of identical pictures reads as a rendering fault. */
+    const usedImages = new Set<string>()
+    for (const term of TILES) {
+      const pool = seededOrder(
+        recipes.filter((r) => r.imageUrl && termsByRecipe.get(r.id)?.has(term)),
+        `tile:${term}`,
+      )
+      const pick = pool.find((r) => !usedImages.has(r.imageUrl!)) ?? pool[0]
+      if (pick?.imageUrl) {
+        usedImages.add(pick.imageUrl)
+        tileImage.set(term, pick.imageUrl)
       }
     }
 
     return {
-      rails: RAILS.map((r) => ({ title: r.title, recipes: buckets.get(r.title)! })).filter(
-        (r) => r.recipes.length > 0,
-      ),
+      /* Shuffled per shelf, so the first ten are a spread of the catalogue
+         rather than the first ten alphabetically. Expanding still shows
+         everything — the order is the only thing that changes. */
+      rails: RAILS.map((r) => ({
+        title: r.title,
+        recipes: seededOrder(buckets.get(r.title)!, r.title),
+      })).filter((r) => r.recipes.length > 0),
       categories: TILES.map((term) => ({ term, imageUrl: tileImage.get(term) })),
     }
   }, [recipes, resolve])
@@ -481,10 +500,9 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   /* A stable sample rather than the first nine alphabetically, which would
      make Explore a page about avocados. */
   const suggested = useMemo(() => {
-    const withPhotos = recipes.filter((r) => r.imageUrl)
-    const want = Math.min(20, withPhotos.length)
-    const step = Math.max(1, Math.floor(withPhotos.length / want))
-    return Array.from({ length: want }, (_, i) => withPhotos[i * step]).filter(Boolean)
+    // Shuffled rather than evenly stepped: a fixed stride through an
+    // alphabetical list is still an alphabetical list, just a sparser one.
+    return seededOrder(recipes.filter((r) => r.imageUrl), 'suggested').slice(0, 20)
   }, [recipes])
 
   const results = useMemo(() => {
@@ -720,6 +738,41 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 /** How many a rail shows before it has to be expanded. */
 const RAIL_LIMIT = 10
+
+/**
+ * A shuffle that gives the same answer every time.
+ *
+ * The shelves were drawing in catalogue order, which is alphabetical, so
+ * 3-Can Chili and 2-Step Chicken led almost every one of them and the page
+ * looked like it held nine recipes rather than five hundred. Shuffling fixes
+ * that, but it has to be stable: an order that changes on every render means
+ * cards move under the finger, and a rail that reshuffles when you tap a
+ * filter is disorienting rather than varied.
+ *
+ * Seeded from the shelf's own title, so each shelf gets a different order and
+ * keeps it for good.
+ */
+function seededOrder<T>(items: T[], seed: string): T[] {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  const rand = () => {
+    h += 0x6d2b79f5
+    let t = h
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+  // Fisher-Yates on a copy; the caller's array is someone else's.
+  const out = [...items]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
 
 /** Every vocabulary term any shelf or tile asks about, tested once per recipe. */
 const TERMS_IN_USE = [
