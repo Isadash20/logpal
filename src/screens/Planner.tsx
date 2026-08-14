@@ -7,6 +7,7 @@ import { Empty, Row, Sheet, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
+import { uid } from '../lib/id'
 import {
   formatAmountFor,
   formatQuantity,
@@ -1189,7 +1190,7 @@ export function RecipeView({
   slot?: MealSlot
 }) {
   const app = useApp()
-  const { pop, data, settings, planMeal, logItems, addRecipeToShoppingList } = app
+  const { pop, data, settings, planMeal, logItems, saveMeal, addRecipeToShoppingList } = app
   const dbSize = useFoodDb()
   // Amounts are shown in whatever the Units screen says, so a recipe reads the
   // way this particular person cooks rather than the way it was written down.
@@ -1201,6 +1202,7 @@ export function RecipeView({
   )
 
   const [section, setSection] = useState<Section>('ingredients')
+  const [bookmarked, setBookmarked] = useState(false)
   const [servings, setServings] = useState(() => recipe?.servingsMade ?? 1)
   const [note, setNote] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
@@ -1231,6 +1233,32 @@ export function RecipeView({
   const scale = servings / made
   const mins = totalMinutes(recipe)
 
+  /**
+   * Keeps the recipe as a meal you can log from the food search.
+   *
+   * A recipe lives in Plan and the diary lives on Home, and until now the only
+   * way across was to log it there and then. Bookmarking puts it in My Meals,
+   * where it sits alongside everything else you eat regularly — so tomorrow you
+   * find it by searching for food rather than by remembering which recipe it
+   * came from. Saved at the servings currently on screen, since that is the
+   * portion you decided on.
+   */
+  const bookmark = () => {
+    if (!resolved) return
+    const items = resolved.items.map((it) => ({
+      ...it,
+      servings: it.servings * scale,
+      nutrients: scaleNutrients(it.nutrients, scale),
+    }))
+    if (!items.length) {
+      setNote('Nothing to save — none of these ingredients could be priced')
+      return
+    }
+    saveMeal({ id: uid('m'), name: recipe.name, items, createdAt: Date.now() })
+    setBookmarked(true)
+    setNote('Saved to My Meals — search for it when you log food')
+  }
+
   const plan = (targetSlot: MealSlot) => {
     planMeal({
       recipeId: recipe.id,
@@ -1247,7 +1275,21 @@ export function RecipeView({
 
   return (
     <>
-      <TopBar title={recipe.name} onBack={pop} solid />
+      <TopBar
+        title={recipe.name}
+        onBack={pop}
+        solid
+        right={
+          <button
+            className="iconbtn"
+            onClick={bookmark}
+            aria-label="Save to My Meals"
+            style={{ color: bookmarked ? 'var(--accent)' : undefined }}
+          >
+            <Icon name="bookmark" size={20} />
+          </button>
+        }
+      />
 
       <div className="scroll">
         <div className="rhero">

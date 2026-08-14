@@ -27,7 +27,6 @@ import { Onboarding } from './screens/Onboarding'
 import {
   MealEditor,
   MealsList,
-  MyFavorites,
   MyFoods,
   RecipeEditor,
   RecipesList,
@@ -199,9 +198,6 @@ function Shell() {
 
       case 'myFoods':
         return <MyFoods />
-
-      case 'myFavorites':
-        return <MyFavorites />
 
       case 'goals':
         return <Goals />

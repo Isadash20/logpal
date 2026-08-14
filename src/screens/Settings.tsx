@@ -184,19 +184,10 @@ export function FoodsHub() {
       <TopBar title="Foods" onBack={pop} solid />
       <div className="scroll">
         <div style={{ height: 12 }} />
-        {/* Favourites first: it is the shortest path back to something you eat
-            often, which is the whole reason any of these lists exist. */}
-        <Banner
-          icon="star"
-          title="My favourites"
-          sub="Foods you starred, ready to log again"
-          value={data.favoriteFoodIds.length}
-          onClick={() => push({ name: 'myFavorites' })}
-        />
         <Banner
           icon="bookmark"
           title="My meals"
-          sub="Foods and portions you saved"
+          sub="Foods you log together"
           value={data.savedMeals.length}
           onClick={() => push({ name: 'meals' })}
         />

@@ -9,7 +9,7 @@ import { looksLikeBarcode, searchLocal } from '../services/foodSearch'
 import { loadFoodDb, onFoodDbGrown } from '../services/foodDb'
 import { RateLimitedError, lookupBarcode, searchProducts } from '../services/openFoodFacts'
 
-type Tab = 'all' | 'meals' | 'recipes' | 'myfoods'
+type Tab = 'all' | 'favorites' | 'meals' | 'recipes' | 'myfoods'
 
 export function FoodSearch({ date }: { date: string }) {
   const app = useApp()
@@ -176,6 +176,10 @@ export function FoodSearch({ date }: { date: string }) {
         {(
           [
             ['all', 'All'],
+            /* Between All and My Meals, where the shortest path back to
+               something you eat every day belongs. It used to be a section
+               inside All, which meant it scrolled away the moment you typed. */
+            ['favorites', 'My Favourites'],
             ['meals', 'My Meals'],
             ['recipes', 'My Recipes'],
             ['myfoods', 'My Foods'],
@@ -194,15 +198,6 @@ export function FoodSearch({ date }: { date: string }) {
       <div className="scroll">
         {tab === 'all' && (
           <>
-            {!showingSearch && favorites.length > 0 && (
-              <>
-                <div className="section-label">Favorites</div>
-                {favorites.map((f) => (
-                  <FoodRow key={f.id} food={f} onOpen={openFood} onAdd={quickLog} />
-                ))}
-              </>
-            )}
-
             {!showingSearch && (
               <>
                 <div className="section-label">
@@ -260,6 +255,21 @@ export function FoodSearch({ date }: { date: string }) {
                   </div>
                 )}
               </>
+            )}
+          </>
+        )}
+
+        {tab === 'favorites' && (
+          <>
+            {favorites.length === 0 ? (
+              <Empty title="Nothing starred yet">
+                Open a food and tap the star. The brand you always buy waits here
+                instead of being searched for again.
+              </Empty>
+            ) : (
+              favorites.map((f) => (
+                <FoodRow key={f.id} food={f} onOpen={openFood} onAdd={quickLog} />
+              ))
             )}
           </>
         )}

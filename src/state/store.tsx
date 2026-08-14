@@ -170,7 +170,6 @@ export type Route =
   | { name: 'recipes' }
   | { name: 'recipeEditor'; recipeId?: string }
   | { name: 'myFoods' }
-  | { name: 'myFavorites' }
   | { name: 'goals' }
   | { name: 'weightEntry' }
   | { name: 'measurement'; key: string }
