@@ -225,8 +225,17 @@ export function ingredientCount(r: Recipe): number {
  */
 export function allRecipes(userRecipes: Recipe[]): Recipe[] {
   const seen = new Set(userRecipes.map((r) => r.id))
-  const shipped = [...SEED_RECIPES, ...catalogRecipes()].filter((r) => !seen.has(r.id))
-  return [...userRecipes, ...shipped]
+  const catalog = catalogRecipes()
+
+  /* The eight hand-written seeds are a fallback, not a supplement.
+   *
+   * They exist so the Plan tab is not empty if recipes.json never arrives, and
+   * they are the only recipes in the app with no photograph — so while the
+   * catalogue is still downloading they were the entire screen, which is why
+   * Plan opened as a wall of blank cards. With five hundred illustrated
+   * recipes available there is no reason to mix them in. */
+  const shipped = catalog.length ? catalog : SEED_RECIPES
+  return [...userRecipes, ...shipped.filter((r) => !seen.has(r.id))]
 }
 
 /** Just the ones the user made, for the "your recipes" shelf. */

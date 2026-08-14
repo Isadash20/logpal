@@ -19,13 +19,13 @@ import {
   formatMinutes,
   summarise,
   ingredientCount,
-  popularIngredients,
   resolveRecipe,
   searchRecipes,
   sortRecipes,
   totalMinutes,
   type SortKey,
 } from '../services/recipes'
+import { INGREDIENT_GROUPS, STARTER_INGREDIENTS } from '../data/ingredients'
 import {
   matchesTerm,
   COOK_TIMES,
@@ -392,7 +392,10 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     [extras, dbSize],
   )
 
-  const popular = useMemo(() => popularIngredients(recipes), [recipes])
+  /* The written vocabulary rather than words counted out of the catalogue —
+     that produced "oil", "powder" and "sauce", which are the commonest final
+     words in an ingredient list and useless to tap. */
+  const popular = STARTER_INGREDIENTS
 
   /* Recipes saved with the star on any card. */
   const favourites = useMemo(
@@ -674,7 +677,6 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
         <FilterSheet
           group={sheet}
           filters={filters}
-          popularIngredients={popular}
           onToggleTerm={toggleTerm}
           onToggleIngredient={toggleIngredient}
           onSetTime={(m) => setFilters((f) => ({ ...f, maxMinutes: m }))}
@@ -974,7 +976,6 @@ function SearchFocus({
 function FilterSheet({
   group,
   filters,
-  popularIngredients: ingredients,
   onToggleTerm,
   onToggleIngredient,
   onSetTime,
@@ -983,7 +984,6 @@ function FilterSheet({
 }: {
   group: string
   filters: DraftFilters
-  popularIngredients: string[]
   onToggleTerm(t: string): void
   onToggleIngredient(t: string): void
   onSetTime(m: number | null): void
@@ -1027,16 +1027,38 @@ function FilterSheet({
             </div>
 
             <div className="fpills">
-              {g.key === 'ingredients' &&
-                ingredients.slice(0, 20).map((t) => (
-                  <button
-                    key={t}
-                    className={`fpill ${filters.ingredients.includes(t) ? 'fpill--on' : ''}`}
-                    onClick={() => onToggleIngredient(t)}
-                  >
-                    {t}
-                  </button>
-                ))}
+              {g.key === 'ingredients' && (
+                /* Grouped, so the list reads like a shop rather than a heap.
+                   Two hundred terms in one flat run is unusable; eight labelled
+                   runs of twenty is a thing you can skim. */
+                <div style={{ width: '100%' }}>
+                  {INGREDIENT_GROUPS.map((group) => (
+                    <div key={group.label} style={{ marginBottom: 14 }}>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: 'var(--text-2)',
+                          marginBottom: 7,
+                        }}
+                      >
+                        {group.label}
+                      </div>
+                      <div className="fpills">
+                        {group.items.map((t) => (
+                          <button
+                            key={t}
+                            className={`fpill ${filters.ingredients.includes(t) ? 'fpill--on' : ''}`}
+                            onClick={() => onToggleIngredient(t)}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {g.key === 'time' &&
                 COOK_TIMES.map((t) => (
