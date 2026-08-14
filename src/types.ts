@@ -170,10 +170,94 @@ export interface Recipe {
   id: string
   name: string
   servingsMade: number
+  /**
+   * Nutrition, one entry per ingredient that could be priced against the food
+   * database. This stays the source of truth for calories — `ingredients` below
+   * is what the recipe *says*, and this is what it *costs*. Resolved once, when
+   * the recipe is written or imported, so a later change to a food record never
+   * silently rewrites a recipe someone has already planned around.
+   */
   items: MealItem[]
   createdAt: number
   /** Optional source URL when imported from the web. */
   sourceUrl?: string
+
+  /* ---- written form, added with the meal planner ---- */
+
+  /**
+   * Ingredients exactly as written — "1 ¼ cups all-purpose flour". Shown in
+   * preference to `items`, because a recipe has to read like a recipe; the
+   * parsed version is for arithmetic, not for people. Absent on recipes created
+   * before the planner, which are rendered from `items` instead.
+   */
+  ingredients?: string[]
+  /** Numbered method. */
+  steps?: string[]
+  description?: string
+  imageUrl?: string
+  prepMin?: number
+  cookMin?: number
+  /** Free-form: cuisine, meal type and diet, as the filters use them. */
+  tags?: string[]
+  /**
+   * Per-serving nutrition as the recipe's author published it.
+   *
+   * Present on the shipped catalogue, absent on anything written in the app.
+   * When it is here it is both faster and more accurate than parsing the
+   * ingredients — it came from whoever wrote the recipe — so lists, cards and
+   * filters read this and leave the parser to the detail screen, where the
+   * per-ingredient breakdown is the point.
+   */
+  nutritionPerServing?: Partial<Nutrients>
+}
+
+/* ------------------------------------------------------------ meal plans -- */
+
+/**
+ * Slots are fixed and named, unlike the diary's clock-derived periods.
+ * Planning is deliberate — you choose that something is dinner — whereas
+ * logging infers it from the time, and forcing one to be the other would mean
+ * a meal planned for dinner landing in the afternoon because you cooked early.
+ */
+export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
+export const MEAL_SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner', 'snack']
+
+export const SLOT_LABELS: Record<MealSlot, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
+}
+
+/** One recipe placed in one slot on one day. */
+export interface PlanEntry {
+  id: string
+  date: string // YYYY-MM-DD
+  slot: MealSlot
+  recipeId: string
+  /** Portions of the recipe planned, which may differ from what it makes. */
+  servings: number
+  /**
+   * When this was logged to the diary, if it has been. A plan is an intention
+   * and the diary is a record; keeping them separate is what lets the planner
+   * show "planned but not eaten" rather than pretending they are the same.
+   */
+  loggedAt?: number
+}
+
+/* --------------------------------------------------------- shopping list -- */
+
+export interface ShoppingItem {
+  id: string
+  name: string
+  /** Combined amount for display, e.g. "3 cups". Never used for arithmetic. */
+  amount?: string
+  /** Supermarket section, so the list is walkable rather than alphabetical. */
+  aisle: string
+  checked: boolean
+  /** Recipe ids that put it here; absent for something typed in by hand. */
+  fromRecipeIds?: string[]
 }
 
 export type Sex = 'female' | 'male'
@@ -358,4 +442,20 @@ export interface AppData {
   scannedBarcodes: Record<string, string>
   fasting: FastingSettings
   fasts: FastSession[]
+
+  /**
+   * Meal planning. Device-local for now — these three are deliberately not in
+   * any cloud collection yet, and the sign-in reconcile carries them across a
+   * cloud read rather than letting an empty server wipe them. Syncing them
+   * needs three more tables; until those exist, pretending they sync would be
+   * the kind of quiet data loss this codebase has been careful to avoid.
+   */
+  planEntries: PlanEntry[]
+  shopping: ShoppingItem[]
+  /** The Food List: what you already have, so it stays off the shopping list. */
+  pantry: string[]
+  /** Recipes bookmarked from the catalogue. Ids, since most are not the user's. */
+  savedRecipeIds: string[]
+  /** Most recent searches first, so the box can offer them back. */
+  recentSearches: string[]
 }

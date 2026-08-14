@@ -105,6 +105,11 @@ function migrate(data: Partial<AppData>): AppData {
     scannedBarcodes: data.scannedBarcodes ?? {},
     fasting: { ...defaultFastingSettings(), ...data.fasting },
     fasts: data.fasts ?? [],
+    planEntries: data.planEntries ?? [],
+    shopping: data.shopping ?? [],
+    pantry: data.pantry ?? [],
+    savedRecipeIds: data.savedRecipeIds ?? [],
+    recentSearches: data.recentSearches ?? [],
   }
 }
 
@@ -180,5 +185,10 @@ export function defaultData(): AppData {
     scannedBarcodes: {},
     fasting: defaultFastingSettings(),
     fasts: [],
+    planEntries: [],
+    shopping: [],
+    pantry: [],
+    savedRecipeIds: [],
+    recentSearches: [],
   }
 }

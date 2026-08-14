@@ -18,14 +18,19 @@ import type {
   MealKey,
   MeasurementEntry,
   Nutrients,
+  PlanEntry,
   Profile,
   Recipe,
   SavedMeal,
   Settings,
   FastingSettings,
+  MealSlot,
   WeightEntry,
 } from '../types'
 import { MEAL_KEYS, periodForDate } from '../types'
+import { aisleFor } from '../data/aisles'
+import { findRecipe, resolveRecipe } from '../services/recipes'
+import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredients'
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
 import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
@@ -45,6 +50,88 @@ import {
 } from '../lib/nutrition'
 import { SEED_BY_ID } from '../data/seedFoods'
 import { targetHoursFor } from '../lib/fasting'
+
+/* ------------------------------------------------------- planning helpers -- */
+
+/**
+ * Where a planned slot lands in the diary.
+ *
+ * The diary groups by the clock and the planner by intent, so the two vocabularies
+ * have to meet somewhere. Logging a planned dinner puts it in the evening even if
+ * you cooked it at four, because that is what you decided it was.
+ */
+const SLOT_TO_PERIOD: Record<MealSlot, MealKey> = {
+  breakfast: 'morning',
+  lunch: 'afternoon',
+  dinner: 'evening',
+  snack: 'late',
+}
+
+/** Local copy so the store need not import the whole nutrition module twice. */
+function scaleNutrientsLocal(n: Nutrients, by: number): Nutrients {
+  const out = {} as Nutrients
+  for (const k of Object.keys(n) as (keyof Nutrients)[]) out[k] = (n[k] ?? 0) * by
+  return out
+}
+
+/**
+ * Folds a recipe's ingredients into the shopping list.
+ *
+ * Merging by name matters more than it looks: planning three recipes that each
+ * want an onion should put "3 onions" on the list once, not three separate
+ * lines you discover at three different points in the shop. Anything already in
+ * the Food List is skipped — that is the whole point of keeping one.
+ *
+ * Returns how many lines were newly added, so the caller can say so.
+ */
+function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
+  const lines = recipe.ingredients ?? []
+  // The list is written in the reader's own units, like the recipe it came
+  // from — a shopping list in cups for someone who buys in grams is a list
+  // they have to convert in the aisle.
+  const prefs = unitPrefsFrom(d.settings)
+  let added = 0
+
+  for (const line of lines) {
+    const parsed = parseIngredient(line)
+    const name = parsed.name.trim()
+    if (!name) continue
+
+    // Already in the cupboard.
+    if (d.pantry.some((p) => name.toLowerCase().includes(p))) continue
+
+    const existing = d.shopping.find(
+      (s) => s.name.toLowerCase() === name.toLowerCase() && !s.checked,
+    )
+    const qty = parsed.qty != null ? parsed.qty * scale : null
+
+    if (existing) {
+      /* Amounts only combine when both lines used the same unit. Two cups plus
+         one clove is not three of anything, and inventing a total would be
+         worse than showing the recipe count. */
+      const prev = existing.amount ? parseIngredient(existing.amount) : null
+      if (prev && qty != null && prev.qty != null && prev.unit === parsed.unit) {
+        existing.amount = formatAmountFor(prev.qty + qty, parsed.unit, prefs)
+      }
+      if (!existing.fromRecipeIds?.includes(recipe.id)) {
+        existing.fromRecipeIds = [...(existing.fromRecipeIds ?? []), recipe.id]
+      }
+      continue
+    }
+
+    d.shopping.push({
+      id: uid('s'),
+      name,
+      amount: qty != null ? formatAmountFor(qty, parsed.unit, prefs) : undefined,
+      aisle: aisleFor(name),
+      checked: false,
+      fromRecipeIds: [recipe.id],
+    })
+    added++
+  }
+
+  return added
+}
 
 /* ------------------------------------------------------------ navigation -- */
 
@@ -96,6 +183,10 @@ export type Route =
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
+  | { name: 'mealPlanner' }
+  | { name: 'recipeBrowse'; slot?: MealSlot; date?: string }
+  | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
+  | { name: 'shoppingList' }
   | { name: 'about' }
 
 /* ------------------------------------------------------------- selectors -- */
@@ -183,6 +274,38 @@ interface Ctx {
   deleteRecipe(id: string): void
   logItems(items: MealItem[], date: string, source: Food['source']): void
   resetAll(): void
+
+  // meal planning
+  /** Puts a recipe in a slot on a day. */
+  planMeal(opts: { recipeId: string; date: string; slot: MealSlot; servings?: number }): void
+  unplanMeal(id: string): void
+  setPlanServings(id: string, servings: number): void
+  /** Moves a planned meal to another day or slot — what drag-and-drop commits. */
+  movePlanEntry(id: string, date: string, slot: MealSlot): void
+  /** Writes a planned meal into the diary as real food entries. */
+  logPlanEntry(id: string): void
+  planFor(date: string): PlanEntry[]
+  /** Planned calories for a day, whether or not they have been eaten. */
+  plannedCalories(date: string): number
+
+  // shopping
+  /** Adds one recipe's ingredients, merging with what is already listed. */
+  addRecipeToShoppingList(recipeId: string, servings?: number): number
+  /** Adds everything planned between two dates. */
+  addPlanToShoppingList(from: string, to: string): number
+  toggleShoppingItem(id: string): void
+  addShoppingItem(name: string): void
+  removeShoppingItem(id: string): void
+  clearCheckedShopping(): void
+  togglePantry(name: string): void
+
+  // recipe library
+  /** Bookmarks a catalogue recipe, or removes the bookmark. */
+  toggleSavedRecipe(id: string): void
+  isRecipeSaved(id: string): boolean
+  /** Remembers a search so the box can offer it back. */
+  rememberSearch(q: string): void
+  forgetSearch(q: string): void
 
   // account + sync
   /** Null when signed out, or when the app has no Supabase credentials. */
@@ -298,9 +421,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!live) return
         if (remote) {
           hydratingRef.current = true
-          setData(remote)
-          syncedRef.current = remote
-          localAdapter.save(remote)
+          /* The planner is not in any cloud collection yet, so the server has
+             nothing to say about it and `remote` carries empty arrays. Taking
+             them at face value would delete a week of planning the moment you
+             signed in on the device that made it. Carried across until the
+             three tables exist; see AppData for the rest of the note. */
+          const local = localAdapter.load()
+          const merged: AppData = {
+            ...remote,
+            planEntries: local?.planEntries ?? [],
+            shopping: local?.shopping ?? [],
+            pantry: local?.pantry ?? [],
+            savedRecipeIds: local?.savedRecipeIds ?? [],
+            recentSearches: local?.recentSearches ?? [],
+          }
+          setData(merged)
+          syncedRef.current = merged
+          localAdapter.save(merged)
         } else {
           const local = localAdapter.load() ?? defaultData()
           await pushChanges(null, local)
@@ -814,6 +951,188 @@ export function AppProvider({ children }: { children: ReactNode }) {
     deleteRecipe: (id) =>
       update((d) => {
         d.recipes = d.recipes.filter((r) => r.id !== id)
+      }),
+
+    /* ------------------------------------------------------ meal planning -- */
+
+    planMeal: ({ recipeId, date: d, slot, servings }) =>
+      update((draft) => {
+        const recipe = findRecipe(draft.recipes, recipeId)
+        draft.planEntries.push({
+          id: uid('p'),
+          date: d,
+          slot,
+          recipeId,
+          /* One portion by default, not the whole recipe. A tray of chili makes
+             six and planning it as six for Tuesday would put six dinners'
+             calories on one day. */
+          servings: servings ?? 1,
+        })
+        void recipe
+      }),
+
+    unplanMeal: (id) =>
+      update((d) => {
+        d.planEntries = d.planEntries.filter((p) => p.id !== id)
+      }),
+
+    setPlanServings: (id, servings) =>
+      update((d) => {
+        const p = d.planEntries.find((x) => x.id === id)
+        if (p) p.servings = Math.max(0.25, servings)
+      }),
+
+    movePlanEntry: (id, date: string, slot) =>
+      update((d) => {
+        const p = d.planEntries.find((x) => x.id === id)
+        if (!p) return
+        p.date = date
+        p.slot = slot
+        /* Moving a meal that was already eaten would leave the diary and the
+           plan disagreeing about which day it happened on. The diary is the
+           record, so the plan gives up its claim rather than rewriting it. */
+        p.loggedAt = undefined
+      }),
+
+    logPlanEntry: (id) =>
+      update((d) => {
+        const p = d.planEntries.find((x) => x.id === id)
+        if (!p || p.loggedAt) return
+        const recipe = findRecipe(d.recipes, p.recipeId)
+        if (!recipe) return
+
+        const resolved = resolveRecipe(recipe, [
+          ...d.customFoods,
+          ...Object.values(d.foodCache),
+        ])
+        const made = Math.max(1, recipe.servingsMade)
+
+        /* The whole recipe scaled to the planned portions. Logged as one entry
+           per ingredient rather than a single lumped row, so the diary keeps
+           showing what the food actually was and the nutrient breakdown stays
+           real. */
+        const meal = SLOT_TO_PERIOD[p.slot]
+        for (const item of resolved.items) {
+          d.foodEntries.push({
+            id: uid('e'),
+            date: p.date,
+            meal,
+            foodId: item.foodId,
+            name: item.name,
+            brand: item.brand,
+            servingLabel: item.servingLabel,
+            servings: (item.servings * p.servings) / made,
+            nutrients: scaleNutrientsLocal(item.nutrients, p.servings / made),
+            source: 'recipe',
+            loggedAt: Date.now(),
+          })
+        }
+        p.loggedAt = Date.now()
+      }),
+
+    planFor: (d0) => data.planEntries.filter((p) => p.date === d0),
+
+    plannedCalories: (d0) => {
+      let total = 0
+      for (const p of data.planEntries) {
+        if (p.date !== d0) continue
+        const recipe = findRecipe(data.recipes, p.recipeId)
+        if (!recipe) continue
+        const resolved = resolveRecipe(recipe, [
+          ...data.customFoods,
+          ...Object.values(data.foodCache),
+        ])
+        total += resolved.perServing.calories * p.servings
+      }
+      return Math.round(total)
+    },
+
+    /* ----------------------------------------------------------- shopping -- */
+
+    addRecipeToShoppingList: (recipeId, servings = 1) => {
+      let added = 0
+      update((d) => {
+        const recipe = findRecipe(d.recipes, recipeId)
+        if (!recipe) return
+        added = mergeIntoList(d, recipe, servings)
+      })
+      return added
+    },
+
+    addPlanToShoppingList: (from, to) => {
+      let added = 0
+      update((d) => {
+        for (const p of d.planEntries) {
+          if (p.date < from || p.date > to) continue
+          const recipe = findRecipe(d.recipes, p.recipeId)
+          if (!recipe) continue
+          added += mergeIntoList(d, recipe, p.servings / Math.max(1, recipe.servingsMade))
+        }
+      })
+      return added
+    },
+
+    toggleShoppingItem: (id) =>
+      update((d) => {
+        const it = d.shopping.find((x) => x.id === id)
+        if (it) it.checked = !it.checked
+      }),
+
+    addShoppingItem: (name) =>
+      update((d) => {
+        const clean = name.trim()
+        if (!clean) return
+        d.shopping.push({
+          id: uid('s'),
+          name: clean,
+          aisle: aisleFor(clean),
+          checked: false,
+        })
+      }),
+
+    removeShoppingItem: (id) =>
+      update((d) => {
+        d.shopping = d.shopping.filter((x) => x.id !== id)
+      }),
+
+    clearCheckedShopping: () =>
+      update((d) => {
+        d.shopping = d.shopping.filter((x) => !x.checked)
+      }),
+
+    togglePantry: (name) =>
+      update((d) => {
+        const clean = name.trim().toLowerCase()
+        if (!clean) return
+        d.pantry = d.pantry.includes(clean)
+          ? d.pantry.filter((x) => x !== clean)
+          : [...d.pantry, clean]
+      }),
+
+    toggleSavedRecipe: (id) =>
+      update((d) => {
+        d.savedRecipeIds = d.savedRecipeIds.includes(id)
+          ? d.savedRecipeIds.filter((x) => x !== id)
+          : [id, ...d.savedRecipeIds]
+      }),
+
+    isRecipeSaved: (id) => data.savedRecipeIds.includes(id),
+
+    rememberSearch: (q) =>
+      update((d) => {
+        const clean = q.trim()
+        if (clean.length < 2) return
+        /* Most recent first, case-insensitively deduplicated, and capped —
+           a search box offering forty past searches is a wall, not a help. */
+        d.recentSearches = [
+          clean,
+          ...d.recentSearches.filter((x) => x.toLowerCase() !== clean.toLowerCase()),
+        ].slice(0, 8)
+      }),
+
+    forgetSearch: (q) =>
+      update((d) => {
+        d.recentSearches = d.recentSearches.filter((x) => x !== q)
       }),
 
     resetAll: () => {

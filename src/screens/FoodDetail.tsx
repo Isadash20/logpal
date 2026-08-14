@@ -39,7 +39,6 @@ export function FoodDetail({
 
   const percents = macroPercents(n)
   const isFavorite = data.favoriteFoodIds.includes(food.id)
-
   function save() {
     const qty = parseFloat(count)
     if (!Number.isFinite(qty) || qty <= 0) return
@@ -80,6 +79,11 @@ export function FoodDetail({
       />
 
       <div className="scroll">
+        {isFavorite && (
+          <div className="hint" style={{ color: 'var(--text-2)', paddingBottom: 0 }}>
+            Starred — find it under My Favourites when you search for a food.
+          </div>
+        )}
         <div style={{ padding: '18px 16px 12px', background: 'var(--surface)' }}>
           <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>{food.name}</div>
           {food.brand && (
