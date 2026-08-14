@@ -27,6 +27,7 @@ import {
   type SortKey,
 } from '../services/recipes'
 import { INGREDIENT_GROUPS, STARTER_INGREDIENTS } from '../data/ingredients'
+import { PHOTO_CREDITS } from '../data/authoredRecipes'
 import {
   matchesTerm,
   COOK_TIMES,
@@ -1308,6 +1309,13 @@ export function RecipeView({
         {recipe.description && (
           <div className="hint" style={{ paddingTop: 0 }}>
             {recipe.description}
+          </div>
+        )}
+        {/* Somebody took this photograph and licensed it for reuse; saying so
+            is both the licence term and the decent thing. */}
+        {PHOTO_CREDITS[recipe.id] && (
+          <div className="hint" style={{ paddingTop: 0, color: 'var(--text-3)', fontSize: 12 }}>
+            Photo: {PHOTO_CREDITS[recipe.id]}
           </div>
         )}
 

@@ -10,6 +10,7 @@ export { parseIngredient }
 import { searchLocal } from './foodSearch'
 import { foodDbSize } from './foodDb'
 import { SEED_RECIPES } from '../data/seedRecipes'
+import { AUTHORED_RECIPES } from '../data/authoredRecipes'
 import { catalogRecipes, catalogSize } from './recipeDb'
 import { healthScore, type HealthScore } from '../lib/healthScore'
 import {
@@ -234,7 +235,10 @@ export function allRecipes(userRecipes: Recipe[]): Recipe[] {
    * catalogue is still downloading they were the entire screen, which is why
    * Plan opened as a wall of blank cards. With five hundred illustrated
    * recipes available there is no reason to mix them in. */
-  const shipped = catalog.length ? catalog : SEED_RECIPES
+  /* Ours first among the shipped ones. They are the calorie-dense half the
+     USDA library has none of, so burying them under four hundred lighter
+     recipes would waste the reason they were written. */
+  const shipped = catalog.length ? [...AUTHORED_RECIPES, ...catalog] : SEED_RECIPES
   return [...userRecipes, ...shipped.filter((r) => !seen.has(r.id))]
 }
 
