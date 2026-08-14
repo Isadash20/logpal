@@ -2052,3 +2052,15 @@ button.row:active {
 .shead__chev--open {
   transform: rotate(180deg);
 }
+
+/* A saved bookmark fills solid rather than only outlining, so "saved" reads at
+   a glance instead of asking anyone to compare stroke weights. */
+.iconbtn--saved {
+  background: var(--gold);
+  color: #4a3a00;
+}
+
+.rcard__save--on {
+  background: var(--gold);
+  color: #4a3a00;
+}

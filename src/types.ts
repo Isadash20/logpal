@@ -155,6 +155,15 @@ export interface SavedMeal {
   name: string
   items: MealItem[]
   createdAt: number
+  /**
+   * The recipe this was saved from, when it came from one.
+   *
+   * Without it a bookmark is write-only: nothing can tell that a recipe is
+   * already saved, so the button never fills in and tapping it again adds a
+   * second copy. With it the bookmark is a toggle, and the Plan tab can show
+   * the recipes behind the meals.
+   */
+  recipeId?: string
 }
 
 export interface MealItem {

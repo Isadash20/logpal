@@ -63,11 +63,13 @@ export function FoodDetail({
         onBack={pop}
         right={
           <>
+            {/* Foods get a star; meals get a bookmark. Both fill solid when
+                on, so "saved" reads the same way in either place without the
+                two ever becoming the same control. */}
             <button
-              className="iconbtn"
+              className={`iconbtn ${isFavorite ? 'iconbtn--saved' : ''}`}
               onClick={() => app.toggleFavorite(food.id)}
-              aria-label={isFavorite ? 'Remove favorite' : 'Add favorite'}
-              style={{ color: isFavorite ? 'var(--warning)' : undefined }}
+              aria-label={isFavorite ? 'Remove from favourites' : 'Add to favourites'}
             >
               <Icon name={isFavorite ? 'star-filled' : 'star'} size={21} />
             </button>

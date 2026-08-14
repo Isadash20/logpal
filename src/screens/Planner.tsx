@@ -7,7 +7,6 @@ import { Empty, Row, Sheet, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
-import { uid } from '../lib/id'
 import {
   formatAmountFor,
   formatQuantity,
@@ -130,7 +129,7 @@ function RecipeCard({
           }}
           aria-label={saved ? `Unsave ${recipe.name}` : `Save ${recipe.name}`}
         >
-          <Icon name={saved ? 'star-filled' : 'star'} size={16} />
+          <Icon name="bookmark" size={16} />
         </button>
       )}
       <button
@@ -360,7 +359,7 @@ function countFor(group: string, f: DraftFilters, options: readonly string[]): n
  * the user's own recipes and the shipped catalogue together.
  */
 export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
-  const { push, data, rememberSearch, forgetSearch, toggleSavedRecipe } = useApp()
+  const { push, data, rememberSearch, forgetSearch, toggleRecipeBookmark } = useApp()
   const dbSize = useFoodDb()
 
   const [query, setQuery] = useState('')
@@ -653,7 +652,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
           saved={data.savedRecipeIds}
           onPickTerm={toggleTerm}
           onOpen={(r) => push({ name: 'recipeView', recipeId: r.id, date, slot })}
-          onToggleSave={toggleSavedRecipe}
+          onToggleSave={(r) => toggleRecipeBookmark(r, resolveRecipe(r, extras).items)}
           onCreate={() => push({ name: 'recipeEditor' })}
         />
       ) : (
@@ -682,7 +681,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
                   key={r.id}
                   recipe={r}
                   saved={data.savedRecipeIds.includes(r.id)}
-                  onSave={() => toggleSavedRecipe(r.id)}
+                  onSave={() => toggleRecipeBookmark(r, resolveRecipe(r, extras).items)}
                   onClick={() => push({ name: 'recipeView', recipeId: r.id, date, slot })}
                 />
               ))}
@@ -804,7 +803,7 @@ function RecipeRail({
   recipes: Recipe[]
   saved: string[]
   onOpen(r: Recipe): void
-  onToggleSave(id: string): void
+  onToggleSave(r: Recipe): void
   action?: { label: string; onClick(): void }
 }) {
   const [open, setOpen] = useState(false)
@@ -838,7 +837,7 @@ function RecipeRail({
             recipe={r}
             variant={open ? 'grid' : 'rail'}
             saved={saved.includes(r.id)}
-            onSave={() => onToggleSave(r.id)}
+            onSave={() => onToggleSave(r)}
             onClick={() => onOpen(r)}
           />
         ))}
@@ -875,7 +874,7 @@ function Explore({
   saved: string[]
   onPickTerm(t: string): void
   onOpen(r: Recipe): void
-  onToggleSave(id: string): void
+  onToggleSave(r: Recipe): void
   onCreate(): void
 }) {
   const railProps = { saved, onOpen, onToggleSave }
@@ -884,7 +883,9 @@ function Explore({
     <>
       {/* Favourites lead: the whole reason to save something is to find it
           again without searching for it twice. */}
-      <RecipeRail title="Your favourites" recipes={favourites} {...railProps} />
+      {/* Named for what it holds: the recipes you bookmarked, which are the
+          same ones sitting under My Meals in the food search. */}
+      <RecipeRail title="Favourite meals" recipes={favourites} {...railProps} />
 
       <RecipeRail
         title="Your recipes"
@@ -1191,7 +1192,7 @@ export function RecipeView({
   slot?: MealSlot
 }) {
   const app = useApp()
-  const { pop, data, settings, planMeal, logItems, saveMeal, addRecipeToShoppingList } = app
+  const { pop, data, settings, planMeal, logItems, toggleRecipeBookmark, addRecipeToShoppingList } = app
   const dbSize = useFoodDb()
   // Amounts are shown in whatever the Units screen says, so a recipe reads the
   // way this particular person cooks rather than the way it was written down.
@@ -1203,7 +1204,6 @@ export function RecipeView({
   )
 
   const [section, setSection] = useState<Section>('ingredients')
-  const [bookmarked, setBookmarked] = useState(false)
   const [servings, setServings] = useState(() => recipe?.servingsMade ?? 1)
   const [note, setNote] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
@@ -1244,6 +1244,8 @@ export function RecipeView({
    * came from. Saved at the servings currently on screen, since that is the
    * portion you decided on.
    */
+  const bookmarked = data.savedRecipeIds.includes(recipe.id)
+
   const bookmark = () => {
     if (!resolved) return
     const items = resolved.items.map((it) => ({
@@ -1251,13 +1253,12 @@ export function RecipeView({
       servings: it.servings * scale,
       nutrients: scaleNutrients(it.nutrients, scale),
     }))
-    if (!items.length) {
-      setNote('Nothing to save — none of these ingredients could be priced')
-      return
-    }
-    saveMeal({ id: uid('m'), name: recipe.name, items, createdAt: Date.now() })
-    setBookmarked(true)
-    setNote('Saved to My Meals — search for it when you log food')
+    toggleRecipeBookmark(recipe, items)
+    setNote(
+      bookmarked
+        ? 'Removed from your favourites'
+        : 'Saved — it is in Favourite meals, and in My Meals when you log food',
+    )
   }
 
   const plan = (targetSlot: MealSlot) => {
@@ -1282,11 +1283,13 @@ export function RecipeView({
         solid
         right={
           <button
-            className="iconbtn"
+            className={`iconbtn ${bookmarked ? 'iconbtn--saved' : ''}`}
             onClick={bookmark}
-            aria-label="Save to My Meals"
-            style={{ color: bookmarked ? 'var(--accent)' : undefined }}
+            aria-label={bookmarked ? 'Remove from favourites' : 'Save to favourites'}
           >
+            {/* Always a bookmark. The star is a different control for a
+                different thing — foods, not meals — and swapping the glyph
+                would blur two distinctions the app is trying to keep. */}
             <Icon name="bookmark" size={20} />
           </button>
         }

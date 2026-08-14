@@ -301,7 +301,16 @@ interface Ctx {
 
   // recipe library
   /** Bookmarks a catalogue recipe, or removes the bookmark. */
-  toggleSavedRecipe(id: string): void
+  /**
+   * Bookmarks a recipe, or removes the bookmark.
+   *
+   * One action behind two controls — the star on a card and the bookmark on the
+   * recipe itself — because they were separate states and a recipe could end up
+   * starred but not saved, or saved three times over. Writes both the id (which
+   * the Plan shelf reads) and a saved meal (which the food search reads), so
+   * the two places it shows up can never disagree.
+   */
+  toggleRecipeBookmark(recipe: Recipe, items: MealItem[]): void
   isRecipeSaved(id: string): boolean
   /** Remembers a search so the box can offer it back. */
   rememberSearch(q: string): void
@@ -1109,11 +1118,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : [...d.pantry, clean]
       }),
 
-    toggleSavedRecipe: (id) =>
+    toggleRecipeBookmark: (recipe, items) =>
       update((d) => {
-        d.savedRecipeIds = d.savedRecipeIds.includes(id)
-          ? d.savedRecipeIds.filter((x) => x !== id)
-          : [id, ...d.savedRecipeIds]
+        const on = d.savedRecipeIds.includes(recipe.id)
+        if (on) {
+          d.savedRecipeIds = d.savedRecipeIds.filter((x) => x !== recipe.id)
+          d.savedMeals = d.savedMeals.filter((m) => m.recipeId !== recipe.id)
+          return
+        }
+        d.savedRecipeIds = [recipe.id, ...d.savedRecipeIds]
+        // Guard the meal separately: a recipe saved before this was a toggle
+        // may already have one, and a second would be the bug being fixed.
+        if (items.length && !d.savedMeals.some((m) => m.recipeId === recipe.id)) {
+          d.savedMeals.unshift({
+            id: uid('m'),
+            name: recipe.name,
+            items,
+            createdAt: Date.now(),
+            recipeId: recipe.id,
+          })
+        }
       }),
 
     isRecipeSaved: (id) => data.savedRecipeIds.includes(id),
