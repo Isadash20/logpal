@@ -74,12 +74,106 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
   // 21 CFR 101.61: low sodium is 140 mg or less per serving.
   if (n.sodium <= 140) out.push('Low Sodium')
 
-  // 21 CFR 101.60: low calorie is 40 kcal per serving, which is written for a
-  // single food and absurd for a dinner. 400 is the meal-sized equivalent.
-  if (n.calories <= 400) out.push('Low Calorie')
+  /* 21 CFR 101.60 puts low calorie at 40 kcal per serving, which is written
+     for a single food and absurd for a dinner. 400 was the first meal-sized
+     translation and it matched 505 of 528 recipes — a filter that returns
+     almost everything answers no question at all. 250 is a genuinely light
+     serving and leaves the label meaning something. */
+  if (n.calories <= 250) out.push('Low Calorie')
 
   if (isGlp1Friendly(n)) out.push('GLP-1 Friendly')
 
+  return out
+}
+
+/* ------------------------------------------------------------------ diets -- */
+
+/**
+ * Diet labels read off the ingredient list.
+ *
+ * The catalogue is USDA's, and USDA files recipes by food group — "Protein
+ * Foods", "Vegetables", "Grains" — not by diet. Nothing in the source data says
+ * vegetarian, so matching the word against tags and titles found almost
+ * nothing, and a Vegetarian filter that returns four recipes out of five
+ * hundred is worse than no filter at all: it reads as "there is nothing here
+ * for you" when the truth is "nobody labelled it".
+ *
+ * Reading the ingredients instead answers it properly. The lists below are the
+ * things that disqualify, which is the only direction that can be decided from
+ * an ingredient list — the absence of meat is knowable, whereas "is this dish
+ * authentically vegan" is not.
+ */
+
+const MEAT = [
+  'beef', 'steak', 'pork', 'bacon', 'ham', 'sausage', 'chicken', 'turkey',
+  'lamb', 'veal', 'venison', 'chorizo', 'pepperoni', 'salami', 'prosciutto',
+  'mince', 'meatball', 'brisket', 'ribs', 'liver', 'duck', 'goose', 'rabbit',
+  'lard', 'gelatin', 'bouillon', 'broth', 'stock',
+]
+
+const FISH = [
+  'fish', 'salmon', 'tuna', 'cod', 'tilapia', 'halibut', 'trout', 'haddock',
+  'sardine', 'anchovy', 'mackerel', 'shrimp', 'prawn', 'crab', 'lobster',
+  'clam', 'mussel', 'oyster', 'scallop', 'squid', 'calamari', 'catfish',
+  'pollock', 'snapper', 'herring', 'caviar', 'surimi',
+]
+
+const ANIMAL = [
+  'milk', 'cream', 'butter', 'cheese', 'yogurt', 'yoghurt', 'egg', 'honey',
+  'mayonnaise', 'ghee', 'buttermilk', 'custard', 'whey', 'casein',
+  'mozzarella', 'parmesan', 'cheddar', 'feta', 'ricotta', 'half-and-half',
+]
+
+/**
+ * Words that look like an animal product but are not.
+ *
+ * "Almond milk" contains "milk" and "peanut butter" contains "butter"; both are
+ * vegan, and a naive substring check quietly disqualifies most of the plant
+ * recipes in the catalogue. Checked before the disqualifying lists.
+ */
+const NOT_ANIMAL = [
+  'almond milk', 'soy milk', 'oat milk', 'coconut milk', 'rice milk',
+  'cashew milk', 'peanut butter', 'almond butter', 'cashew butter',
+  'apple butter', 'cocoa butter', 'nut butter', 'sunflower butter',
+  'vegetable broth', 'vegetable stock', 'vegetable bouillon',
+  'buttermilk substitute', 'butternut', 'egg substitute', 'egg replacer',
+  'milk-free', 'dairy-free', 'nutritional yeast',
+]
+
+function ingredientText(ingredients: string[]): string {
+  let text = ingredients.join(' ; ').toLowerCase()
+  // Neutralise the false friends before anything else looks at the string.
+  for (const phrase of NOT_ANIMAL) text = text.split(phrase).join(' ')
+  return text
+}
+
+function containsAny(text: string, words: string[]): boolean {
+  return words.some((w) => text.includes(w))
+}
+
+export type DietTag = 'Vegan' | 'Vegetarian' | 'Pescatarian'
+
+/**
+ * Which diets a recipe is compatible with, from its ingredients alone.
+ *
+ * Nested deliberately: anything vegan is also vegetarian and pescatarian, and
+ * anything vegetarian is also pescatarian, because someone filtering for
+ * pescatarian wants everything they can eat and not only the dishes containing
+ * fish. A filter that hid the vegetables from a pescatarian would be answering
+ * a question nobody asked.
+ */
+export function dietTagsFor(ingredients: string[]): DietTag[] {
+  if (!ingredients.length) return []
+  const text = ingredientText(ingredients)
+
+  const hasMeat = containsAny(text, MEAT)
+  const hasFish = containsAny(text, FISH)
+  const hasAnimal = containsAny(text, ANIMAL)
+
+  const out: DietTag[] = []
+  if (!hasMeat && !hasFish && !hasAnimal) out.push('Vegan')
+  if (!hasMeat && !hasFish) out.push('Vegetarian')
+  if (!hasMeat) out.push('Pescatarian')
   return out
 }
 

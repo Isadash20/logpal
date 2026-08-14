@@ -199,6 +199,16 @@ export interface Recipe {
   cookMin?: number
   /** Free-form: cuisine, meal type and diet, as the filters use them. */
   tags?: string[]
+  /**
+   * Per-serving nutrition as the recipe's author published it.
+   *
+   * Present on the shipped catalogue, absent on anything written in the app.
+   * When it is here it is both faster and more accurate than parsing the
+   * ingredients — it came from whoever wrote the recipe — so lists, cards and
+   * filters read this and leave the parser to the detail screen, where the
+   * per-ingredient breakdown is the point.
+   */
+  nutritionPerServing?: Partial<Nutrients>
 }
 
 /* ------------------------------------------------------------ meal plans -- */

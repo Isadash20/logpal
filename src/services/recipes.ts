@@ -10,9 +10,15 @@ export { parseIngredient }
 import { searchLocal } from './foodSearch'
 import { foodDbSize } from './foodDb'
 import { SEED_RECIPES } from '../data/seedRecipes'
-import { CATALOG_RECIPES } from '../data/catalogRecipes'
+import { catalogRecipes, catalogSize } from './recipeDb'
 import { healthScore, type HealthScore } from '../lib/healthScore'
-import { matchesTerm, nutritionTagsFor, type NutritionTag } from '../lib/recipeTags'
+import {
+  dietTagsFor,
+  matchesTerm,
+  nutritionTagsFor,
+  type DietTag,
+  type NutritionTag,
+} from '../lib/recipeTags'
 
 /**
  * Recipes, priced.
@@ -41,6 +47,8 @@ export interface ResolvedRecipe {
   health: HealthScore
   /** Dietary labels worked out from the nutrition — High Protein, Low Carb… */
   nutritionTags: NutritionTag[]
+  /** Vegan / Vegetarian / Pescatarian, read off the ingredient list. */
+  dietTags: DietTag[]
   /**
    * Lines that found no food. Surfaced rather than swallowed: a recipe quietly
    * reporting 300 calories because it failed to price the chicken is the exact
@@ -63,7 +71,9 @@ const CACHE = new Map<string, ResolvedRecipe>()
  * in the feature.
  */
 function dbGeneration(): number {
-  return foodDbSize()
+  // Both matter: nutrition changes as the food database grows, and the set of
+  // recipes changes as the catalogue lands.
+  return foodDbSize() + catalogSize()
 }
 
 function fingerprint(recipe: Recipe): string {
@@ -103,9 +113,21 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
     items = recipe.items
   }
 
-  const total = items.length ? sumNutrients(items.map((i) => i.nutrients)) : emptyNutrients()
   const made = Math.max(1, recipe.servingsMade)
-  const perServing = scaleNutrients(total, 1 / made)
+  const parsedTotal = items.length
+    ? sumNutrients(items.map((i) => i.nutrients))
+    : emptyNutrients()
+
+  /* Published nutrition wins for the headline figures when the recipe has it.
+     The per-ingredient calories below still come from the parser, because
+     that is a breakdown nobody else can supply — but the number at the top of
+     the screen should be the one its author stands behind. */
+  const perServing = recipe.nutritionPerServing
+    ? ({ ...emptyNutrients(), ...recipe.nutritionPerServing } as Nutrients)
+    : scaleNutrients(parsedTotal, 1 / made)
+  const total = recipe.nutritionPerServing
+    ? scaleNutrients(perServing, made)
+    : parsedTotal
 
   const resolved: ResolvedRecipe = {
     recipe,
@@ -115,6 +137,7 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
     perServing,
     health: healthScore(perServing),
     nutritionTags: nutritionTagsFor(perServing),
+    dietTags: dietTagsFor(written),
     // Anything the calorie total does not include, whatever the reason.
     unmatched: lines.filter((l) => !l.nutrients).map((l) => l.parsed.raw),
     approximate: lines.filter((l) => l.approximate).length,
@@ -126,6 +149,52 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
   if (CACHE.size > 200) CACHE.delete(CACHE.keys().next().value as string)
   CACHE.set(key, resolved)
   return resolved
+}
+
+/**
+ * A recipe's headline numbers, without parsing anything.
+ *
+ * The cheap path, and the one every list uses. Five hundred recipes across
+ * sixteen rails is eight thousand lookups if each one has to be resolved; with
+ * published nutrition it is eight thousand property reads. Falls back to the
+ * full resolve only for recipes with no published figures — which means the
+ * user's own, of which there are never many.
+ */
+export interface RecipeSummary {
+  perServing: Nutrients
+  nutritionTags: NutritionTag[]
+  dietTags: DietTag[]
+  health: HealthScore
+}
+
+const SUMMARIES = new Map<string, RecipeSummary>()
+
+export function summarise(recipe: Recipe, extraFoods: Food[] = []): RecipeSummary {
+  const published = recipe.nutritionPerServing
+  if (!published) {
+    // No published figures: this is the user's own, so resolve it properly.
+    const full = resolveRecipe(recipe, extraFoods)
+    return {
+      perServing: full.perServing,
+      nutritionTags: full.nutritionTags,
+      dietTags: full.dietTags,
+      health: full.health,
+    }
+  }
+
+  const key = `${recipe.id}~${recipe.servingsMade}`
+  const hit = SUMMARIES.get(key)
+  if (hit) return hit
+
+  const perServing = { ...emptyNutrients(), ...published }
+  const summary: RecipeSummary = {
+    perServing,
+    nutritionTags: nutritionTagsFor(perServing),
+    dietTags: dietTagsFor(recipe.ingredients ?? []),
+    health: healthScore(perServing),
+  }
+  SUMMARIES.set(key, summary)
+  return summary
 }
 
 /** Total minutes, or null when the recipe does not say. */
@@ -156,7 +225,7 @@ export function ingredientCount(r: Recipe): number {
  */
 export function allRecipes(userRecipes: Recipe[]): Recipe[] {
   const seen = new Set(userRecipes.map((r) => r.id))
-  const shipped = [...SEED_RECIPES, ...CATALOG_RECIPES].filter((r) => !seen.has(r.id))
+  const shipped = [...SEED_RECIPES, ...catalogRecipes()].filter((r) => !seen.has(r.id))
   return [...userRecipes, ...shipped]
 }
 
@@ -202,7 +271,8 @@ export function searchRecipes(
   recipes: Recipe[],
   query: string,
   filters: RecipeFilters = {},
-  resolve: (r: Recipe) => { nutritionTags: string[] } = () => ({ nutritionTags: [] }),
+  resolve: (r: Recipe) => { nutritionTags: string[]; dietTags: string[] } = (r) =>
+    summarise(r),
 ): Recipe[] {
   const q = query.trim().toLowerCase()
   const terms = filters.terms ?? []
@@ -220,8 +290,13 @@ export function searchRecipes(
     }
 
     if (terms.length) {
-      const nutritionTags = resolve(r).nutritionTags
-      const subject = { tags: r.tags, name: r.name, nutritionTags }
+      const res = resolve(r)
+      const subject = {
+        tags: r.tags,
+        name: r.name,
+        // Both computed sets count as labels the recipe answers to.
+        nutritionTags: [...res.nutritionTags, ...res.dietTags],
+      }
       if (!terms.every((t) => matchesTerm(t, subject))) return false
     }
 
@@ -243,7 +318,8 @@ export function searchRecipes(
 export function sortRecipes(
   recipes: Recipe[],
   key: SortKey,
-  resolve: (r: Recipe) => { perServing: { calories: number }; health: { score: number } },
+  resolve: (r: Recipe) => { perServing: { calories: number }; health: { score: number } } = (r) =>
+    summarise(r),
 ): Recipe[] {
   if (key === 'relevance') return recipes
   const out = [...recipes]

@@ -17,6 +17,7 @@ import { sortAisles } from '../data/aisles'
 import {
   allRecipes,
   formatMinutes,
+  summarise,
   ingredientCount,
   popularIngredients,
   resolveRecipe,
@@ -26,6 +27,7 @@ import {
   type SortKey,
 } from '../services/recipes'
 import {
+  matchesTerm,
   COOK_TIMES,
   CUISINES,
   DIETS,
@@ -33,6 +35,7 @@ import {
   NUTRITION_TAGS,
 } from '../lib/recipeTags'
 import { foodDbSize, loadFoodDb, onFoodDbGrown } from '../services/foodDb'
+import { catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
 
 /**
  * Makes sure the food database is in memory, and re-renders when it lands.
@@ -50,12 +53,20 @@ import { foodDbSize, loadFoodDb, onFoodDbGrown } from '../services/foodDb'
  * the moment the rows arrive.
  */
 function useFoodDb(): number {
-  const [size, setSize] = useState(() => foodDbSize())
+  const [size, setSize] = useState(() => foodDbSize() + catalogSize())
   useEffect(() => {
+    const tick = () => setSize(foodDbSize() + catalogSize())
+    /* Both, in parallel. The recipes are the smaller download and the one this
+       screen is actually about, so it must not queue behind 40 MB of foods. */
     void loadFoodDb()
-    const off = onFoodDbGrown(() => setSize(foodDbSize()))
-    setSize(foodDbSize())
-    return off
+    void loadCatalog()
+    const offFoods = onFoodDbGrown(tick)
+    const offRecipes = onCatalogLoaded(tick)
+    tick()
+    return () => {
+      offFoods()
+      offRecipes()
+    }
   }, [])
   return size
 }
@@ -102,7 +113,7 @@ function RecipeCard({
   const mins = totalMinutes(recipe)
   const tag = recipe.tags?.[0]
   const { data } = useApp()
-  const resolved = resolveRecipe(recipe, [...data.customFoods, ...Object.values(data.foodCache)])
+  const resolved = summarise(recipe, [...data.customFoods, ...Object.values(data.foodCache)])
 
   return (
     <div className={`rcard ${variant === 'rail' ? 'rcard--rail' : ''}`}>
@@ -358,7 +369,12 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   const [sortOpen, setSortOpen] = useState(false)
   const [focused, setFocused] = useState(false)
 
-  const recipes = useMemo(() => allRecipes(data.recipes), [data.recipes])
+  /* dbSize is a real dependency, not decoration: `allRecipes` folds in the
+     fetched catalogue, so the list changes when that lands even though
+     `data.recipes` has not moved. Without it the screen keeps showing the eight
+     seed recipes after five hundred more have arrived. */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const recipes = useMemo(() => allRecipes(data.recipes), [data.recipes, dbSize])
   const extras = useMemo(
     () => [...data.customFoods, ...Object.values(data.foodCache)],
     [data.customFoods, data.foodCache],
@@ -367,29 +383,16 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
      to the filter and the sort — both need nutrition, neither should compute
      it twice. dbSize is in the deps because the answers change as the food
      database loads. */
+  /* The cheap path. Published nutrition for the catalogue, a full parse only
+     for the user's own recipes — five hundred cards across sixteen rails is
+     eight thousand of these, and the parser was locking the main thread. */
   const resolve = useCallback(
-    (r: Recipe) => resolveRecipe(r, extras),
+    (r: Recipe) => summarise(r, extras),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [extras, dbSize],
   )
 
   const popular = useMemo(() => popularIngredients(recipes), [recipes])
-
-  /* Photo tiles for Explore. Each category borrows a picture from the first
-     recipe that answers to it, so the row is illustrated without shipping any
-     artwork of its own. */
-  const categories = useMemo(() => {
-    const terms = [
-      'Breakfast', 'High Protein', 'Low Carb', 'Soup', 'Salad',
-      'Chicken', 'Vegetarian', 'GLP-1 Friendly', 'Dessert',
-    ]
-    return terms.map((term) => {
-      const hit = searchRecipes(recipes, '', { terms: [term] }, resolve).find(
-        (r) => r.imageUrl,
-      )
-      return { term, imageUrl: hit?.imageUrl }
-    })
-  }, [recipes, resolve])
 
   /* Recipes saved with the star on any card. */
   const favourites = useMemo(
@@ -399,26 +402,77 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     [data.savedRecipeIds, recipes],
   )
 
-  /* The catalogue cut the ways people actually eat, each its own rail.
-     Cheap because searchRecipes filters an in-memory list and the nutrition
-     behind it is cached — the same resolve closure every other section uses. */
-  const rails = useMemo(() => {
-    const byTerm = (title: string, term: string) => ({
-      title,
-      recipes: searchRecipes(recipes, '', { terms: [term] }, resolve),
-    })
-    return [
-      byTerm('High protein', 'High Protein'),
-      byTerm('Breakfast', 'Breakfast'),
-      { title: 'Ready in 30 minutes', recipes: searchRecipes(recipes, '', { maxMinutes: 30 }, resolve) },
-      byTerm('Low carb', 'Low Carb'),
-      byTerm('Low fat', 'Low Fat'),
-      byTerm('High fibre', 'High Fiber'),
-      byTerm('GLP-1 friendly', 'GLP-1 Friendly'),
-      byTerm('Soups and stews', 'Soup'),
-      byTerm('Salads', 'Salad'),
-      byTerm('Something sweet', 'Dessert'),
-    ].filter((r) => r.recipes.length > 0)
+  /* Every rail in one pass.
+   *
+   * Sixteen rails each filtering five hundred recipes is eight thousand
+   * evaluations, plus twelve more passes for the tiles — which locked the main
+   * thread outright once the catalogue grew past a hundred. Walking the list
+   * once and dropping each recipe into whichever buckets it belongs to is the
+   * same answer for a fraction of the work, and it scales with the catalogue
+   * rather than with the catalogue times the number of shelves. */
+  const { rails, categories } = useMemo(() => {
+    const RAILS: { title: string; term?: string; maxMinutes?: number; minCalories?: number }[] = [
+      { title: 'High protein', term: 'High Protein' },
+      { title: 'Build muscle', term: 'High Protein', minCalories: 350 },
+      { title: 'Lighter meals', term: 'Low Calorie' },
+      { title: 'GLP-1 friendly', term: 'GLP-1 Friendly' },
+      { title: 'High fibre', term: 'High Fiber' },
+      { title: 'Low carb', term: 'Low Carb' },
+      { title: 'Vegetarian', term: 'Vegetarian' },
+      { title: 'Vegan', term: 'Vegan' },
+      { title: 'Pescatarian', term: 'Pescatarian' },
+      { title: 'Low fat', term: 'Low Fat' },
+      { title: 'Low sodium', term: 'Low Sodium' },
+      { title: 'Breakfast', term: 'Breakfast' },
+      { title: 'Ready in 30 minutes', maxMinutes: 30 },
+      { title: 'Soups and stews', term: 'Soup' },
+      { title: 'Salads', term: 'Salad' },
+      { title: 'Something sweet', term: 'Dessert' },
+    ]
+    const TILES = [
+      'High Protein', 'Vegetarian', 'Vegan', 'Low Carb', 'High Fiber',
+      'GLP-1 Friendly', 'Breakfast', 'Pescatarian', 'Low Calorie',
+      'Soup', 'Salad', 'Dessert',
+    ]
+
+    const buckets = new Map<string, Recipe[]>()
+    RAILS.forEach((r) => buckets.set(r.title, []))
+    const tileImage = new Map<string, string>()
+
+    for (const recipe of recipes) {
+      const summary = resolve(recipe)
+      const subject = {
+        tags: recipe.tags,
+        name: recipe.name,
+        nutritionTags: [...summary.nutritionTags, ...summary.dietTags],
+      }
+      // Which of the vocabulary this recipe answers to, worked out once.
+      const answers = new Set<string>()
+      for (const term of TERMS_IN_USE) {
+        if (matchesTerm(term, subject)) answers.add(term)
+      }
+      const mins = totalMinutes(recipe)
+
+      for (const rail of RAILS) {
+        if (rail.term && !answers.has(rail.term)) continue
+        if (rail.maxMinutes != null && (mins == null || mins > rail.maxMinutes)) continue
+        if (rail.minCalories != null && summary.perServing.calories < rail.minCalories) continue
+        buckets.get(rail.title)!.push(recipe)
+      }
+
+      if (recipe.imageUrl) {
+        for (const t of TILES) {
+          if (!tileImage.has(t) && answers.has(t)) tileImage.set(t, recipe.imageUrl)
+        }
+      }
+    }
+
+    return {
+      rails: RAILS.map((r) => ({ title: r.title, recipes: buckets.get(r.title)! })).filter(
+        (r) => r.recipes.length > 0,
+      ),
+      categories: TILES.map((term) => ({ term, imageUrl: tileImage.get(term) })),
+    }
   }, [recipes, resolve])
 
   /* A stable sample rather than the first nine alphabetically, which would
@@ -664,6 +718,13 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 /** How many a rail shows before it has to be expanded. */
 const RAIL_LIMIT = 10
+
+/** Every vocabulary term any shelf or tile asks about, tested once per recipe. */
+const TERMS_IN_USE = [
+  'High Protein', 'Low Calorie', 'GLP-1 Friendly', 'High Fiber', 'Low Carb',
+  'Vegetarian', 'Vegan', 'Pescatarian', 'Low Fat', 'Low Sodium',
+  'Breakfast', 'Soup', 'Salad', 'Dessert',
+]
 
 /**
  * A titled row of recipes that can open into a grid.
