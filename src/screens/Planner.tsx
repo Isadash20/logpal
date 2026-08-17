@@ -1057,7 +1057,7 @@ function FilterSheet({
   }, [group])
 
   return (
-    <Sheet onClose={onClose}>
+    <Sheet onClose={onClose} className="sheet--split">
       <div className="fsheet">
         <div className="fsheet__head">
           <span className="fsheet__title">Filters</span>

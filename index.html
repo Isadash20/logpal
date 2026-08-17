@@ -2,9 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- interactive-widget=resizes-content makes the on-screen keyboard shrink
+         the layout viewport. Without it (the default, resizes-visual) only the
+         visible area shrinks: dvh/vh and position:fixed still measure the full
+         height, so a bottom sheet opened with the keyboard up anchors itself
+         behind the keyboard, off screen. -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content"
     />
     <meta name="theme-color" content="#ffffff" />
     <title>LogPal — Calorie Counter</title>

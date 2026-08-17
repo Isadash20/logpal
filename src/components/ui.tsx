@@ -16,10 +16,13 @@ import {
 export function Sheet({
   title,
   onClose,
+  /** Extra class on the panel — e.g. "sheet--split" for a pinned footer. */
+  className,
   children,
 }: {
   title?: string
   onClose(): void
+  className?: string
   children: ReactNode
 }) {
   useEffect(() => {
@@ -30,7 +33,11 @@ export function Sheet({
 
   return (
     <div className="scrim" onClick={onClose} role="presentation">
-      <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog">
+      <div
+        className={'sheet' + (className ? ' ' + className : '')}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+      >
         <div className="sheet__grip" />
         {title && <div className="sheet__title">{title}</div>}
         {children}

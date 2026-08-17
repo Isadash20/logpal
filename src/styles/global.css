@@ -775,9 +775,25 @@ button.row:active {
   background: var(--surface);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
+  /* dvh tracks the area actually visible on iOS. vh is the height with the
+     Safari toolbars hidden, so sizing against it pushes the bottom of the
+     sheet — including its action buttons — off the screen. vh first as the
+     fallback for browsers without dvh. */
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
+  /* Keep a scroll gesture inside the sheet instead of chaining to the page
+     behind it, which otherwise scrolls away under the open sheet. */
+  overscroll-behavior: contain;
   animation: rise 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* A sheet whose body scrolls on its own and whose footer stays pinned. The
+   sheet itself must not scroll too, or the two compete for the same gesture. */
+.sheet--split {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sheet__grip {
@@ -1800,9 +1816,14 @@ button.row:active {
 }
 
 /* The filter sheet: sections of selectable pills, then clear/apply. */
+/* Fills whatever height is left between the grip and the action row. min-height:0
+   is what lets it shrink below its content so the list scrolls rather than
+   stretching the sheet past the bottom of the screen. */
 .fsheet {
-  max-height: 78vh;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-bottom: 8px;
 }
 
@@ -1857,9 +1878,10 @@ button.row:active {
 }
 
 /* Sticky footer so Apply is reachable without scrolling a long sheet. */
+/* A real flex row at the bottom of the sheet now, so it no longer needs to be
+   sticky inside a scroller — and can't be scrolled out of reach. */
 .fsheet__actions {
-  position: sticky;
-  bottom: 0;
+  flex: none;
   display: flex;
   gap: 10px;
   padding: 10px 16px calc(6px + env(safe-area-inset-bottom));
