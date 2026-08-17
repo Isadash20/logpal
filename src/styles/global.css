@@ -775,12 +775,13 @@ button.row:active {
   background: var(--surface);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
-  /* dvh tracks the area actually visible on iOS. vh is the height with the
-     Safari toolbars hidden, so sizing against it pushes the bottom of the
-     sheet — including its action buttons — off the screen. vh first as the
-     fallback for browsers without dvh. */
+  /* Percentage of the scrim, which Sheet pins to visualViewport — the region
+     genuinely on screen once the keyboard and Safari's toolbars are taken out.
+     vh/dvh both measure the layout viewport, which the keyboard does not
+     shrink, so neither can be trusted here. The vh line is only a fallback for
+     browsers with no visualViewport, where the scrim is the layout viewport. */
   max-height: 88vh;
-  max-height: 88dvh;
+  max-height: 88%;
   overflow-y: auto;
   /* Keep a scroll gesture inside the sheet instead of chaining to the page
      behind it, which otherwise scrolls away under the open sheet. */

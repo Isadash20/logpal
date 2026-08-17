@@ -25,14 +25,67 @@ export function Sheet({
   className?: string
   children: ReactNode
 }) {
+  const scrimRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  /*
+   * A sheet opened straight from a focused search field is the case that
+   * breaks on iOS. Two things go wrong there, and both are fixed here.
+   *
+   * 1. The keyboard. iOS lays position:fixed out against the layout viewport,
+   *    which does NOT shrink when the keyboard appears — so `inset: 0` covers
+   *    an area extending behind the keyboard, and a bottom-anchored sheet
+   *    anchors itself off screen. Blurring first gets the keyboard out of the
+   *    way before anything is measured.
+   * 2. The toolbars. Safari's toolbars slide as you scroll, and fixed elements
+   *    do not track that either. visualViewport reports the region actually on
+   *    screen, so the scrim is pinned to it explicitly and re-pinned whenever
+   *    it changes. Everything inside sizes against the scrim (% not vh), so it
+   *    can never extend past what the user can see.
+   */
+  useEffect(() => {
+    const active = document.activeElement as HTMLElement | null
+    if (active && typeof active.blur === 'function') active.blur()
+  }, [])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    const el = scrimRef.current
+    if (!vv || !el) return
+    const pin = () => {
+      el.style.top = `${vv.offsetTop}px`
+      el.style.left = `${vv.offsetLeft}px`
+      el.style.width = `${vv.width}px`
+      el.style.height = `${vv.height}px`
+    }
+    pin()
+    vv.addEventListener('resize', pin)
+    vv.addEventListener('scroll', pin)
+    return () => {
+      vv.removeEventListener('resize', pin)
+      vv.removeEventListener('scroll', pin)
+    }
+  }, [])
+
+  /* Freeze the page underneath so a swipe that runs past the end of the sheet
+     cannot scroll the screen behind it. */
+  useEffect(() => {
+    const page = document.querySelector<HTMLElement>('.scroll')
+    if (!page) return
+    const prev = page.style.overflow
+    page.style.overflow = 'hidden'
+    return () => {
+      page.style.overflow = prev
+    }
+  }, [])
+
   return (
-    <div className="scrim" onClick={onClose} role="presentation">
+    <div className="scrim" ref={scrimRef} onClick={onClose} role="presentation">
       <div
         className={'sheet' + (className ? ' ' + className : '')}
         onClick={(e) => e.stopPropagation()}
