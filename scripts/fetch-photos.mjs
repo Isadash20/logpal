@@ -141,6 +141,15 @@ async function main() {
     await sleep(1100)
   }
 
+  /* Two recipes sharing a photo query would both match the same
+     `photo: '...'` string, so the write-back below would stamp one recipe
+     twice and leave the other bare — which is exactly what happened once. */
+  const seen = new Set()
+  for (const q of queries) {
+    if (seen.has(q)) throw new Error(`duplicate photo query: "${q}" — give each recipe its own`)
+    seen.add(q)
+  }
+
   let out = source
   for (const [query, pick] of found) {
     const credit = `${pick.author.slice(0, 60)} · ${pick.licence}`
