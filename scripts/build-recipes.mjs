@@ -68,9 +68,18 @@ function ldRecipes(html) {
   }
   /* USDA's footnote asterisks mean nothing once the note they point at has
      been folded into the sentence, and they leave ".." behind. */
-  return out.map((s) =>
-    s.replace(/\*+/g, '').replace(/\s*\.\s*\./g, '.').replace(/\s{2,}/g, ' ').trim(),
-  )
+  return out.map((s) => {
+    let t = s
+      .replace(/\*+/g, '')
+      .replace(/\s*\.\s*\./g, '.')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\s+([,.;:])/g, '$1')
+      .trim()
+    /* A handful of USDA steps stop mid-air with a comma or no punctuation. */
+    if (t && !/[.!?:]$/.test(t)) t += '.'
+    if (t) t = t[0].toUpperCase() + t.slice(1)
+    return t
+  })
 }
 
 /** "8 servings" / "Makes 4 servings" / ["6"] -> 8 */
