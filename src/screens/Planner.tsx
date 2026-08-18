@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
+import { stepDetail } from '../lib/stepDetail'
 import { Icon } from '../components/Icon'
 import { Empty, Row, Sheet, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
@@ -1461,12 +1462,43 @@ export function RecipeView({
 
         {section === 'steps' && (
           <div className="card" style={{ padding: 0 }}>
-            {(recipe.steps ?? []).map((s, i) => (
+            {(recipe.prepMin || recipe.cookMin) && (
+              <div className="step__times">
+                <Icon name="clock" size={14} />
+                {recipe.prepMin ? <span>Prep: <b>{recipe.prepMin}m</b></span> : null}
+                {recipe.cookMin ? <span>Cook: <b>{recipe.cookMin}m</b></span> : null}
+              </div>
+            )}
+            {(recipe.steps ?? []).map((s, i) => {
+              const d = stepDetail(s, recipe.ingredients ?? [])
+              return (
               <div key={i} className="step">
                 <div className="step__n">STEP {i + 1}</div>
                 <div className="step__text">{s}</div>
+                {(d.appliances.length > 0 ||
+                  d.equipment.length > 0 ||
+                  d.ingredients.length > 0) && (
+                  <div className="chips">
+                    {d.appliances.map((a) => (
+                      <span key={a.name} className="chip chip--appliance">
+                        <b>{a.name}</b>
+                        {a.setting && <em>{a.setting}</em>}
+                      </span>
+                    ))}
+                    {d.equipment.map((e) => (
+                      <span key={e} className="chip">{e}</span>
+                    ))}
+                    {d.ingredients.map((g) => (
+                      <span key={g.name} className="chip">
+                        {g.name}
+                        {g.amount && <em>{g.amount}</em>}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
+              )
+            })}
             {!recipe.steps?.length && (
               <div className="hint">This recipe has no method written down.</div>
             )}
