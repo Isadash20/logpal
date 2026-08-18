@@ -334,6 +334,8 @@ interface DraftFilters {
   terms: string[]
   maxMinutes: number | null
   ingredients: string[]
+  /** Ingredients to keep out — allergies and dislikes. */
+  exclude: string[]
   savedOnly: boolean
 }
 
@@ -341,6 +343,7 @@ const NO_FILTERS: DraftFilters = {
   terms: [],
   maxMinutes: null,
   ingredients: [],
+  exclude: [],
   savedOnly: false,
 }
 
@@ -515,6 +518,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
         terms: filters.terms,
         maxMinutes: filters.maxMinutes ?? undefined,
         ingredients: filters.ingredients,
+        exclude: filters.exclude,
         savedOnly: filters.savedOnly,
         savedIds: data.savedRecipeIds,
       },
@@ -526,6 +530,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   const activeCount =
     filters.terms.length +
     filters.ingredients.length +
+    filters.exclude.length +
     (filters.maxMinutes == null ? 0 : 1) +
     (filters.savedOnly ? 1 : 0)
 
@@ -546,6 +551,17 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
       ingredients: f.ingredients.includes(t)
         ? f.ingredients.filter((x) => x !== t)
         : [...f.ingredients, t],
+      /* An ingredient cannot be both wanted and banned. */
+      exclude: f.exclude.filter((x) => x !== t),
+    }))
+
+  const toggleExclude = (t: string) =>
+    setFilters((f) => ({
+      ...f,
+      exclude: f.exclude.includes(t)
+        ? f.exclude.filter((x) => x !== t)
+        : [...f.exclude, t],
+      ingredients: f.ingredients.filter((x) => x !== t),
     }))
 
   const runSearch = (q: string) => {
@@ -593,6 +609,16 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
           moved into the sheet: seven chips overflowed the row on a phone, and
           a row you have to scroll to discover is a row that hides things. */}
       <div className="fchips">
+        <button
+          className={`fchip ${filters.exclude.length ? 'fchip--on' : ''}`}
+          onClick={() => setSheet('exclude')}
+        >
+          Exclude
+          {filters.exclude.length > 0 && (
+            <span className="fchip__count">{filters.exclude.length}</span>
+          )}
+        </button>
+
         <button
           className={`fchip ${filters.ingredients.length ? 'fchip--on' : ''}`}
           onClick={() => setSheet('ingredients')}
@@ -699,6 +725,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
           filters={filters}
           onToggleTerm={toggleTerm}
           onToggleIngredient={toggleIngredient}
+          onToggleExclude={toggleExclude}
           onSetTime={(m) => setFilters((f) => ({ ...f, maxMinutes: m }))}
           onClear={() => setFilters(NO_FILTERS)}
           onClose={() => setSheet(null)}
@@ -1035,6 +1062,7 @@ function FilterSheet({
   filters,
   onToggleTerm,
   onToggleIngredient,
+  onToggleExclude,
   onSetTime,
   onClear,
   onClose,
@@ -1043,6 +1071,7 @@ function FilterSheet({
   filters: DraftFilters
   onToggleTerm(t: string): void
   onToggleIngredient(t: string): void
+  onToggleExclude(t: string): void
   onSetTime(m: number | null): void
   onClear(): void
   onClose(): void
@@ -1052,6 +1081,7 @@ function FilterSheet({
       { key: 'ingredients', label: 'Ingredients' },
       ...FILTER_GROUPS.map((g) => ({ key: g.key, label: g.label })),
       { key: 'time', label: 'Cook time' },
+      { key: 'exclude', label: 'Exclude' },
     ]
     const i = groups.findIndex((g) => g.key === group)
     return i <= 0 ? groups : [groups[i], ...groups.filter((_, k) => k !== i)]
@@ -1084,6 +1114,42 @@ function FilterSheet({
             </div>
 
             <div className="fpills">
+              {g.key === 'exclude' && (
+                /* The same shelves as Ingredients, answering the opposite
+                   question. Someone with an allergy is not browsing for what to
+                   include; they need a way to say "never this". */
+                <div style={{ width: '100%' }}>
+                  <div className="hint" style={{ padding: '0 0 10px' }}>
+                    Anything picked here is kept out of your results.
+                  </div>
+                  {INGREDIENT_GROUPS.map((group) => (
+                    <div key={group.label} style={{ marginBottom: 14 }}>
+                      <div
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: 'var(--text-2)',
+                          marginBottom: 7,
+                        }}
+                      >
+                        {group.label}
+                      </div>
+                      <div className="fpills">
+                        {group.items.map((t) => (
+                          <button
+                            key={t}
+                            className={`fpill ${filters.exclude.includes(t) ? 'fpill--off' : ''}`}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => onToggleExclude(t)}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {g.key === 'ingredients' && (
                 /* Grouped, so the list reads like a shop rather than a heap.
                    Two hundred terms in one flat run is unusable; eight labelled

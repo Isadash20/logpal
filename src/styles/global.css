@@ -2132,3 +2132,12 @@ button.row:active {
 }
 .chip--appliance b { font-size: 13px; font-weight: 700; }
 .chip--appliance em { font-size: 11.5px; }
+
+/* An excluded ingredient is not a selected one — it reads as a strike-through
+   rather than a highlight, so "no peanuts" never looks like "peanuts". */
+.fpill--off {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+  color: var(--text-3);
+  text-decoration: line-through;
+}

@@ -21,12 +21,14 @@ import type { Nutrients } from '../types'
 
 export const NUTRITION_TAGS = [
   'High Protein',
+  'High Carb',
   'Low Carb',
   'High Fiber',
   'Low Sugar',
   'Sugar Free',
   'Low Fat',
   'Low Sodium',
+  'Low Cholesterol',
   'Low Calorie',
   'GLP-1 Friendly',
 ] as const
@@ -66,6 +68,11 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
      low-carb world actually uses for a meal rather than an invented one. */
   if (n.carbs <= 25) out.push('Low Carb')
 
+  /* The mirror of it, and asked for by name: someone eating to gain, or
+     carb-loading before a race, is looking for exactly what the low-carb
+     filter hides. Carbohydrate is not a fault to be filtered away. */
+  if (n.carbs >= 45) out.push('High Carb')
+
   // "Low sugar" is not an FDA claim either; 5 g a serving is the common line.
   if (n.sugar <= 5) out.push('Low Sugar')
 
@@ -80,6 +87,12 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
 
   // 21 CFR 101.61: low sodium is 140 mg or less per serving.
   if (n.sodium <= 140) out.push('Low Sodium')
+
+  /* 21 CFR 101.62: low cholesterol is 20 mg or less per serving. Filterable
+     for anyone who wants it, but deliberately not scored — the 2020–2025
+     Dietary Guidelines set no numeric limit, and scoring it made eggs the
+     worst thing in the catalogue. */
+  if ((n.cholesterol ?? 0) <= 20) out.push('Low Cholesterol')
 
   /* 21 CFR 101.60 puts low calorie at 40 kcal per serving, which is written
      for a single food and absurd for a dinner. 400 was the first meal-sized
@@ -168,7 +181,7 @@ export type DietTag = 'Vegan' | 'Vegetarian' | 'Pescatarian' | 'No Added Sugar'
  * filter as thin as the FDA's 0.5 g line already makes "Sugar Free" — eleven
  * recipes out of five hundred, which answers nobody's question.
  */
-const ADDED_SUGARS = [
+export const ADDED_SUGARS = [
   'sugar', 'honey', 'maple syrup', 'agave', 'molasses', 'corn syrup',
   'golden syrup', 'treacle', 'chocolate chip', 'condensed milk', 'jam',
   'marmalade', 'caramel', 'icing', 'sweetener', 'dextrose', 'fructose',
@@ -184,6 +197,11 @@ const ADDED_SUGARS = [
  * fish. A filter that hid the vegetables from a pescatarian would be answering
  * a question nobody asked.
  */
+/** Whether the ingredient list contains a sweetener. Used by the health score. */
+export function hasAddedSugar(ingredients: string[]): boolean {
+  return containsAny(ingredientText(ingredients), ADDED_SUGARS)
+}
+
 export function dietTagsFor(ingredients: string[]): DietTag[] {
   if (!ingredients.length) return []
   const text = ingredientText(ingredients)

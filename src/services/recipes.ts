@@ -15,6 +15,7 @@ import { catalogRecipes, catalogSize } from './recipeDb'
 import { healthScore, type HealthScore } from '../lib/healthScore'
 import {
   dietTagsFor,
+  hasAddedSugar,
   matchesTerm,
   nutritionTagsFor,
   type DietTag,
@@ -136,7 +137,7 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
     items,
     total,
     perServing,
-    health: healthScore(perServing),
+    health: healthScore(perServing, { hasAddedSugar: hasAddedSugar(written) }),
     nutritionTags: nutritionTagsFor(perServing),
     dietTags: dietTagsFor(written),
     // Anything the calorie total does not include, whatever the reason.
@@ -192,7 +193,9 @@ export function summarise(recipe: Recipe, extraFoods: Food[] = []): RecipeSummar
     perServing,
     nutritionTags: nutritionTagsFor(perServing),
     dietTags: dietTagsFor(recipe.ingredients ?? []),
-    health: healthScore(perServing),
+    health: healthScore(perServing, {
+      hasAddedSugar: hasAddedSugar(recipe.ingredients ?? []),
+    }),
   }
   SUMMARIES.set(key, summary)
   return summary
@@ -264,6 +267,12 @@ export interface RecipeFilters {
   terms?: string[]
   maxMinutes?: number
   ingredients?: string[]
+  /**
+   * Ingredients that must NOT appear. Allergies, dislikes, anything being
+   * avoided — the question "what can I eat" is often asked that way round, and
+   * the ingredient filter alone can only answer the other one.
+   */
+  exclude?: string[]
   /** Restrict to recipes the user has saved. */
   savedOnly?: boolean
   savedIds?: string[]
@@ -290,6 +299,7 @@ export function searchRecipes(
   const q = query.trim().toLowerCase()
   const terms = filters.terms ?? []
   const wanted = (filters.ingredients ?? []).map((i) => i.toLowerCase())
+  const banned = (filters.exclude ?? []).map((i) => i.toLowerCase())
   const saved = new Set(filters.savedIds ?? [])
 
   return recipes.filter((r) => {
@@ -318,9 +328,13 @@ export function searchRecipes(
       if (t == null || t > filters.maxMinutes) return false
     }
 
-    if (wanted.length) {
+    if (wanted.length || banned.length) {
       const ing = (r.ingredients ?? []).join(' ').toLowerCase()
-      if (!wanted.some((w) => ing.includes(w))) return false
+      if (wanted.length && !wanted.some((w) => ing.includes(w))) return false
+      /* Excluding is stricter than including on purpose: one hit is enough to
+         drop the recipe, because someone avoiding peanuts needs that to be
+         absolute rather than a preference. */
+      if (banned.length && banned.some((b) => ing.includes(b))) return false
     }
 
     return true

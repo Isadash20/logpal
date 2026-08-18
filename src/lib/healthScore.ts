@@ -50,6 +50,26 @@ const POSITIVE: NutrientKey[] = [
  */
 const NEGATIVE: NutrientKey[] = ['satFat', 'transFat', 'sugar', 'sodium']
 
+/**
+ * Reference amounts a *serving* is judged against, in the nutrient's own unit.
+ *
+ * Sodium and saturated fat were previously judged per calorie, like everything
+ * else, and that quietly punished food for being light. A spinach frittata is
+ * 132 calories with 364 mg of sodium, which per calorie looks like nearly two
+ * and a half times its share and maxed the penalty — but 364 mg is an ordinary
+ * amount of salt for a meal, and the dish is eggs and spinach. Judging a
+ * salted savoury dish by salt-per-calorie means the lighter and more vegetable
+ * it is, the worse it scores, which is precisely backwards.
+ *
+ * So these two are measured against what a serving may reasonably carry.
+ * Saturated fat stays proportional — fat does scale with energy — but is
+ * allowed 15% of calories before anything is charged, above the 10% guideline
+ * because a guideline for a whole day should not condemn one dish.
+ */
+const SERVING_LIMIT: Partial<Record<NutrientKey, number>> = {
+  sodium: 600,
+}
+
 export interface ScoredNutrient {
   key: NutrientKey
   label: string
@@ -126,50 +146,79 @@ function density(s: ScoredNutrient, share: number): number {
   return s.dv / share
 }
 
-export function healthScore(n: Nutrients): HealthScore {
+export interface ScoreOptions {
+  /**
+   * Whether the recipe actually contains a sweetener.
+   *
+   * Sugar was being charged wherever it appeared, which marks down fruit for
+   * being fruit. A banana smoothie is not a dessert, and a runner or anyone
+   * eating to gain wants those carbohydrates. Only sugar somebody added is
+   * worth flagging, and that is knowable from the ingredient list rather than
+   * from the nutrition panel, so the caller passes it in.
+   */
+  hasAddedSugar?: boolean
+}
+
+export function healthScore(n: Nutrients, opts: ScoreOptions = {}): HealthScore {
   const positive = POSITIVE.map((k) => entry(k, n)).filter((x): x is ScoredNutrient => !!x)
   const negative = NEGATIVE.map((k) => entry(k, n)).filter((x): x is ScoredNutrient => !!x)
   const share = calorieShare(n)
 
-  /* Credit for being richer than par, with diminishing returns — three
-     nutrients at twice their share is a genuinely good serving, thirty times
-     the vitamin C of an orange is not thirty times better. */
-  let good = 0
-  for (const s of positive) good += Math.min(2, density(s, share))
-  const goodIndex = Math.min(1, good / 6)
+  /* Averaged over the nutrients actually measured, not over a fixed six.
+   *
+   * The catalogue's nutrition carries protein and fibre for everything and
+   * potassium or vitamin C for almost nothing, so dividing by six meant a dish
+   * could do everything right on the figures that exist and still only reach a
+   * third of the available credit. Nutrient density is a rate, and a rate
+   * should not fall because something went unmeasured. */
+  const densities = positive.map((s) => Math.min(2, density(s, share)))
+  const avgGood = densities.length
+    ? densities.reduce((a, b) => a + b, 0) / densities.length
+    : 0
+  const peakGood = densities.length ? Math.max(...densities) : 0
+  /* Weighted toward what the food is best at, because averaging alone marks a
+     dish down for the nutrients it was never going to carry. A frittata is
+     eggs and spinach: excellent protein, almost no fibre, and its fibre should
+     not cancel its protein. 2.2× par is a genuinely dense serving. */
+  const goodIndex = Math.min(1, (peakGood * 0.6 + avgGood * 0.4) / 2.2)
 
-  /* Only *excess* counts against a serving.
-   *
-   * The previous version charged for any sodium at all, which meant food was
-   * penalised for being food: feta and olive oil in a salad are the reason to
-   * eat it, and they were dragging it under four. Carrying a nutrient in
-   * proportion to your calories is par and costs nothing; you are marked down
-   * for the amount by which you exceed it, and only that. */
-  /* Capped per nutrient, so no single one can sink a meal on its own.
-   *
-   * Without this, "1 teaspoon salt" — which almost every savoury recipe
-   * contains, and much of which never reaches the plate — maxes the penalty by
-   * itself and drags an otherwise excellent dish to the floor. One thing being
-   * high is worth saying; it is not worth overruling everything else about the
-   * food. Reaching the bottom of the scale should take several problems at
-   * once, which is what a genuinely poor serving actually looks like. */
-  let excess = 0
-  for (const s of negative) excess += Math.min(1, Math.max(0, density(s, share) - 1))
-  const badIndex = Math.min(1, excess / 2.5)
+  /* Only genuine excess counts, and each nutrient is judged the way that
+     nutrient behaves. */
+  const charges: number[] = []
+  for (const s of negative) {
+    if (s.key === 'sugar') {
+      /* Fruit and milk sugars are not a fault. Only a sweetened recipe is
+         charged, and only for sugar beyond its share of the calories. */
+      if (!opts.hasAddedSugar) continue
+      charges.push(Math.min(1, Math.max(0, density(s, share) - 1)))
+      continue
+    }
+    if (s.key === 'satFat') {
+      const fromSatFat = (s.amount * 9) / Math.max(1, n.calories ?? 0)
+      charges.push(Math.min(1, Math.max(0, (fromSatFat - 0.15) / 0.15)))
+      continue
+    }
+    const limit = SERVING_LIMIT[s.key]
+    if (limit) {
+      charges.push(Math.min(1, Math.max(0, (s.amount - limit) / limit)))
+      continue
+    }
+    charges.push(Math.min(1, Math.max(0, density(s, share) - 1)))
+  }
+  /* Mostly the worst single charge, softened by the average.
+     Averaging alone let a cake's sugar be cancelled out by its innocent
+     sodium; taking the worst alone made one salted dish a verdict. */
+  const chargeMax = charges.length ? Math.max(...charges) : 0
+  const chargeAvg = charges.length
+    ? charges.reduce((a, b) => a + b, 0) / charges.length
+    : 0
+  const badIndex = Math.min(1, chargeMax * 0.75 + chargeAvg * 0.25)
 
   /* Sits at 5.5 with nothing remarkable either way, reaches the top for a
      serving that is genuinely nutrient-dense. Weighted toward the good side on
      purpose: what a food gives you is the reason you are eating it, and a scale
-     that can only take marks off calls everything unhealthy.
-
-     The downside is deliberately shallower than the upside, so the floor for
-     ordinary home cooking is around five rather than one. Saturated fat is the
-     only strong negative signal among the nutrients tracked here, which means
-     anything containing cheese or eggs takes the full weight of it — and a
-     spinach and feta scramble reading "Low" tells someone their breakfast is
-     bad when what it really means is "this has cheese in it". The score should
-     point at what is worth noticing, not frighten anyone off eating. */
-  const raw = 5.5 + goodIndex * 4.5 - badIndex * 3.2
+     that can only take marks off calls everything unhealthy. */
+  const raw = 5.0 + goodIndex * 5.0 - badIndex * 3.5
   const score = Math.max(1, Math.min(10, Math.round(raw * 10) / 10))
 
   return {
