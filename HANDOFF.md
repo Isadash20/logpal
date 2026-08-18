@@ -148,9 +148,9 @@ without the prefix belongs to this app.
 
 ## 3. Current state
 
-**Everything is pushed and deployed.** 25 commits, working tree clean, HEAD is
-`803a5ac`, and production is confirmed running it. 45 TypeScript files in
-`src/`, plus 40 MB of food database in `public/`.
+**Everything is pushed and deployed.** 60 commits, working tree clean, HEAD is
+`66b8392`, and production is confirmed running it. 60 TypeScript files in
+`src/`, plus 40 MB of food database and 1.4 MB of recipes in `public/`.
 
 Verify what production is actually running — do not infer it from behaviour:
 
@@ -353,6 +353,36 @@ ivory, greige) read as "yellowish" and were rejected outright. **Keep neutrals
 cool / blue-biased.**
 
 ---
+
+### iOS is the target, and it breaks things desktop Chrome cannot show you
+
+**This is a mobile web app for iPhone and iPad.** Design and verify for iOS
+Safari; desktop is not the audience.
+
+`position: fixed` is laid out against the **layout viewport** on iOS, and the
+layout viewport does not shrink when the keyboard opens. A bottom sheet opened
+from a focused search field therefore anchors itself *behind the keyboard*,
+off screen. This cost two shipped "fixes" that verified fine in Chrome and
+changed nothing on the phone.
+
+**`vh` and `dvh` cannot fix it** — both measure the layout viewport. `Sheet` in
+`components/ui.tsx` instead blurs whatever holds focus, then pins the scrim to
+`window.visualViewport` and re-pins on its `resize` and `scroll`. Everything
+inside sizes in `%` of that scrim, so nothing can extend past what is visible.
+The page underneath is frozen while a sheet is open.
+
+**Diagnosis technique that settled it:** the recording showed the page behind
+the "open" sheet as pixel-identical to the page with no sheet open — `213,225,243`
+at the same point in both — proving the 45% scrim was never over the visible
+area, so the sheet was being laid out somewhere off screen. Measure the frames;
+do not squint at them.
+
+Desktop Chrome has no software keyboard and no sliding toolbars, so it cannot
+reproduce this class of bug. Verify layout numerically (does it fit
+`visualViewport`?) and say plainly that the real check is the user's phone. A
+real iOS Simulator would settle it, but this Mac has no full Xcode — `attach`
+fails until someone installs it and runs
+`sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
 
 ## 6. Features
 
@@ -584,8 +614,13 @@ src/
     nutrition.ts            BMR, TDEE, resolvePlan, protein, hydration
     fasting.ts              protocols, stats, recommendFast
     storage.ts              PersistenceAdapter + migrate()
+    healthScore.ts          1–10 nutrient density + healthScore.test.ts
+    recipeTags.ts           computed meal/diet/nutrition/cuisine tags
+    stepDetail.ts           per-step ingredient, equipment and appliance chips
+    ingredients.ts          quantity/unit/name parser
     dates.ts units.ts format.ts id.ts
   data/
+    authoredRecipes.ts      153 recipes written for LogPal, nutrition stated
     seedFoods.ts            324 curated foods
     exercises.ts            70 cardio (MET) + 60 strength
     nutrients.ts            17 nutrients, order, daily values
@@ -598,6 +633,7 @@ src/
     openFoodFacts.ts        live search + barcode, cache + throttle
     foodDb.ts               two-stage loader, packed rows, lazy unpack
     foodSearch.ts           local ranking, aliases, plural handling
+    recipeDb.ts             fetches public/recipes.json, caches a week
   state/store.tsx           all state + nav stack + mutations
   components/
     Icon.tsx charts.tsx ui.tsx nutrition.tsx
@@ -860,35 +896,136 @@ does not. Revisit once matching can express confidence.
 
 ### The catalogue
 
-`public/recipes.json`, 400 USDA MyPlate recipes, ~644 kB, **fetched not
+`public/recipes.json`, **1,054 USDA MyPlate recipes**, ~1.4 MB, **fetched not
 bundled** and cached a week. Public domain under CC PD Mark 1.0.
 
-Selected by `scripts/build-recipes.mjs` on **substance**, within calorie bands.
-Sampling evenly across the alphabet reproduced USDA's own mix: median 186
-calories, twenty of five hundred above 400, none above 600. It is a
-public-health library, not a dinner one.
+Built by `scripts/build-recipes.mjs --limit 5000`, which takes everything
+MyPlate publishes (1,072) bar the ones with no substance behind them. It used to
+take 400, filtered on substance within calorie bands — that filter existed to
+keep a small catalogue interesting and is the wrong trade once the ask is
+breadth. MyPlate is now exhausted; there is no more to import from it.
 
-Plus **20 recipes written for LogPal** in `src/data/authoredRecipes.ts`,
-612–986 calories, because USDA's ceiling is 575 and nothing in it serves anyone
-eating to gain. Their nutrition is *stated*, not parsed. Photos come from
-Wikimedia Commons under CC0/PD/CC BY via `scripts/fetch-photos.mjs`, credited on
-the recipe. Share-alike is refused.
+Plus **153 recipes written for LogPal** in `src/data/authoredRecipes.ts`. Their
+nutrition is *stated*, not parsed. They exist for two reasons: USDA's ceiling is
+575 calories, and its library is a public-health one with whole categories
+missing — Beverage and Appetizer both returned literally nothing before these.
+
+**Photos come from Pexels** via `scripts/fetch-photos.mjs`, needing
+`PEXELS_API_KEY` in `.env.local` (gitignored; the script also reads the env
+var). Wikimedia Commons and then Openverse came first and both failed on the
+same point: they are archives, not food photography. Commons put a **scan of
+printed text** on the barbacoa tacos and a **microscope slide of cucumber mosaic
+virus** on a cucumber drink; Openverse gave a conference hall to a cherry
+smoothie. Pexels' licence allows commercial use and asks no attribution; the
+photographer is credited anyway.
+
+The script requires the query's **head noun** in the photo's own description, so
+"beef barbacoa tacos" must return tacos rather than beef, and refuses to run on
+duplicate photo queries — two recipes sharing one made the write-back stamp one
+recipe twice and leave the other bare, which broke the build with a duplicate
+object key.
+
+**Always review new photos on screen, not by filename.** Every bad one in this
+project got through a filename check: a vineyard on the mango lassi, a spice
+rack on the butter chicken, a market stall of tagine pots on the tagine, stuffed
+courgettes on the jambalaya.
 
 **MyFitnessPal's and Samsung Food's libraries cannot be used** — the first is
-paywalled licensed content, the second user-uploaded with rights retained. This
-was asked for more than once; the answer is the authored set above, not a
-workaround.
+paywalled licensed content, the second user-uploaded with rights retained by the
+uploaders. This has been asked for repeatedly and in several forms, including
+"just the photos" and "just scan their database". The photos are the clearest
+case of all. What *is* fine, and was done: reading their public category page to
+see which dish types exist, then writing our own recipes for the ones we lacked.
+All 32 of their dish types now have something behind them.
+
+### Ingredient amounts are always numbers
+
+No line says "to taste", "as desired", "pinch" or "dash". 403 carried a vague
+amount and 118 gave no quantity at all, which cannot be scaled by the servings
+stepper and leaves a blank on the step chip. Salt and pepper take ¼ teaspoon,
+pinches ⅛, seasonings ordinary kitchen amounts. "Optional" is kept where USDA
+marked it — only the missing number was the problem.
+
+76 lines had the amount in a parenthetical *after* the food, "salt (1 teaspoon,
+optional)". The parser reads leading quantities and treats parentheses as notes,
+so those were read as having no amount at all.
+
+### Steps carry what they need
+
+`lib/stepDetail.ts` puts a chip row under each step: the ingredients that step
+consumes with amounts, the equipment it uses, and appliance settings boxed out
+("Oven · Preheat, 400°F"). Derived per render from the recipe's own ingredient
+list and step text — nothing is authored, so it works across all 1,207.
+
+Three matching rules, each of which exists because of a real wrong chip:
+
+- An ingredient's **category word alone is not a match**. Matching on the last
+  word let "soy sauce" claim any step saying "the sauce", and there is always a
+  sauce. `GENERIC` holds those words; they need the whole phrase.
+- **Any distinctive word counts**, not just the last, or "panko breadcrumbs"
+  misses a step saying only "panko".
+- **The vaguer claim loses.** "Chicken breasts" and "chicken stock" both answer
+  to "chicken"; an ingredient whose matched words are a subset of another's is
+  dropped, ties going to the earlier ingredient.
+
+### USDA steps needed work, and mostly did not
+
+USDA publishes **one instruction per sentence**, which turns asides into
+numbered steps — Peach Sorbet ended on "They will not explode." as step 11 of
+11, the back half of the sentence above it. `joinFragments` in the builder folds
+back anything opening with a back-reference, anything under 30 characters, and
+declarative asides. 8,039 steps became 6,425.
+
+**Do not rewrite the rest.** 1,016 of 1,054 already carry times, temperatures
+and doneness cues; "Bake butternut squash until tender (about 45 minutes)" needs
+no help, and replacing tested USDA prose with untested prose is a downgrade
+dressed as an upgrade. Only 38 genuinely lacked numbers and those were rewritten
+by hand. A verb-list test for "is this an instruction" was tried and rejected —
+it flagged 1,039 legitimate steps, because plenty open with "While the squash
+bakes" or "In a large bowl".
+
+143 recipes cooked raw meat, poultry or fish while naming no temperature. Each
+now states the **published FSIS minimum** on the step that cooks it: 165 °F
+poultry, 160 °F ground meat, 145 °F fish and whole cuts. Recipes whose protein
+arrives cooked, canned or as deli slices are excluded.
+
+**Never invent a cooking time or temperature.** Every figure in the catalogue is
+either USDA's own or an FSIS published minimum. A plausible-sounding wrong
+number on chicken is worse than a vague right one.
 
 ### Filters are computed, never typed
 
-`lib/recipeTags.ts`. Nutrition tags (High Protein, Low Carb, GLP-1 Friendly…)
-come from each recipe's own numbers on FDA claim thresholds; diets (Vegan,
-Vegetarian, Pescatarian) are read off the **ingredient list**, because USDA
-files by food group and nothing in the data says "vegetarian". The false friends
+`lib/recipeTags.ts`. Nutrition tags come from each recipe's own numbers on FDA
+claim thresholds; diets are read off the **ingredient list**, because USDA files
+by food group and nothing in the data says "vegetarian". The false friends
 matter — almond milk and peanut butter are vegan, and a naive substring check
 disqualifies most of the plant recipes.
 
 Diets nest: vegan implies vegetarian implies pescatarian.
+
+**Two sugar filters, deliberately.** "Sugar Free" is 21 CFR 101.60 — under 0.5 g
+a serving — and matches 11 recipes of 1,207. Accurate and nearly empty, because
+anything with fruit or honey is out. "No Added Sugar" reads the ingredient list
+for sweeteners, ignores fruit's own sugars, and matches 388. Shipping only the
+strict one would have been another filter that opens onto an empty screen, which
+is exactly the complaint that started the Beverage work.
+
+**High Carb (≥45 g) is not a joke tag.** Someone eating to gain, or carb-loading
+before a race, is looking for precisely what Low Carb hides. Carbohydrate is not
+a fault.
+
+**Low Cholesterol (≤20 mg) filters but does not score** — see the health score
+below.
+
+**Exclude** is a separate chip carrying the same ingredient shelves inverted,
+for allergies. One hit drops the recipe outright rather than ranking it lower,
+because "no peanuts" has to be absolute. Excluded pills render struck through so
+they can never be mistaken for selected ones, and an ingredient cannot be both
+wanted and banned.
+
+**Non-GMO was asked for and is not implemented.** Nothing in FoodData Central or
+the recipe data records it, so the filter could only have guessed. It would need
+a manual per-recipe flag.
 
 ### Star and bookmark are different things
 
@@ -904,17 +1041,31 @@ every tap added another copy.
 ### Health score
 
 `lib/healthScore.ts`. Ours, not Samsung Food's, and the screen says how it is
-worked out. Nutrients are scored against **the serving's share of a 2,000
-calorie day**, not against a whole day — otherwise every serving of everything
-scores badly. Only *excess* counts against a food, capped per nutrient, so one
-teaspoon of salt cannot sink a dish. Dietary cholesterol is not scored (the
-guidelines dropped the numeric limit, and scoring it made a spinach and feta
-scramble the worst of 128 recipes).
+worked out. Rebalanced 2026-08-18 after a French spinach frittata — 132 calories
+carrying 9.6 g of protein, from eggs and spinach — scored **4.6**. Three
+structural faults, all of which made light savoury cooking look bad:
 
-Range across the catalogue is 4.9–10. **It is top-heavy and desserts can
-outscore a salad**, because saturated fat is the only strong negative signal
-among seventeen nutrients. Fixing that properly needs a food-group signal, which
-is a different model.
+- **Sodium and saturated fat were judged per calorie**, so the lighter and more
+  vegetable a dish was, the worse it did. 364 mg is an ordinary amount of salt
+  for a meal; per calorie it read as 2.4× par and maxed the penalty. Sodium is
+  now measured against what a *serving* may reasonably carry (600 mg), and
+  saturated fat gets 15% of calories before anything is charged.
+- **Positives were divided by a fixed six nutrients** when the catalogue carries
+  protein and fibre for everything and potassium or vitamin C for almost
+  nothing. A dish could do everything right on the figures that exist and reach
+  a third of the credit. Now averaged over what is measured, and weighted 60/40
+  toward the food's **peak** density — a frittata's missing fibre must not
+  cancel its protein.
+- **Sugar was charged wherever it appeared**, which marks down fruit for being
+  fruit. Only recipes containing an actual sweetener are charged, read from the
+  ingredient list via `hasAddedSugar`.
+
+Frittata is now 7.4 and "Great". Sweets average 5.3, vegetable dishes 8.4, so it
+still discriminates. Four tests in `healthScore.test.ts` lock this in, including
+the frittata case — **run them before touching the constants.**
+
+Dietary cholesterol is still not scored: the 2020–2025 guidelines set no numeric
+limit, and scoring it made eggs the worst thing in the catalogue.
 
 ### Not synced
 
@@ -925,10 +1076,12 @@ more tables.
 
 ### Open threads
 
-1. **Tinned goods**, above — needs match confidence first.
+1. **Tinned goods** — needs match confidence first.
 2. **Collections** for saved recipes; Saved has no grouping.
-3. **Photo relevance is unverified.** The Commons search matches on words, and
-   at least one authored recipe took a picture whose subject is questionable
-   (the steak bowl). Worth an eye over all twenty.
-4. Nothing above 986 calories, and the Pescatarian shelf leads with whatever is
-   simply meat-free rather than with fish.
+3. **Scale.** Samsung Food has ~240,000 recipes; this has 1,207. MyPlate is
+   exhausted, so more bulk means either a licensed API (Spoonacular, Edamam —
+   paid, and usually live calls rather than stored copies) or continued
+   authoring. Thinnest categories are Lunch (12), Appetizer (13) and Brunch.
+4. **Cuisine coverage is uneven** — Thai 2, Greek/French/Caribbean 3 each,
+   against Asian 14 and Mediterranean 16.
+5. **Non-GMO**, above — needs a manual flag.
