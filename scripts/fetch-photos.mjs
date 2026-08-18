@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Finds a photograph for each authored recipe on Openverse.
+ * Finds a photograph for each authored recipe on Pexels.
  *
  * The USDA catalogue arrives with its own pictures; the recipes written for
  * LogPal do not, and a browse screen of grey placeholders is not worth
@@ -22,7 +22,19 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = join(ROOT, 'src/data/authoredRecipes.ts')
-const API = 'https://api.openverse.org/v1/images/'
+const API = 'https://api.pexels.com/v1/search'
+
+/* Read from .env.local rather than requiring it to be exported by hand. */
+function pexelsKey() {
+  if (process.env.PEXELS_API_KEY) return process.env.PEXELS_API_KEY
+  try {
+    const env = readFileSync(join(ROOT, '.env.local'), 'utf8')
+    return env.match(/^PEXELS_API_KEY=(.+)$/m)?.[1]?.trim()
+  } catch {
+    return undefined
+  }
+}
+const KEY = pexelsKey()
 const UA = 'LogPal/0.1 (recipe photo lookup; contact via github.com/Isadash20/logpal)'
 
 /**
@@ -64,60 +76,38 @@ async function withRetry(fn, label) {
 
 async function search(query) {
   const params = new URLSearchParams({
-    q: query,
-    /* CC0 and public domain ask nothing; CC BY asks for credit, which the
-       recipe shows anyway. Share-alike stays out — its reciprocity clause is
-       arguable once an image sits inside a larger work. */
-    license: 'cc0,pdm,by',
-    page_size: '20',
-    mature: 'false',
+    query,
+    per_page: '15',
+    /* Recipe cards are wider than they are tall. */
+    orientation: 'landscape',
   })
-  const res = await fetch(`${API}?${params}`, { headers: { 'user-agent': UA } })
+  const res = await fetch(`${API}?${params}`, {
+    headers: { authorization: KEY, 'user-agent': UA },
+  })
   if (!res.ok) throw new Error(String(res.status))
   const data = await res.json()
 
   const words = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
-  /* The dish itself, not its adjectives. "beef barbacoa tacos" must return
-     tacos; matching any word let it return beef, or a house in Puerto Rico for
-     "pina colada". The head noun is the last substantial word of the query. */
   const head = words[words.length - 1]
+
   const candidates = []
+  for (const photo of data?.photos ?? []) {
+    const alt = String(photo.alt ?? '').toLowerCase()
 
-  for (const item of data?.results ?? []) {
-    const url = item.url
-    if (!url) continue
-
-    /* Small images look like thumbnails on a full-width card. */
-    if ((item.width ?? 0) < 600) continue
-
-    const title = String(item.title ?? '').toLowerCase()
-
-    /* Openverse ranks on more than the title, so it will return something for
-       any query. Requiring a query word in the title is what stops a recipe
-       getting a photograph of an unrelated subject that merely ranked well. */
-    if (head && !title.includes(head)) continue
-
-    /* Categories that match food words and never look like dinner. */
-    if (/logo|icon|diagram|chart|\bmap\b|label|menu|sign|poster|packaging/.test(title)) continue
-    if (/virus|bacteri|microscop|specimen|herbarium|disease|pathogen/.test(title)) continue
-    if (/portrait|painting|statue|coat of arms|tattoo/.test(title)) continue
-    /* Words that match a dish but describe an object, a place or a person:
-       "lassi" pulled a Calico Lassie doll, "pina colada" a photograph of the
-       house where it was invented. */
-    if (/\bdoll\b|\btoy\b|figurine|costume|\bhouse\b|museum|clipart|illustration|vector|drawing|cartoon|\bsign\b|festival|parade|cactus|aircraft|plane|stand\b/.test(title)) continue
+    /* Pexels ranks loosely too — "lassi" will return generic drinks. Where the
+       photo carries a description, it must mention the dish; where it carries
+       none, it is kept, because a missing alt is common and not a signal. */
+    if (alt && head && !alt.includes(head)) continue
 
     candidates.push({
-      url,
-      page: item.foreign_landing_url ?? url,
-      licence: `${String(item.license ?? '').toUpperCase()} ${item.license_version ?? ''}`.trim(),
-      author: item.creator || 'Unknown',
-      title: item.title ?? query,
-      width: item.width ?? 0,
+      url: photo.src.large,
+      page: photo.url,
+      licence: 'Pexels licence',
+      author: photo.photographer ?? 'Unknown',
+      title: photo.alt || query,
+      width: photo.width ?? 0,
     })
   }
-
-  /* Bigger first: on a phone the card is full-bleed, and upscaling shows. */
-  candidates.sort((a, b) => b.width - a.width)
   return candidates
 }
 
