@@ -66,7 +66,11 @@ function ldRecipes(html) {
       if (item && item['@type'] === 'Recipe') out.push(item)
     }
   }
-  return out
+  /* USDA's footnote asterisks mean nothing once the note they point at has
+     been folded into the sentence, and they leave ".." behind. */
+  return out.map((s) =>
+    s.replace(/\*+/g, '').replace(/\s*\.\s*\./g, '.').replace(/\s{2,}/g, ' ').trim(),
+  )
 }
 
 /** "8 servings" / "Makes 4 servings" / ["6"] -> 8 */
@@ -101,9 +105,43 @@ function stepsFrom(instructions) {
      public-health advice and terrible recipe step one — it pushes the actual
      cooking below the fold on a phone. Dropped, along with the equivalent
      closer, so the method reads as a method. */
-  return out.filter(
+  const kept = out.filter(
     (s) => s && !/^wash hands with soap and water\.?$/i.test(s),
   )
+  return joinFragments(kept)
+}
+
+/**
+ * USDA publishes one instruction per sentence, which turns asides into steps.
+ *
+ * The peach sorbet ended with three numbered steps reading "Serve immediately.",
+ * "Freeze any leftovers…", and "They will not explode." — the last being the
+ * back half of the sentence before it. A numbered step should be something you
+ * do, so a sentence that only continues the previous one is folded back into it.
+ *
+ * Two things get folded: anything opening with a back-reference or a note
+ * marker, which cannot stand alone by definition; and very short tails like
+ * "Mix well." or "Serve hot.", which read better attached to the instruction
+ * they qualify than as a step of their own.
+ */
+function joinFragments(steps) {
+  const CONTINUES = /^(they|it|these|this|those|them|he|she|and|or|but|then|also|\*)\b/i
+  /* Declarative asides — "Banana does not need to be frozen." — are notes on
+     the previous instruction, not instructions. Matched narrowly: a verb-list
+     test for "is this an instruction" folded 1039 real steps, because plenty
+     open with "While the squash bakes" or "In a large bowl". */
+  const ASIDE = /\b(does not|doesn't|do not need|is ok|it's okay|it's ok|will not|won't|may be|can be) \b/i
+  const out = []
+  for (const step of steps) {
+    const isFragment =
+      CONTINUES.test(step) || step.length < 30 || (ASIDE.test(step) && step.length < 70)
+    if (isFragment && out.length) {
+      out[out.length - 1] = `${out[out.length - 1].replace(/\s*$/, '')} ${step}`
+    } else {
+      out.push(step)
+    }
+  }
+  return out
 }
 
 function imageFrom(image) {
