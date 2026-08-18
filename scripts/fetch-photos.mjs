@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Finds a photograph for each authored recipe on Wikimedia Commons.
+ * Finds a photograph for each authored recipe on Openverse.
  *
  * The USDA catalogue arrives with its own pictures; the recipes written for
  * LogPal do not, and a browse screen of grey placeholders is not worth
@@ -22,7 +22,7 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = join(ROOT, 'src/data/authoredRecipes.ts')
-const API = 'https://commons.wikimedia.org/w/api.php'
+const API = 'https://api.openverse.org/v1/images/'
 const UA = 'LogPal/0.1 (recipe photo lookup; contact via github.com/Isadash20/logpal)'
 
 /**
@@ -64,59 +64,60 @@ async function withRetry(fn, label) {
 
 async function search(query) {
   const params = new URLSearchParams({
-    action: 'query',
-    generator: 'search',
-    gsrsearch: `filetype:bitmap ${query}`,
-    gsrnamespace: '6',
-    gsrlimit: '20',
-    prop: 'imageinfo',
-    iiprop: 'url|extmetadata',
-    iiurlwidth: '900',
-    format: 'json',
+    q: query,
+    /* CC0 and public domain ask nothing; CC BY asks for credit, which the
+       recipe shows anyway. Share-alike stays out — its reciprocity clause is
+       arguable once an image sits inside a larger work. */
+    license: 'cc0,pdm,by',
+    page_size: '20',
+    mature: 'false',
   })
   const res = await fetch(`${API}?${params}`, { headers: { 'user-agent': UA } })
   if (!res.ok) throw new Error(String(res.status))
   const data = await res.json()
-  const pages = Object.values(data?.query?.pages ?? {})
 
+  const words = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
+  /* The dish itself, not its adjectives. "beef barbacoa tacos" must return
+     tacos; matching any word let it return beef, or a house in Puerto Rico for
+     "pina colada". The head noun is the last substantial word of the query. */
+  const head = words[words.length - 1]
   const candidates = []
-  for (const page of pages) {
-    const info = page.imageinfo?.[0]
-    if (!info) continue
-    const meta = info.extmetadata ?? {}
-    const licence = stripHtml(meta.LicenseShortName?.value)
-    if (!FREE.some((re) => re.test(licence))) continue
 
-    /* Diagrams, packaging shots and logos all match food searches and none of
-       them look like dinner. Width is a decent proxy for a real photograph. */
-    if ((info.thumbwidth ?? 0) < 500) continue
-    const title = page.title.toLowerCase()
-    if (/logo|icon|diagram|chart|map|label|nutrition facts/.test(title)) continue
-    /* Commons is full of people, and food words turn up in surnames — a search
-       for "dal lentil" returned a portrait of Paolo dal Pozzo Toscanelli. A
-       title that reads like a person's name is not a photograph of dinner. */
-    if (/portrait|painting|statue|coat of arms|\b(mr|mrs|sir|dr)\b/.test(title)) continue
-    if (/^file:[a-z]+ [a-z]+ (de|dal|van|von|di) /.test(title)) continue
+  for (const item of data?.results ?? []) {
+    const url = item.url
+    if (!url) continue
 
-    /* Commons search will happily return the top-ranked free image even when it
-       matches nothing in the query: "homemade lemonade" returned a photograph of
-       a Romanian band, "cucumber water" a microscope slide of cucumber mosaic
-       virus. Requiring the file's own title to contain a word from the query is
-       a crude relevance check, but it is the difference between a drink and a
-       concert. Short words are ignored so "of"/"and" cannot carry a match. */
-    const words = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
-    if (words.length && !words.some((w) => title.includes(w))) continue
-    /* Specimen and laboratory imagery matches food words constantly. */
+    /* Small images look like thumbnails on a full-width card. */
+    if ((item.width ?? 0) < 600) continue
+
+    const title = String(item.title ?? '').toLowerCase()
+
+    /* Openverse ranks on more than the title, so it will return something for
+       any query. Requiring a query word in the title is what stops a recipe
+       getting a photograph of an unrelated subject that merely ranked well. */
+    if (head && !title.includes(head)) continue
+
+    /* Categories that match food words and never look like dinner. */
+    if (/logo|icon|diagram|chart|\bmap\b|label|menu|sign|poster|packaging/.test(title)) continue
     if (/virus|bacteri|microscop|specimen|herbarium|disease|pathogen/.test(title)) continue
+    if (/portrait|painting|statue|coat of arms|tattoo/.test(title)) continue
+    /* Words that match a dish but describe an object, a place or a person:
+       "lassi" pulled a Calico Lassie doll, "pina colada" a photograph of the
+       house where it was invented. */
+    if (/\bdoll\b|\btoy\b|figurine|costume|\bhouse\b|museum|clipart|illustration|vector|drawing|cartoon|\bsign\b|festival|parade|cactus|aircraft|plane|stand\b/.test(title)) continue
 
     candidates.push({
-      url: info.thumburl,
-      page: info.descriptionurl,
-      licence,
-      author: stripHtml(meta.Artist?.value) || 'Unknown',
-      title: page.title,
+      url,
+      page: item.foreign_landing_url ?? url,
+      licence: `${String(item.license ?? '').toUpperCase()} ${item.license_version ?? ''}`.trim(),
+      author: item.creator || 'Unknown',
+      title: item.title ?? query,
+      width: item.width ?? 0,
     })
   }
+
+  /* Bigger first: on a phone the card is full-bleed, and upscaling shows. */
+  candidates.sort((a, b) => b.width - a.width)
   return candidates
 }
 
