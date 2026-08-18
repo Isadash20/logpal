@@ -98,6 +98,17 @@ async function search(query) {
     if (/portrait|painting|statue|coat of arms|\b(mr|mrs|sir|dr)\b/.test(title)) continue
     if (/^file:[a-z]+ [a-z]+ (de|dal|van|von|di) /.test(title)) continue
 
+    /* Commons search will happily return the top-ranked free image even when it
+       matches nothing in the query: "homemade lemonade" returned a photograph of
+       a Romanian band, "cucumber water" a microscope slide of cucumber mosaic
+       virus. Requiring the file's own title to contain a word from the query is
+       a crude relevance check, but it is the difference between a drink and a
+       concert. Short words are ignored so "of"/"and" cannot carry a match. */
+    const words = query.toLowerCase().split(/\s+/).filter((w) => w.length > 3)
+    if (words.length && !words.some((w) => title.includes(w))) continue
+    /* Specimen and laboratory imagery matches food words constantly. */
+    if (/virus|bacteri|microscop|specimen|herbarium|disease|pathogen/.test(title)) continue
+
     candidates.push({
       url: info.thumburl,
       page: info.descriptionurl,
