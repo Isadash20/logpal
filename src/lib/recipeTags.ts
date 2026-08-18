@@ -24,6 +24,7 @@ export const NUTRITION_TAGS = [
   'Low Carb',
   'High Fiber',
   'Low Sugar',
+  'Sugar Free',
   'Low Fat',
   'Low Sodium',
   'Low Calorie',
@@ -67,6 +68,12 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
 
   // "Low sugar" is not an FDA claim either; 5 g a serving is the common line.
   if (n.sugar <= 5) out.push('Low Sugar')
+
+  /* 21 CFR 101.60: sugar free is under 0.5 g a serving. Strict on purpose —
+     anything with fruit or honey in it will not qualify, and a Sugar Free
+     filter that returned sweetened recipes would be the one lie in a set of
+     tags whose whole point is that they are computed and cannot lie. */
+  if (n.sugar < 0.5) out.push('Sugar Free')
 
   // 21 CFR 101.62: low fat is 3 g or less per serving.
   if (n.fat <= 3) out.push('Low Fat')
@@ -151,7 +158,22 @@ function containsAny(text: string, words: string[]): boolean {
   return words.some((w) => text.includes(w))
 }
 
-export type DietTag = 'Vegan' | 'Vegetarian' | 'Pescatarian'
+export type DietTag = 'Vegan' | 'Vegetarian' | 'Pescatarian' | 'No Added Sugar'
+
+/**
+ * Sweeteners that count as added sugar.
+ *
+ * Fruit is deliberately absent: a smoothie sweetened only by its own bananas
+ * is what most people mean by no added sugar, and excluding it would leave the
+ * filter as thin as the FDA's 0.5 g line already makes "Sugar Free" — eleven
+ * recipes out of five hundred, which answers nobody's question.
+ */
+const ADDED_SUGARS = [
+  'sugar', 'honey', 'maple syrup', 'agave', 'molasses', 'corn syrup',
+  'golden syrup', 'treacle', 'chocolate chip', 'condensed milk', 'jam',
+  'marmalade', 'caramel', 'icing', 'sweetener', 'dextrose', 'fructose',
+  'sucrose', 'glucose syrup', 'brown sugar', 'palm sugar',
+]
 
 /**
  * Which diets a recipe is compatible with, from its ingredients alone.
@@ -174,6 +196,7 @@ export function dietTagsFor(ingredients: string[]): DietTag[] {
   if (!hasMeat && !hasFish && !hasAnimal) out.push('Vegan')
   if (!hasMeat && !hasFish) out.push('Vegetarian')
   if (!hasMeat) out.push('Pescatarian')
+  if (!containsAny(text, ADDED_SUGARS)) out.push('No Added Sugar')
   return out
 }
 
@@ -192,7 +215,7 @@ export const MEAL_TYPES = [
 
 export const DIETS = [
   'Vegetarian', 'Vegan', 'Pescatarian', 'Dairy Free', 'Gluten Free',
-  'Keto', 'Paleo', 'Mediterranean', 'Low Carb',
+  'Keto', 'Paleo', 'Mediterranean', 'Low Carb', 'No Added Sugar',
 ] as const
 
 export const CUISINES = [
