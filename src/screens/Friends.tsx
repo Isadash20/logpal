@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { Empty, Row, SaveBar, Spinner, Tabs, Toggle, TopBar } from '../components/ui'
+import { Empty, Row, SaveBar, Sheet, Spinner, Tabs, Toggle, TopBar } from '../components/ui'
 import { friendlyDate } from '../lib/dates'
-import { cal } from '../lib/format'
+import { NUDGES, fetchNudges, markNudgesSeen, sendNudge, type Nudge } from '../services/nudges'
 import {
   acceptFollower,
   fetchConnections,
@@ -49,14 +49,246 @@ function describe(p: Person): string {
   // Only when the name is the title — otherwise the handle is already shown.
   if (p.name) bits.push(`@${p.username}`)
   if (p.streak) bits.push(`${p.streak} day streak`)
-  if (p.calories !== null && p.calorieGoal) {
-    bits.push(`${cal(p.calories)} / ${cal(p.calorieGoal)} cal`)
-  }
+  /* Progress, never amounts. "68% of calories" is the thing worth cheering;
+     what they actually ate is theirs. */
+  if (p.caloriePct !== null) bits.push(`${p.caloriePct}% calories`)
+  if (p.waterPct !== null) bits.push(`${p.waterPct}% water`)
+  if (p.stepPct !== null) bits.push(`${p.stepPct}% steps`)
   if (bits.length) return bits.join(' · ')
   /* Deliberately the same sentence for "shares nothing" and "private, and you
      cannot see in". A different one for each would turn the profile into a
      detector for whether a private account has anything worth following for. */
   return 'Nothing shared'
+}
+
+
+
+/* ------------------------------------------------------ sharing prompt -- */
+
+/**
+ * Asked once, the first time this account follows someone.
+ *
+ * Following is the moment sharing starts to mean something, and it is the only
+ * moment where the question is obviously relevant rather than an interruption.
+ * The defaults are the percentages — enough for a friend to cheer you on —
+ * with workouts off, since that one carries what you did and when.
+ */
+function SharingPrompt({ onClose }: { onClose(): void }) {
+  const { settings, saveSettings } = useApp()
+  const [calories, setCalories] = useState(true)
+  const [water, setWater] = useState(true)
+  const [steps, setSteps] = useState(true)
+  const [macros, setMacros] = useState(true)
+  const [exercise, setExercise] = useState(settings.shareExercise)
+
+  return (
+    <Sheet title="What can they see?" onClose={onClose}>
+      <div className="hint" style={{ padding: '0 4px 10px' }}>
+        Percentages only — how far through your own goals you are. Never the calories,
+        the litres or the step count themselves, and never your diary or weight.
+      </div>
+      <div className="card" style={{ margin: 0 }}>
+        <Toggle label="Calorie progress" checked={calories} onChange={setCalories} />
+        <Toggle label="Water progress" checked={water} onChange={setWater} />
+        <Toggle label="Step progress" checked={steps} onChange={setSteps} />
+        <Toggle label="Macro progress" checked={macros} onChange={setMacros} />
+        <Toggle
+          label="Today's workouts"
+          sub="What you did and for how long. The one thing here that is not a percentage."
+          checked={exercise}
+          onChange={setExercise}
+        />
+      </div>
+      <div className="hint" style={{ padding: '10px 4px 0' }}>
+        This applies to everyone who follows you, and you can change it any time under
+        Friends → What you share.
+      </div>
+      <div style={{ padding: '14px 4px 6px' }}>
+        <button
+          className="btn btn--primary"
+          style={{ width: '100%' }}
+          onClick={() => {
+            saveSettings({
+              shareCaloriePct: calories,
+              shareWaterPct: water,
+              shareStepPct: steps,
+              shareMacroPct: macros,
+              shareExercise: exercise,
+              sharingAsked: true,
+            })
+            onClose()
+          }}
+        >
+          Save
+        </button>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ------------------------------------------------------------ goal bars -- */
+
+/**
+ * Someone else's day, as progress and nothing else.
+ *
+ * Every figure here is a percentage of a goal they set themselves. That is
+ * deliberate and it is the whole design of this screen: it is enough to know
+ * whether to cheer someone on, and it never says what they ate, drank or weigh.
+ */
+function GoalBars({ person }: { person: Person }) {
+  const bars: { label: string; pct: number; color: string }[] = []
+  if (person.caloriePct !== null) {
+    bars.push({ label: 'Calories', pct: person.caloriePct, color: 'var(--accent)' })
+  }
+  if (person.waterPct !== null) {
+    bars.push({ label: 'Water', pct: person.waterPct, color: 'var(--water)' })
+  }
+  if (person.stepPct !== null) {
+    bars.push({ label: 'Steps', pct: person.stepPct, color: 'var(--steps)' })
+  }
+  if (person.proteinPct !== null) {
+    bars.push({ label: 'Protein', pct: person.proteinPct, color: 'var(--protein)' })
+  }
+  if (person.carbsPct !== null) {
+    bars.push({ label: 'Carbs', pct: person.carbsPct, color: 'var(--carbs)' })
+  }
+  if (person.fatPct !== null) {
+    bars.push({ label: 'Fat', pct: person.fatPct, color: 'var(--fat)' })
+  }
+  if (!bars.length) return null
+
+  return (
+    <>
+      <div className="section-label">Today, against their goals</div>
+      <div className="card" style={{ padding: '12px 16px 14px' }}>
+        {bars.map((b) => (
+          <div key={b.label} style={{ marginBottom: 10 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: 13.5,
+                marginBottom: 5,
+              }}
+            >
+              <span style={{ color: 'var(--text-2)' }}>{b.label}</span>
+              <span className="num" style={{ fontWeight: 700 }}>
+                {b.pct}%
+              </span>
+            </div>
+            <div className="progress" style={{ height: 8 }}>
+              <div
+                className="progress__fill"
+                style={{ width: `${Math.min(100, b.pct)}%`, background: b.color }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+/* --------------------------------------------------------------- nudges -- */
+
+/**
+ * Five emoji and a tap.
+ *
+ * Which one leads depends on how their day is going — a clap for someone
+ * already past their goals reads as congratulations, and the same clap for
+ * someone at 20% reads as sarcasm — so the list is ordered by where they are
+ * rather than fixed.
+ */
+function NudgeBar({ person, onSend }: { person: Person; onSend(emoji: string): void }) {
+  const [sent, setSent] = useState<string | null>(null)
+  const done = (person.caloriePct ?? 0) >= 90 || (person.stepPct ?? 0) >= 100
+  const order = done ? NUDGES : [...NUDGES].reverse()
+
+  return (
+    <>
+      <div className="section-label">Send a nudge</div>
+      <div className="card" style={{ padding: '12px 12px 14px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {order.map((n) => (
+            <button
+              key={n.emoji}
+              className={`fpill ${sent === n.emoji ? 'fpill--on' : ''}`}
+              style={{ fontSize: 15 }}
+              onClick={() => {
+                onSend(n.emoji)
+                setSent(n.emoji)
+              }}
+            >
+              <span style={{ fontSize: 17 }}>{n.emoji}</span> {n.label}
+            </button>
+          ))}
+        </div>
+        {sent && (
+          <div className="hint" style={{ padding: '10px 4px 0' }}>
+            Sent. They will see it the next time they open LogPal.
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/**
+ * What arrived while you were away.
+ *
+ * Marked seen once it has actually been on screen, not when it was fetched —
+ * the two differ by exactly the case that matters, which is opening the app and
+ * closing it again.
+ */
+function NudgeInbox({ me }: { me: string }) {
+  const [nudges, setNudges] = useState<Nudge[]>([])
+
+  useEffect(() => {
+    let live = true
+    void fetchNudges(me)
+      .then((rows) => {
+        if (live) setNudges(rows)
+      })
+      .catch(() => {
+        /* An inbox that will not load is not worth an error on this screen. */
+      })
+    return () => {
+      live = false
+    }
+  }, [me])
+
+  const unseen = nudges.filter((n) => !n.seen)
+  useEffect(() => {
+    if (!unseen.length) return
+    const ids = unseen.map((n) => n.id)
+    const t = window.setTimeout(() => void markNudgesSeen(ids).catch(() => {}), 1200)
+    return () => window.clearTimeout(t)
+  }, [unseen.length])
+
+  if (!nudges.length) return null
+
+  return (
+    <>
+      <div className="section-label">
+        Nudges for you{unseen.length ? ` · ${unseen.length} new` : ''}
+      </div>
+      <div className="card">
+        {nudges.slice(0, 8).map((n) => (
+          <Row
+            key={n.id}
+            left={<span className="avatar" style={{ fontSize: 18 }}>{n.emoji}</span>}
+            title={n.from ? `@${n.from}` : 'Someone'}
+            sub={new Date(n.createdAt).toLocaleString(undefined, {
+              weekday: 'short',
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+            right={!n.seen ? <span className="chip">New</span> : undefined}
+          />
+        ))}
+      </div>
+    </>
+  )
 }
 
 function PersonRow({
@@ -118,8 +350,10 @@ function FollowButton({
 
 type Tab = 'following' | 'followers' | 'requests'
 
-export function Friends() {
-  const { pop, push, session, setLocalOnly } = useApp()
+export function Friends({ asTab }: { asTab?: boolean } = {}) {
+  const { pop, push, session, setLocalOnly, settings } = useApp()
+  /* Shown once, the first time this account follows anyone. */
+  const [askShare, setAskShare] = useState(false)
   const me = session?.user.id ?? null
 
   const [tab, setTab] = useState<Tab>('following')
@@ -245,7 +479,8 @@ export function Friends() {
     <>
       <TopBar
         title="Friends"
-        onBack={pop}
+        /* No back arrow when this *is* the tab — there is nothing behind it. */
+        onBack={asTab ? undefined : pop}
         solid
         right={
           <button
@@ -299,6 +534,10 @@ export function Friends() {
           </div>
         )}
 
+        {/* What came in while you were away, before the lists — it is the one
+            thing on this screen that is addressed to you. */}
+        {me && !query.trim() && tab === 'following' && <NudgeInbox me={me} />}
+
         {query.trim() ? (
           <SearchResults
             query={query}
@@ -307,7 +546,12 @@ export function Friends() {
             busy={busy}
             stateOf={stateOf}
             onOpen={openProfile}
-            onFollow={(p) => void act(p.userId, () => follow(me!, p.userId))}
+            onFollow={(p) =>
+              void act(p.userId, async () => {
+                await follow(me!, p.userId)
+                if (!settings.sharingAsked) setAskShare(true)
+              })
+            }
             onUnfollow={(p) => void act(p.userId, () => unfollow(me!, p.userId))}
           />
         ) : !conn ? (
@@ -403,6 +647,8 @@ export function Friends() {
           </Empty>
         )}
       </div>
+
+      {askShare && <SharingPrompt onClose={() => setAskShare(false)} />}
     </>
   )
 }
@@ -478,7 +724,8 @@ function SearchResults({
  * for a private account it will fill in nothing.
  */
 export function FriendProfile({ userId, username }: { userId: string; username: string }) {
-  const { pop, session } = useApp()
+  const { pop, session, settings } = useApp()
+  const [askShare, setAskShare] = useState(false)
   const me = session?.user.id ?? null
 
   const [person, setPerson] = useState<Person | null>(null)
@@ -557,7 +804,12 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
             <FollowButton
               state={state}
               busy={busy}
-              onFollow={() => void act(() => follow(me, userId))}
+              onFollow={() =>
+                void act(async () => {
+                  await follow(me, userId)
+                  if (!settings.sharingAsked) setAskShare(true)
+                })
+              }
               onUnfollow={() => void act(() => unfollow(me, userId))}
             />
           )}
@@ -590,6 +842,17 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
           </>
         ) : (
           <>
+            <GoalBars person={shown} />
+
+            {shown.exercise && (
+              <>
+                <div className="section-label">Today's workout</div>
+                <div className="card">
+                  <Row title={shown.exercise} sub="Shared by them" />
+                </div>
+              </>
+            )}
+
             <div className="card">
               {/* A streak of zero is left out rather than shown as "0 days",
                   the same rule Home uses for its own badge — it is not a
@@ -603,21 +866,18 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
               {shown.lastLogged && (
                 <Row title="Last logged" value={friendlyDate(shown.lastLogged)} />
               )}
-              {shown.calories !== null && shown.calorieGoal !== null && (
-                <Row
-                  title="Today"
-                  value={`${cal(shown.calories)} / ${cal(shown.calorieGoal)} cal`}
-                />
-              )}
-              {/* Shares a streak, has not started one, and shares nothing else.
-                  Without this the card would render as an empty white box. */}
-              {!shown.streak && !shown.lastLogged && shown.calories === null && (
+              {!shown.streak && !shown.lastLogged && (
                 <Row title="No streak yet" sub="They have not logged a day in a row." />
               )}
             </div>
+
+            {state === 'following' && (
+              <NudgeBar person={shown} onSend={(emoji) => void sendNudge(userId, emoji)} />
+            )}
+
             <div className="hint">
-              Everything here is what {shown.name ?? `@${username}`} chose to publish.
-              Their diary, weight and goals are not visible to anyone.
+              Percentages only — how far {shown.name ?? `@${username}`} is through their
+              own goals. What they ate, drank and weigh is not published to anyone.
             </div>
           </>
         )}
@@ -632,6 +892,8 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
           </>
         )}
       </div>
+
+      {askShare && <SharingPrompt onClose={() => setAskShare(false)} />}
     </>
   )
 }
@@ -651,7 +913,11 @@ export function FriendsSharing() {
 
   const [shareName, setShareName] = useState(settings.shareName)
   const [shareStreak, setShareStreak] = useState(settings.shareStreak)
-  const [shareCalories, setShareCalories] = useState(settings.shareCalories)
+  const [shareCaloriePct, setShareCaloriePct] = useState(settings.shareCaloriePct)
+  const [shareWaterPct, setShareWaterPct] = useState(settings.shareWaterPct)
+  const [shareStepPct, setShareStepPct] = useState(settings.shareStepPct)
+  const [shareMacroPct, setShareMacroPct] = useState(settings.shareMacroPct)
+  const [shareExercise, setShareExercise] = useState(settings.shareExercise)
 
   /* Private lives on the server row rather than in settings: it is the one
      field the database itself reads, when it decides whether a new follow is
@@ -681,10 +947,21 @@ export function FriendsSharing() {
   const dirty =
     shareName !== settings.shareName ||
     shareStreak !== settings.shareStreak ||
-    shareCalories !== settings.shareCalories ||
+    shareCaloriePct !== settings.shareCaloriePct ||
+    shareWaterPct !== settings.shareWaterPct ||
+    shareStepPct !== settings.shareStepPct ||
+    shareMacroPct !== settings.shareMacroPct ||
+    shareExercise !== settings.shareExercise ||
     (priv !== null && priv !== savedPriv)
 
-  const sharesNothing = !shareName && !shareStreak && !shareCalories
+  const sharesNothing =
+    !shareName &&
+    !shareStreak &&
+    !shareCaloriePct &&
+    !shareWaterPct &&
+    !shareStepPct &&
+    !shareMacroPct &&
+    !shareExercise
 
   return (
     <>
@@ -719,11 +996,37 @@ export function FriendsSharing() {
             checked={shareStreak}
             onChange={setShareStreak}
           />
+          {/* Percentages, one goal at a time. Nothing here publishes a
+              figure: a follower sees 68%, never 1,300 calories. */}
           <Toggle
-            label="Today's calories"
-            sub="The day's total against your target. Off unless you turn it on."
-            checked={shareCalories}
-            onChange={setShareCalories}
+            label="Calorie progress"
+            sub="How far through your calorie target you are, as a percentage."
+            checked={shareCaloriePct}
+            onChange={setShareCaloriePct}
+          />
+          <Toggle
+            label="Water progress"
+            sub="Percentage of your daily water goal."
+            checked={shareWaterPct}
+            onChange={setShareWaterPct}
+          />
+          <Toggle
+            label="Step progress"
+            sub="Percentage of your daily step goal."
+            checked={shareStepPct}
+            onChange={setShareStepPct}
+          />
+          <Toggle
+            label="Macro progress"
+            sub="Protein, carbs and fat, each as a percentage of target."
+            checked={shareMacroPct}
+            onChange={setShareMacroPct}
+          />
+          <Toggle
+            label="Today's workouts"
+            sub="The exercise you logged today, by name and length. The only line here that is not a percentage."
+            checked={shareExercise}
+            onChange={setShareExercise}
           />
         </div>
 
@@ -743,7 +1046,15 @@ export function FriendsSharing() {
       <SaveBar
         disabled={!dirty}
         onSave={() => {
-          saveSettings({ shareName, shareStreak, shareCalories })
+          saveSettings({
+            shareName,
+            shareStreak,
+            shareCaloriePct,
+            shareWaterPct,
+            shareStepPct,
+            shareMacroPct,
+            shareExercise,
+          })
           /* The toggles reach the server through the store's publish, which
              re-runs on the settings change. Only the private flag is written
              from here, and only when it actually moved. */

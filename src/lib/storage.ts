@@ -67,6 +67,30 @@ const LEGACY_PERIOD: Record<string, string> = {
   snacks: 'late',
 }
 
+/**
+ * Sharing settings, carried across the change from figures to percentages.
+ *
+ * A saved account had one calorie switch and it was off by default. Spreading
+ * the new defaults over it would turn on water, steps and macros for people
+ * who never agreed to any of them, so an existing save keeps its answer —
+ * calories, and only calories, if that is what it had — and is asked about the
+ * rest the next time it adds someone.
+ */
+function migrateSettings(base: Settings, saved?: Partial<Settings>): Settings {
+  const merged = { ...base, ...saved }
+  const isOldSave = saved != null && saved.shareCaloriePct === undefined
+  if (!isOldSave) return merged
+  return {
+    ...merged,
+    shareCaloriePct: saved.shareCalories ?? false,
+    shareWaterPct: false,
+    shareStepPct: false,
+    shareMacroPct: false,
+    shareExercise: false,
+    sharingAsked: false,
+  }
+}
+
 /** Fills in fields added after a user's data was first written. */
 function migrate(data: Partial<AppData>): AppData {
   const base = defaultData()
@@ -90,7 +114,7 @@ function migrate(data: Partial<AppData>): AppData {
     ...base,
     ...data,
     profile,
-    settings: { ...base.settings, ...data.settings },
+    settings: migrateSettings(base.settings, data.settings),
     foodEntries,
     exerciseEntries: data.exerciseEntries ?? [],
     weights: data.weights ?? [],
@@ -144,6 +168,11 @@ export function defaultProfile(): Profile {
     nutrientGoals: {},
     workoutsPerWeek: 3,
     minutesPerWorkout: 30,
+    /* Eight hours and ten thousand steps: the figures people already have in
+       their heads, which matters more here than precision — neither is a
+       clinical target and both are meant to be changed. */
+    sleepGoalMin: 480,
+    stepGoal: 10000,
     onboarded: false,
   }
 }
@@ -163,7 +192,15 @@ export function defaultSettings(): Settings {
        settings, so accounts written before this get the same. */
     shareName: true,
     shareStreak: true,
-    shareCalories: false,
+    /* Percentages are the whole point of the friends screen, so they are on
+       for a new account. Exercise is not: it carries what you did and when,
+       which is a different kind of detail, and it is asked for by name. */
+    shareCaloriePct: true,
+    shareWaterPct: true,
+    shareStepPct: true,
+    shareMacroPct: true,
+    shareExercise: false,
+    sharingAsked: false,
   }
 }
 

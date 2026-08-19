@@ -574,11 +574,21 @@ export function BarChart({
   goal,
   height = 180,
   unit = '',
+  color = 'var(--accent)',
+  overIsBad = true,
 }: {
   bars: { label: string; value: number }[]
   goal?: number
   height?: number
   unit?: string
+  /** Lets a chart carry its own colour — sleep and steps have their own. */
+  color?: string
+  /**
+   * Whether passing the goal is worth flagging. True for calories, where over
+   * is over; false for sleep and steps, where more than the target is the
+   * point and painting it red would be nonsense.
+   */
+  overIsBad?: boolean
 }) {
   const [active, setActive] = useState<number | null>(null)
   const W = 320
@@ -630,7 +640,7 @@ export function BarChart({
               width={bw}
               height={Math.max(0, h)}
               rx="4"
-              fill={over ? 'var(--danger)' : 'var(--accent)'}
+              fill={over && overIsBad ? 'var(--danger)' : color}
               opacity={b.value === 0 ? 0.16 : active === null || active === i ? 1 : 0.4}
             />
             {active === i && b.value > 0 && (

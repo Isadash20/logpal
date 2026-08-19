@@ -32,6 +32,7 @@ import {
   RecipesList,
 } from './screens/MealsRecipes'
 import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
+import { SleepScreen, StepsScreen } from './screens/wellness'
 import { BarcodeScanner } from './screens/Scanner'
 import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
@@ -43,6 +44,10 @@ import { cloudEnabled } from './lib/supabase'
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
   { key: 'today', label: 'Home', icon: 'home' },
   { key: 'plan', label: 'Plan', icon: 'plan' },
+  /* Friends is a place you go, not a setting you find. It was three taps deep
+     under Settings, which is the wrong depth for a screen whose whole purpose
+     is to be checked on. */
+  { key: 'friends', label: 'Friends', icon: 'user' },
   { key: 'progress', label: 'Progress', icon: 'progress' },
   { key: 'more', label: 'Settings', icon: 'settings' },
 ]
@@ -126,6 +131,8 @@ function Shell() {
           <Today />
         ) : route.tab === 'plan' ? (
           <Plan />
+        ) : route.tab === 'friends' ? (
+          <Friends asTab />
         ) : route.tab === 'progress' ? (
           <Progress />
         ) : (
@@ -183,6 +190,12 @@ function Shell() {
 
       case 'water':
         return <WaterScreen date={route.date} />
+
+      case 'sleep':
+        return <SleepScreen date={route.date} />
+
+      case 'steps':
+        return <StepsScreen date={route.date} />
 
       case 'meals':
         return <MealsList />

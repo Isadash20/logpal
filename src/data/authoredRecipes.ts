@@ -1,4 +1,12 @@
-import type { Recipe } from '../types'
+import { r, PHOTO_CREDITS, type Authored } from './authored/recipe'
+import { BEEF_RECIPES } from './authored/beef'
+import { DESSERT_RECIPES } from './authored/dessertsSnacks'
+import { LAMB_RECIPES } from './authored/lamb'
+import { PLANT_RECIPES } from './authored/plantMains'
+import { PORK_RECIPES } from './authored/pork'
+import { POULTRY_RECIPES } from './authored/poultry'
+import { SEAFOOD_RECIPES } from './authored/seafood'
+import { VEGETABLE_RECIPES } from './authored/vegetables'
 
 /**
  * Recipes written for LogPal.
@@ -22,49 +30,9 @@ import type { Recipe } from '../types'
  * `photoCredit`.
  */
 
-interface Authored extends Recipe {
-  /** What to look for on Commons. Consumed by the photo script. */
-  photoQuery?: string
-}
+export { PHOTO_CREDITS }
 
-/** Photographer and licence, shown on the recipe. Their work, their credit. */
-export const PHOTO_CREDITS: Record<string, string> = {}
-
-function r(a: {
-  id: string
-  name: string
-  description: string
-  servings: number
-  prep: number
-  cook: number
-  tags: string[]
-  ingredients: string[]
-  steps: string[]
-  n: { calories: number; protein: number; carbs: number; fat: number; satFat: number; fiber: number; sugar: number; sodium: number }
-  photo: string
-  imageUrl?: string
-  photoCredit?: string
-}): Authored {
-  if (a.imageUrl && a.photoCredit) PHOTO_CREDITS[`own_${a.id}`] = a.photoCredit
-  return {
-    id: `own_${a.id}`,
-    name: a.name,
-    description: a.description,
-    servingsMade: a.servings,
-    prepMin: a.prep,
-    cookMin: a.cook,
-    tags: a.tags,
-    ingredients: a.ingredients,
-    steps: a.steps,
-    items: [],
-    createdAt: 0,
-    nutritionPerServing: { ...a.n, cholesterol: 0 },
-    photoQuery: a.photo,
-    imageUrl: a.imageUrl,
-  }
-}
-
-export const AUTHORED_RECIPES: Authored[] = [
+const ORIGINAL: Authored[] = [
   r({
     id: 'peanut_chicken_noodles',
     name: 'Peanut Satay Chicken Noodles',
@@ -1779,9 +1747,9 @@ export const AUTHORED_RECIPES: Authored[] = [
     ingredients: ['1 ¼ cups milk', '1 scoop vanilla protein powder', '2 chocolate biscuits', '½ frozen banana', '1 tablespoon cocoa powder', 'Ice'],
     steps: ['Blend the milk, protein, cocoa and banana until smooth.', 'Break in the biscuits and pulse three times only — the flecks are the point.', 'Pour and drink before they soften.'],
     n: { calories: 396, protein: 33, carbs: 44, fat: 10, satFat: 4, fiber: 4, sugar: 30, sodium: 320 },
-    photo: 'chocolate milkshake glass',
-    imageUrl: "https://images.pexels.com/photos/18142621/pexels-photo-18142621.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
-    photoCredit: "Denys Gromov · Pexels licence",
+    photo: 'milkshake chocolate glass',
+    imageUrl: "https://images.pexels.com/photos/38178695/pexels-photo-38178695.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "Uday Veeru · Pexels licence",
   }),
   r({
     id: 'green_protein_shake', name: 'Green Protein Shake',
@@ -1865,8 +1833,8 @@ export const AUTHORED_RECIPES: Authored[] = [
     ingredients: ['2 cups frozen mango', '1 teaspoon ground turmeric', 'A pinch of black pepper', '1 ¼ cups coconut milk', '1 tablespoon honey', '1 tablespoon lime juice'],
     steps: ['Blend everything until smooth.', 'Taste for lime, which stops turmeric tasting dusty.', 'Serve cold.'],
     n: { calories: 246, protein: 3, carbs: 40, fat: 10, satFat: 8, fiber: 4, sugar: 33, sodium: 25 },
-    photo: 'mango smoothie',
-    imageUrl: "https://images.pexels.com/photos/17612822/pexels-photo-17612822.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photo: 'turmeric smoothie glass',
+    imageUrl: "https://images.pexels.com/photos/15082977/pexels-photo-15082977.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     photoCredit: "Shameel mukkath · Pexels licence",
   }),
   r({
@@ -2584,4 +2552,19 @@ export const AUTHORED_RECIPES: Authored[] = [
     imageUrl: "https://images.pexels.com/photos/8864543/pexels-photo-8864543.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     photoCredit: "Vinícius Caricatte · Pexels licence",
   }),
+]
+
+/* Themed batches, added as the library grew past what one file should hold.
+   Everything here is ours, written to fill gaps the shipped catalogue leaves —
+   see each file's header for which gap and why. */
+export const AUTHORED_RECIPES: Authored[] = [
+  ...ORIGINAL,
+  ...BEEF_RECIPES,
+  ...PORK_RECIPES,
+  ...POULTRY_RECIPES,
+  ...SEAFOOD_RECIPES,
+  ...LAMB_RECIPES,
+  ...PLANT_RECIPES,
+  ...VEGETABLE_RECIPES,
+  ...DESSERT_RECIPES,
 ]

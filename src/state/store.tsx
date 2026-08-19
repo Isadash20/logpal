@@ -135,7 +135,7 @@ function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
 
 /* ------------------------------------------------------------ navigation -- */
 
-export type TabKey = 'today' | 'plan' | 'progress' | 'more'
+export type TabKey = 'today' | 'plan' | 'friends' | 'progress' | 'more'
 
 export type Route =
   | { name: 'tab'; tab: TabKey }
@@ -165,6 +165,8 @@ export type Route =
       entryId?: string
     }
   | { name: 'water'; date: string }
+  | { name: 'sleep'; date: string }
+  | { name: 'steps'; date: string }
   | { name: 'meals' }
   | { name: 'mealEditor'; mealId?: string }
   | { name: 'recipes' }
@@ -253,6 +255,8 @@ interface Ctx {
   logExercise(e: Omit<ExerciseEntry, 'id' | 'loggedAt'> & { id?: string }): void
   deleteExercise(id: string): void
   setWater(date: string, ml: number): void
+  setSleep(date: string, minutes: number | null): void
+  setSteps(date: string, steps: number | null): void
   setCompleted(date: string, done: boolean): void
   addWeight(date: string, lb: number): void
   deleteWeight(date: string): void
@@ -664,17 +668,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const published = useMemo<PublishedProfile>(() => {
     const s = data.settings
-    if (!s.shareName && !s.shareStreak && !s.shareCalories) return NOTHING_PUBLISHED
+    const sharesSomething =
+      s.shareName ||
+      s.shareStreak ||
+      s.shareCaloriePct ||
+      s.shareWaterPct ||
+      s.shareStepPct ||
+      s.shareMacroPct ||
+      s.shareExercise
+    if (!sharesSomething) return NOTHING_PUBLISHED
 
-    const totals = totalsFor(today())
+    const d = today()
+    const totals = totalsFor(d)
+    const day = data.days[d]
+    const n = totals.nutrients
+
+    /* Percentages, computed here and rounded before they leave the device.
+       The raw figures are never written, so there is no version of this table
+       that holds what someone ate — only how far along they are. */
+    const pct = (value: number, goal: number) =>
+      goal > 0 ? Math.max(0, Math.round((value / goal) * 100)) : null
+
+    const workout = data.exerciseEntries
+      .filter((e) => e.date === d)
+      .map((e) => (e.minutes ? `${e.name}, ${e.minutes} min` : e.name))
+
     return {
       display_name: s.shareName ? data.profile.name || null : null,
       streak: s.shareStreak ? logStreak : null,
       last_logged: s.shareStreak ? lastLogged : null,
-      calories: s.shareCalories ? Math.round(totals.nutrients.calories) : null,
-      calorie_goal: s.shareCalories ? Math.round(totals.goal) : null,
+      calorie_pct: s.shareCaloriePct ? pct(n.calories, totals.goal) : null,
+      water_pct: s.shareWaterPct ? pct(day?.water ?? 0, waterTarget) : null,
+      step_pct: s.shareStepPct ? pct(day?.steps ?? 0, data.profile.stepGoal) : null,
+      protein_pct: s.shareMacroPct ? pct(n.protein, macroTargets.protein) : null,
+      carbs_pct: s.shareMacroPct ? pct(n.carbs, macroTargets.carbs) : null,
+      fat_pct: s.shareMacroPct ? pct(n.fat, macroTargets.fat) : null,
+      exercise: s.shareExercise && workout.length ? workout.join(' · ').slice(0, 120) : null,
     }
-  }, [data.settings, data.profile.name, logStreak, lastLogged, totalsFor])
+  }, [
+    data.settings,
+    data.profile.name,
+    data.profile.stepGoal,
+    data.days,
+    data.exerciseEntries,
+    logStreak,
+    lastLogged,
+    totalsFor,
+    waterTarget,
+    macroTargets,
+  ])
 
   /* Held so an unchanged summary does not become a write on every keystroke —
      this sits downstream of the whole diary, which changes constantly, while
@@ -836,6 +878,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setWater: (d0, ml) =>
       update((d) => {
         d.days[d0] = { ...(d.days[d0] ?? { water: 0, completed: false }), water: Math.max(0, ml) }
+      }),
+
+    /* Null clears the day rather than writing a zero. Nothing measures either
+       of these for you, so "not recorded" and "none" are genuinely different
+       answers, and only the first one should leave the average alone. */
+    setSleep: (d0, minutes) =>
+      update((d) => {
+        const day = { ...(d.days[d0] ?? { water: 0, completed: false }) }
+        if (minutes == null) delete day.sleepMin
+        else day.sleepMin = Math.max(0, Math.round(minutes))
+        d.days[d0] = day
+      }),
+
+    setSteps: (d0, steps) =>
+      update((d) => {
+        const day = { ...(d.days[d0] ?? { water: 0, completed: false }) }
+        if (steps == null) delete day.steps
+        else day.steps = Math.max(0, Math.round(steps))
+        d.days[d0] = day
       }),
 
     setCompleted: (d0, done) =>

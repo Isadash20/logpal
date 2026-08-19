@@ -99,10 +99,28 @@ describe('parseIngredient', () => {
 
   it('treats a parenthesised aside as a note', () => {
     const p = parseIngredient('1 can (14 oz) diced tomatoes')
-    expect(p.qty).toBe(1)
-    expect(p.unit).toBe('can')
     expect(p.name).toBe('diced tomatoes')
     expect(p.note).toContain('14 oz')
+  })
+
+  /* A can is a package that states its size, not a measure. Reading it as one
+     uncountable "can" is what left every tinned ingredient unpriced. */
+  it('prices a tin by the size printed on it', () => {
+    const p = parseIngredient('1 can (14 oz) diced tomatoes')
+    expect(p.qty).toBe(14)
+    expect(p.unit).toBe('oz')
+  })
+
+  it('multiplies the printed size by the number of tins', () => {
+    const p = parseIngredient('2 cans chickpeas, drained (15 ounce each)')
+    expect(p.qty).toBe(30)
+    expect(p.unit).toBe('oz')
+  })
+
+  it('leaves a tin with no stated size alone', () => {
+    const p = parseIngredient('1 can black beans')
+    expect(p.qty).toBe(1)
+    expect(p.unit).toBe('can')
   })
 
   it('takes the low end of a range', () => {

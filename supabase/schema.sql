@@ -82,8 +82,16 @@ create table if not exists logpal_days (
   date      date not null,
   water     double precision not null default 0,
   completed boolean not null default false,
+  -- Nullable on purpose: nothing measures sleep or steps for you, so a day with
+  -- no figure is "not recorded" rather than a night with no sleep at all.
+  sleep_min integer,
+  steps     integer,
   primary key (user_id, date)
 );
+
+-- Added after the table shipped; safe to re-run.
+alter table logpal_days add column if not exists sleep_min integer;
+alter table logpal_days add column if not exists steps integer;
 
 -- At most one weigh-in per day, which is why the date is the key.
 create table if not exists logpal_weights (
@@ -417,3 +425,60 @@ create policy social_visible on logpal_social_profile for select
 drop policy if exists social_own_write on logpal_social_profile;
 create policy social_own_write on logpal_social_profile for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ------------------------------------------------------------- nudges --
+
+-- One emoji, from one person to another. No message body: a text field is a
+-- moderation problem and an inbox to manage, and a clap says the thing anyway.
+create table if not exists logpal_nudges (
+  id         uuid primary key default gen_random_uuid(),
+  sender     uuid not null default auth.uid() references auth.users on delete cascade,
+  recipient  uuid not null references auth.users on delete cascade,
+  emoji      text not null check (char_length(emoji) between 1 and 8),
+  created_at timestamptz not null default now(),
+  seen       boolean not null default false,
+  constraint logpal_nudges_not_self check (sender <> recipient)
+);
+
+create index if not exists logpal_nudges_inbox
+  on logpal_nudges (recipient, created_at desc);
+
+alter table logpal_nudges enable row level security;
+
+-- Sending is allowed only towards someone this account already follows, and
+-- only as itself. Checked here rather than in the client, because the client
+-- is the thing being defended against.
+drop policy if exists logpal_nudges_send on logpal_nudges;
+create policy logpal_nudges_send on logpal_nudges
+  for insert with check (
+    sender = auth.uid()
+    and exists (
+      select 1 from logpal_follows f
+      where f.follower = auth.uid()
+        and f.followee = logpal_nudges.recipient
+        and f.status = 'accepted'
+    )
+  );
+
+drop policy if exists logpal_nudges_read on logpal_nudges;
+create policy logpal_nudges_read on logpal_nudges
+  for select using (recipient = auth.uid() or sender = auth.uid());
+
+-- Only the recipient marks one seen, and cannot hand it to someone else.
+drop policy if exists logpal_nudges_seen on logpal_nudges;
+create policy logpal_nudges_seen on logpal_nudges
+  for update using (recipient = auth.uid()) with check (recipient = auth.uid());
+
+drop policy if exists logpal_nudges_clear on logpal_nudges;
+create policy logpal_nudges_clear on logpal_nudges
+  for delete using (recipient = auth.uid() or sender = auth.uid());
+
+-- Percentages replaced the raw figures on the shared profile: followers see
+-- how far along someone is, never what they ate. Safe to re-run.
+alter table logpal_social_profile add column if not exists calorie_pct integer;
+alter table logpal_social_profile add column if not exists water_pct integer;
+alter table logpal_social_profile add column if not exists step_pct integer;
+alter table logpal_social_profile add column if not exists protein_pct integer;
+alter table logpal_social_profile add column if not exists carbs_pct integer;
+alter table logpal_social_profile add column if not exists fat_pct integer;
+alter table logpal_social_profile add column if not exists exercise text;

@@ -226,6 +226,8 @@ interface DayRow {
   date: string
   water: number
   completed: boolean
+  sleep_min: number | null
+  steps: number | null
 }
 
 export const days: Collection<DayRow> = {
@@ -236,8 +238,18 @@ export const days: Collection<DayRow> = {
       date,
       water: log.water,
       completed: log.completed,
+      /* Null rather than zero: an untouched day has no sleep or step figure,
+         and writing zeros would make every day look like a night with none. */
+      sleep_min: log.sleepMin ?? null,
+      steps: log.steps ?? null,
     })),
-  toRow: (d) => ({ date: d.date, water: d.water, completed: d.completed }),
+  toRow: (d) => ({
+    date: d.date,
+    water: d.water,
+    completed: d.completed,
+    sleep_min: d.sleep_min,
+    steps: d.steps,
+  }),
 }
 
 const fasts: Collection<FastSession> = {
@@ -409,7 +421,12 @@ export async function fetchAll(): Promise<AppData | null> {
     days: Object.fromEntries(
       (dayRes.data ?? []).map((r) => [
         r.date,
-        { water: r.water, completed: r.completed },
+        {
+          water: r.water,
+          completed: r.completed,
+          ...(r.sleep_min == null ? {} : { sleepMin: Number(r.sleep_min) }),
+          ...(r.steps == null ? {} : { steps: Number(r.steps) }),
+        },
       ]),
     ),
 

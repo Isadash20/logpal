@@ -217,10 +217,13 @@ h4 {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* Five tabs since Friends became one of them. Named explicitly rather than
+     auto-fit so the columns stay equal — an auto grid gave "Progress" more
+     room than "Plan" and the icons stopped lining up. */
+  grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
   border-radius: var(--r-full);
-  padding: 7px 6px;
+  padding: 7px 4px;
   box-shadow: var(--shadow-2);
 }
 
@@ -231,10 +234,20 @@ h4 {
   justify-content: center;
   gap: 2px;
   color: var(--text-2);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   padding: 4px 0;
   border-radius: var(--r-full);
+  min-width: 0;
+}
+
+/* Five labels in the width that held four: the longest one decides, and
+   "Progress" is one character from wrapping on a small phone. */
+.tabbar__item span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tabbar__item--active {
@@ -2140,4 +2153,198 @@ button.row:active {
   border-color: var(--border-strong);
   color: var(--text-3);
   text-decoration: line-through;
+}
+
+/* The wait before a recipe starts — proving, marinating, chilling. Sits under
+   the working time rather than beside it, because it is a different kind of
+   number and reading them as one total is exactly the confusion to avoid. */
+.rstats__aside {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------------- widgets -- */
+
+/* Home's arrangeable board. Four columns, a fixed row height, and CSS grid
+   packing the rest — see lib/widgetLayout.ts for why the model is an ordered
+   list rather than coordinates. */
+.wgrid {
+  display: grid;
+  grid-auto-flow: row dense;
+  padding: 0 14px 4px;
+}
+
+.widget {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Being arranged: everything wobbles, the way it does on a phone, so the board
+   reads as editable without a banner saying so. */
+.wgrid--editing .widget {
+  animation: widget-wobble 1.6s ease-in-out infinite;
+  touch-action: none;
+}
+
+.wgrid--editing .widget:nth-child(even) {
+  animation-delay: -0.8s;
+}
+
+.widget--dragging {
+  animation: none;
+  transform: scale(1.04);
+  box-shadow: 0 12px 28px rgb(15 23 42 / 0.22);
+  z-index: 5;
+  opacity: 0.94;
+}
+
+@keyframes widget-wobble {
+  0%, 100% { transform: rotate(-0.45deg); }
+  50% { transform: rotate(0.45deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wgrid--editing .widget { animation: none; }
+}
+
+.widget__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  height: 100%;
+  width: 100%;
+  padding: 13px 14px 14px;
+  text-align: left;
+}
+
+.widget__body--tap {
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.widget__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.widget__figures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 10px;
+  flex-wrap: wrap;
+}
+
+.widget__value {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-top: 2px;
+}
+
+.widget__unit {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0;
+}
+
+.widget__sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+/* Sits over the widget's own content, so it is reachable whatever is drawn
+   underneath — including a widget whose whole body is a button. */
+.widget__remove {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--on-ink);
+  z-index: 3;
+}
+
+.widget__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  height: 30px;
+  cursor: nwse-resize;
+  touch-action: none;
+  z-index: 3;
+}
+
+/* The grip itself: two short strokes, as small as it can be and still be
+   findable with a thumb. The 30px hit area above is what is actually tapped. */
+.widget__resize::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 11px;
+  height: 11px;
+  border-right: 2.5px solid var(--text-3);
+  border-bottom: 2.5px solid var(--text-3);
+  border-bottom-right-radius: 3px;
+}
+
+.wedit {
+  padding: 14px 16px 4px;
+}
+
+.wedit__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+
+.wedit__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* Three equal actions in a row. Done is the primary one but no wider than the
+   others — it was a full-width slab beside two text links, which read as the
+   only button on screen. */
+.wedit__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.wedit__actions .btn {
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* Room for the remove badge while the board is being arranged, so it never
+   sits on top of the widget's own title. */
+.wgrid--editing .widget__body > :first-child {
+  padding-left: 22px;
 }

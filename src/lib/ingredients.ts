@@ -187,6 +187,36 @@ function unitFor(word: string): UnitDef | null {
   return null
 }
 
+/**
+ * Containers whose size is printed on them.
+ *
+ * A can is not a measure — it is a package that states one — so the number to
+ * price is the "(15 ounce)" beside it, not the container itself. See
+ * `containerSize`.
+ */
+const CONTAINER = new Set(['can', 'jar', 'package', 'container'])
+
+/**
+ * The size written next to a container: "1 can (14 oz)", "5 ounces, drained".
+ *
+ * Returns a real measure so the ordinary weight path can price the line. Only
+ * weight and volume count; "(2 optional)" and "(4 inch)" are not sizes.
+ */
+function containerSize(notes: string[]): { qty: number; unit: string } | null {
+  for (const note of notes) {
+    for (const part of note.split(',')) {
+      const q = readQuantity(part.trim())
+      if (!q) continue
+      const word = q.rest.match(/^([A-Za-z]+\.?)/)
+      const def = word ? unitFor(word[1]) : null
+      if (def && (def.kind === 'weight' || def.kind === 'volume')) {
+        return { qty: q.qty, unit: def.key }
+      }
+    }
+  }
+  return null
+}
+
 /** Words between the amount and the food that carry no measurement. */
 const FILLER = new Set(['of', 'a', 'an'])
 
@@ -234,7 +264,7 @@ export function parseIngredient(line: string): ParsedIngredient {
   })
 
   const q = readQuantity(text)
-  const qty = q ? q.qty : null
+  let qty = q ? q.qty : null
   text = (q ? q.rest : text).trim()
 
   /* Unit, longest phrase first so "us fluid ounce" beats "us" and "fl oz"
@@ -283,6 +313,26 @@ export function parseIngredient(line: string): ParsedIngredient {
     if (re.test(text)) {
       notes.unshift(p)
       text = text.replace(re, '').trim()
+    }
+  }
+
+  /* A tin priced by what is in it.
+   *
+   * "1 can tuna fish, packed in water (5 ounces, drained)" is five ounces of
+   * tuna, and reading it as one uncountable "can" left the line — and the
+   * recipe's calories with it — blank. Multiplying by the printed size only
+   * works because `matchIngredient` now refuses matches that change what the
+   * food is; the earlier attempt at this turned a can of pumpkin into fifteen
+   * ounces of pumpkin seeds.
+   *
+   * The same reading fixes the packages that name no unit at all — "1 block
+   * extra-firm tofu (14 ounce)", "4 bone-in pork chops (8 ounces each)" — which
+   * were being priced as one database serving each. */
+  if (qty != null && (unit === null || CONTAINER.has(unit))) {
+    const size = containerSize(notes)
+    if (size) {
+      qty = qty * size.qty
+      unit = size.unit
     }
   }
 
@@ -375,7 +425,84 @@ function headNoun(name: string): string {
  *      two words the query did not ask for; "Cinnamon buns, frosted (includes
  *      honey buns)" carries five. The first is the spice, the second is cake.
  */
-export function matchIngredient(name: string, search: (q: string) => Food[]): Food | null {
+/**
+ * Words that turn one food into another.
+ *
+ * "Pumpkin" and "pumpkin seeds" share a head noun and are not the same
+ * ingredient — one is a vegetable, the other is 560 calories per cup of fat.
+ * When a candidate carries one of these and the line did not ask for it, it is
+ * a different food wearing the same name, so it is refused outright rather than
+ * ranked lower. This is the confidence the tinned-goods note in `servingFor`
+ * was waiting on.
+ */
+const DERIVED = new Set([
+  'seed', 'seeds', 'oil', 'flour', 'powder', 'paste', 'sauce', 'juice',
+  'syrup', 'extract', 'butter', 'cream', 'milk', 'chip', 'chips', 'bar',
+  'bars', 'cookie', 'cookies', 'cake', 'bread', 'candy', 'snack', 'drink',
+  'soda', 'dressing', 'spread', 'jam', 'jelly', 'pie', 'roll', 'bun',
+  'cracker', 'crackers', 'chocolate', 'ice',
+].map(stem))
+
+/**
+ * Names the database does not use.
+ *
+ * FoodData Central is American, and a good part of this catalogue is not:
+ * "courgettes", "aubergine", "beef mince" and "cornflour" all failed to match
+ * anything at all. Translating the word before the search is the whole fix —
+ * the food is in the database under its other name.
+ */
+const SYNONYMS: Record<string, string> = {
+  courgette: 'zucchini',
+  courgettes: 'zucchini',
+  aubergine: 'eggplant',
+  aubergines: 'eggplant',
+  beetroot: 'beets',
+  cornflour: 'cornstarch',
+  chilli: 'chili',
+  chillies: 'chili',
+  chilies: 'chili',
+  mince: 'ground',
+  prawn: 'shrimp',
+  prawns: 'shrimp',
+  rocket: 'arugula',
+  coriander: 'cilantro',
+  beansprouts: 'bean sprouts',
+  passata: 'tomato puree',
+  'purée': 'puree',
+  swede: 'rutabaga',
+  mangetout: 'snow peas',
+  sultanas: 'raisins',
+  gammon: 'ham',
+  biscuit: 'cookie',
+  biscuits: 'cookies',
+  yoghurt: 'yogurt',
+  wholemeal: 'whole wheat',
+  'spring onion': 'scallion',
+  'spring onions': 'scallions',
+  'plain flour': 'all-purpose flour',
+  'caster sugar': 'granulated sugar',
+  'icing sugar': 'powdered sugar',
+  'double cream': 'heavy cream',
+  'single cream': 'light cream',
+  'natural yoghurt': 'plain yogurt',
+}
+
+/** Rewrites an ingredient name into words the database files things under. */
+function anglicise(name: string): string {
+  let out = name.toLowerCase()
+  for (const [from, to] of Object.entries(SYNONYMS)) {
+    if (from.includes(' ')) {
+      out = out.replace(new RegExp(`\\b${from}\\b`, 'g'), to)
+    }
+  }
+  return out
+    .split(/\s+/)
+    .map((w) => SYNONYMS[w] ?? w)
+    .join(' ')
+}
+
+export function matchIngredient(rawName: string, search: (q: string) => Food[]): Food | null {
+  const name = anglicise(rawName)
   const head = headNoun(name)
   if (!head) return null
 
@@ -410,6 +537,8 @@ export function matchIngredient(name: string, search: (q: string) => Food[]): Fo
     for (const food of search(q)) {
       const foodWords = tokens(`${food.name} ${food.brand ?? ''}`).map(stem)
       if (!foodWords.includes(head)) continue
+      // A derived form nobody asked for is a different food, not a near miss.
+      if (foodWords.some((w) => DERIVED.has(w) && !asked.has(w))) continue
 
       let extra = 0
       for (const w of foodWords) if (!asked.has(w) && !STOP.has(w)) extra++
@@ -436,21 +565,46 @@ export function matchIngredient(name: string, search: (q: string) => Food[]): Fo
  * the database already knows the weight of, so no volume-to-weight guess is
  * needed. Only when there is no such serving does this fall back to grams,
  * and for a count unit like "clove" there is no sensible fallback at all.
+ *
+ * Weights are the exception and go through grams first. An ounce is an ounce
+ * whatever the food, so the conversion is exact — while USDA's own labels
+ * include "1 oz yields" (an ounce of raw meat *after* cooking, about 20 g) and
+ * "Guideline amount per fl oz of" (2.5 g of coconut milk). Both contain "oz",
+ * both used to win the label match, and both are how five ounces of tuna came
+ * out at 85 calories and a tin of coconut milk at eleven.
  */
+/** A US tin, when the label does not say. */
+const TIN_G = 425
+
+/** A protein-powder scoop, when the label does not say. */
+const SCOOP_G = 30
+
 function servingFor(
   food: Food,
   parsed: ParsedIngredient,
-): { serving: Serving; servings: number } | null {
+): { serving: Serving; servings: number; assumed?: boolean } | null {
   const servings = food.servings ?? []
   if (!servings.length) return null
 
   const qty = parsed.qty ?? 1
   const unitDef = parsed.unit ? UNIT_BY_KEY.get(parsed.unit) : null
 
+  /* Weight: convert through grams, which is exact and cannot be fooled by a
+     label. */
+  if (unitDef?.base && unitDef.kind === 'weight') {
+    const grams = qty * unitDef.base
+    const withGrams = servings.find((s) => s.grams && s.grams > 0)
+    if (withGrams) return { serving: withGrams, servings: grams / withGrams.grams! }
+  }
+
   // A serving labelled in the same unit: "1 cup", "2 tbsp", "1 oz".
   if (parsed.unit) {
     for (const s of servings) {
       const label = s.label.toLowerCase()
+      /* Not every label is a portion. "1 oz yields" is what an ounce weighs
+         after cooking and "Guideline amount per cup of hot" is a dosing note;
+         both read as a unit match and neither is one. */
+      if (/yield|guideline|per\b/.test(label)) continue
       const alias = [...UNIT_BY_ALIAS.entries()]
         .filter(([, d]) => d.key === parsed.unit)
         .map(([a]) => a)
@@ -477,15 +631,35 @@ function servingFor(
     if (withGrams) return { serving: withGrams, servings: (qty * unitDef.base) / withGrams.grams! }
   }
 
-  /* Tins and packets are deliberately left unpriced.
+  /* A tin that prints no size at all.
    *
-   * The size is often right there — "1 can pumpkin (15 ounce)" — and converting
-   * it was tried. It made things worse, because a can multiplies whatever the
-   * match happened to be: "pumpkin" resolves to Pumpkin Seeds in this database,
-   * and fifteen ounces of those is 2,400 calories arriving silently. Leaving the
-   * line uncounted understates the recipe, but it says so on screen, and an
-   * undercount you can see beats an overcount you cannot. Worth revisiting once
-   * ingredient matching can express confidence rather than just a best guess. */
+   * American tins of beans, pulses and chopped tomatoes are 15 ounces often
+   * enough that the assumption is better than the alternative, which is a
+   * recipe silently missing its entire protein. Flagged as approximate, and it
+   * is only reached once `matchIngredient` has agreed the food is the food. */
+  if (unitDef?.kind === 'count' && CONTAINER.has(unitDef.key)) {
+    const withGrams = servings.find((s) => s.grams && s.grams > 0)
+    if (withGrams) {
+      return { serving: withGrams, servings: (qty * TIN_G) / withGrams.grams!, assumed: true }
+    }
+  }
+
+  /* A scoop is not a measure either, but protein powders are consistent enough
+     about it that thirty grams is closer than nothing. */
+  if (unitDef?.key === 'scoop') {
+    const withGrams = servings.find((s) => s.grams && s.grams > 0)
+    if (withGrams) {
+      return { serving: withGrams, servings: (qty * SCOOP_G) / withGrams.grams!, assumed: true }
+    }
+  }
+
+  /* A tin that does not print its size is still unpriced.
+   *
+   * `parseIngredient` converts "1 can (15 ounce)" into fifteen ounces, which the
+   * weight path above handles. What is left here is "1 can tomatoes" with no
+   * size anywhere, and there is nothing to scale: multiplying by whatever the
+   * match happened to be is how a can of pumpkin became fifteen ounces of
+   * pumpkin seeds. An undercount you can see beats an overcount you cannot. */
 
   // No unit at all — "2 eggs", "1 avocado". The food's own first serving is
   // exactly the right notion of "one of them".
@@ -574,7 +748,7 @@ export function resolveIngredient(
     nutrients: scaleNutrients(food.nutrients, chosen.servings * chosen.serving.multiplier),
     servingLabel: chosen.serving.label,
     servings: chosen.servings,
-    approximate: unitDef?.kind === 'volume' && !labelMatchesUnit,
+    approximate: (unitDef?.kind === 'volume' && !labelMatchesUnit) || chosen.assumed === true,
   }
 }
 

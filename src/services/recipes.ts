@@ -13,6 +13,7 @@ import { SEED_RECIPES } from '../data/seedRecipes'
 import { AUTHORED_RECIPES } from '../data/authoredRecipes'
 import { catalogRecipes, catalogSize } from './recipeDb'
 import { healthScore, type HealthScore } from '../lib/healthScore'
+import { workingMinutes } from '../lib/recipeTime'
 import {
   dietTagsFor,
   hasAddedSugar,
@@ -201,10 +202,16 @@ export function summarise(recipe: Recipe, extraFoods: Food[] = []): RecipeSummar
   return summary
 }
 
-/** Total minutes, or null when the recipe does not say. */
+/**
+ * Total working minutes — the recipe's own figure, or one read off its method.
+ *
+ * The whole USDA catalogue ships without prep or cook times, which showed as a
+ * dash on every card and, worse, meant every cook-time filter silently dropped
+ * all 1,054 of them: a null time cannot be under thirty minutes. See
+ * `workingMinutes`.
+ */
 export function totalMinutes(r: Recipe): number | null {
-  const t = (r.prepMin ?? 0) + (r.cookMin ?? 0)
-  return t > 0 ? t : null
+  return workingMinutes(r)?.mins ?? null
 }
 
 /** "1h 15m", "25m" — the form both reference apps use on a card. */
@@ -283,11 +290,13 @@ export type SortKey = 'relevance' | 'calories' | 'time' | 'health' | 'name'
 /**
  * Recipe search across every facet at once.
  *
- * Terms from different groups combine with AND — asking for High Protein *and*
- * Dinner should narrow — while ingredients combine with OR, because naming
- * three things in the fridge is an invitation to show anything using any of
- * them. Getting those two the same way round would make the ingredient picker
- * useless the moment you added a second ingredient.
+ * Everything combines with AND. Adding a word or a chip always narrows, never
+ * widens: High Protein *and* Dinner, and "cod" plus "lemon" means recipes with
+ * both, not the union of the two. Ingredients were OR at first, on the theory
+ * that naming three things in the fridge invites anything using any of them —
+ * but in use a second ingredient reads as "and also", and an OR that grows the
+ * result set as you keep typing feels broken. `exclude` is still the stricter
+ * mirror: one banned hit drops the recipe.
  */
 export function searchRecipes(
   recipes: Recipe[],
@@ -296,7 +305,7 @@ export function searchRecipes(
   resolve: (r: Recipe) => { nutritionTags: string[]; dietTags: string[] } = (r) =>
     summarise(r),
 ): Recipe[] {
-  const q = query.trim().toLowerCase()
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
   const terms = filters.terms ?? []
   const wanted = (filters.ingredients ?? []).map((i) => i.toLowerCase())
   const banned = (filters.exclude ?? []).map((i) => i.toLowerCase())
@@ -305,11 +314,13 @@ export function searchRecipes(
   return recipes.filter((r) => {
     if (filters.savedOnly && !saved.has(r.id)) return false
 
-    if (q) {
+    if (words.length) {
       const hay = [r.name, r.description ?? '', ...(r.tags ?? []), ...(r.ingredients ?? [])]
         .join(' ')
         .toLowerCase()
-      if (!hay.includes(q)) return false
+      /* Every word, not the phrase: "cod lemon" is two things being asked for
+         together, and no recipe contains that as a substring. */
+      if (!words.every((w) => hay.includes(w))) return false
     }
 
     if (terms.length) {
@@ -330,7 +341,7 @@ export function searchRecipes(
 
     if (wanted.length || banned.length) {
       const ing = (r.ingredients ?? []).join(' ').toLowerCase()
-      if (wanted.length && !wanted.some((w) => ing.includes(w))) return false
+      if (wanted.length && !wanted.every((w) => ing.includes(w))) return false
       /* Excluding is stricter than including on purpose: one hit is enough to
          drop the recipe, because someone avoiding peanuts needs that to be
          absolute rather than a preference. */

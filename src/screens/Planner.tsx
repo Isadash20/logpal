@@ -3,7 +3,9 @@ import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { stepDetail } from '../lib/stepDetail'
+import { formatRest, restMinutes, workingMinutes } from '../lib/recipeTime'
 import { Icon } from '../components/Icon'
+import { NutritionLabel } from '../components/nutrition'
 import { Empty, Row, Sheet, Tabs, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { cal } from '../lib/format'
@@ -27,7 +29,6 @@ import {
   type SortKey,
 } from '../services/recipes'
 import { INGREDIENT_GROUPS, STARTER_INGREDIENTS } from '../data/ingredients'
-import { PHOTO_CREDITS } from '../data/authoredRecipes'
 import {
   matchesTerm,
   COOK_TIMES,
@@ -112,7 +113,7 @@ function RecipeCard({
   onSave?(): void
   onClick(): void
 }) {
-  const mins = totalMinutes(recipe)
+  const work = workingMinutes(recipe)
   const tag = recipe.tags?.[0]
   const { data } = useApp()
   const resolved = summarise(recipe, [...data.customFoods, ...Object.values(data.foodCache)])
@@ -149,7 +150,14 @@ function RecipeCard({
           </span>
         )}
         {tag && <span className="rcard__tag">{tag}</span>}
-        {mins && <span className="rcard__time">{formatMinutes(mins)}</span>}
+        {/* A tilde marks a time read off the method: the USDA half of the
+            catalogue publishes none, and a bare "45m" would read as theirs. */}
+        {work && (
+          <span className="rcard__time">
+            {work.estimated ? '~' : ''}
+            {formatMinutes(work.mins)}
+          </span>
+        )}
       </span>
       <span className="rcard__body">
         <span className="rcard__title">{recipe.name}</span>
@@ -1076,6 +1084,12 @@ function FilterSheet({
   onClear(): void
   onClose(): void
 }) {
+  /* Only the chip you tapped.
+   *
+   * The sheet used to carry every group with the tapped one moved to the top,
+   * which meant choosing a meal type opened a page of ingredients, diets,
+   * cuisines and cook times to scroll past. A chip is a question; this answers
+   * that one. */
   const ordered = useMemo(() => {
     const groups = [
       { key: 'ingredients', label: 'Ingredients' },
@@ -1083,20 +1097,24 @@ function FilterSheet({
       { key: 'time', label: 'Cook time' },
       { key: 'exclude', label: 'Exclude' },
     ]
-    const i = groups.findIndex((g) => g.key === group)
-    return i <= 0 ? groups : [groups[i], ...groups.filter((_, k) => k !== i)]
+    const chosen = groups.find((g) => g.key === group)
+    return chosen ? [chosen] : groups
   }, [group])
 
   return (
     <Sheet onClose={onClose} className="sheet--split">
       <div className="fsheet">
         <div className="fsheet__head">
-          <span className="fsheet__title">Filters</span>
+          {/* The group's own name, since it is the only one on screen. */}
+          <span className="fsheet__title">{ordered.length === 1 ? ordered[0].label : 'Filters'}</span>
         </div>
 
         {ordered.map((g) => (
           <div key={g.key} className="fgroup">
-            <div className="fgroup__label">
+            {/* The heading is the sheet's title when there is only one group,
+                so repeating it here would print the word twice. `hidden` is not
+                enough — .fgroup__label sets its own display, which wins. */}
+            <div className="fgroup__label" style={ordered.length === 1 ? { display: 'none' } : undefined}>
               {g.label}
               {countFor(
                 g.key,
@@ -1299,7 +1317,8 @@ export function RecipeView({
      interaction people actually use on a recipe — cooking for two when it makes
      four. The stored recipe never changes; only what is displayed. */
   const scale = servings / made
-  const mins = totalMinutes(recipe)
+  const work = workingMinutes(recipe)
+  const rest = restMinutes(recipe)
 
   /**
    * Keeps the recipe as a meal you can log from the food search.
@@ -1376,18 +1395,9 @@ export function RecipeView({
         <div className="pagetitle" style={{ paddingBottom: 4 }}>
           {recipe.name}
         </div>
-        {recipe.description && (
-          <div className="hint" style={{ paddingTop: 0 }}>
-            {recipe.description}
-          </div>
-        )}
-        {/* Somebody took this photograph and licensed it for reuse; saying so
-            is both the licence term and the decent thing. */}
-        {PHOTO_CREDITS[recipe.id] && (
-          <div className="hint" style={{ paddingTop: 0, color: 'var(--text-3)', fontSize: 12 }}>
-            Photo: {PHOTO_CREDITS[recipe.id]}
-          </div>
-        )}
+        {/* No blurb and no photo credit under the title. The descriptions read
+            as marketing next to the numbers people came for, and the Pexels
+            licence asks for no attribution — it was offered, not required. */}
 
         {/* Summary and navigation in one control: three numbers worth knowing,
             each of which opens the section behind it. */}
@@ -1403,10 +1413,21 @@ export function RecipeView({
             className={`rstats__item ${section === 'steps' ? 'rstats__item--active' : ''}`}
             onClick={() => setSection('steps')}
           >
-            <div className="rstats__value">{mins ? formatMinutes(mins) : '—'}</div>
+            <div className="rstats__value">
+              {/* A tilde where the figure was read off the method rather than
+                  published with the recipe. */}
+              {work ? `${work.estimated ? '~' : ''}${formatMinutes(work.mins)}` : '—'}
+            </div>
             <div className="rstats__label">
               {recipe.steps?.length ? `${recipe.steps.length} steps` : 'Method'}
             </div>
+            {/* Waiting is not cooking, so it is shown beside the working time
+                rather than folded into it: a dough that proves for four hours
+                is still forty minutes of work, and a recipe that reported
+                four and a half hours would never be opened. */}
+            {rest != null && (
+              <div className="rstats__aside">+{formatRest(rest)} ahead</div>
+            )}
           </button>
           <button
             className={`rstats__item ${section === 'health' ? 'rstats__item--active' : ''}`}
@@ -1417,28 +1438,41 @@ export function RecipeView({
           </button>
         </div>
 
-        {/* Per serving, always — a recipe's total is a number nobody eats. */}
-        <div className="card" style={{ marginTop: 12 }}>
-          <Row
-            title="Per serving"
-            value={`${cal(resolved.perServing.calories * (scale / (servings / made || 1)))} cal`}
-          />
-          <Row
-            title="Carbs · Fat · Protein"
-            value={`${Math.round(resolved.perServing.carbs)} · ${Math.round(
-              resolved.perServing.fat,
-            )} · ${Math.round(resolved.perServing.protein)} g`}
-          />
-          {recipe.prepMin != null && recipe.cookMin != null && (
-            <Row
-              title="Time"
-              value={`Prep ${recipe.prepMin}m · Cook ${recipe.cookMin}m`}
-            />
-          )}
-        </div>
-
         {section === 'ingredients' && (
           <>
+            {/* Per serving, and only here.
+                A recipe's total is a number nobody eats, so this is always per
+                serving — and it belongs with the ingredients rather than to the
+                screen as a whole: sitting above the tabs it read as a header
+                for whichever section happened to be open. */}
+            <div className="card" style={{ marginTop: 12 }}>
+              <Row title="Per serving" value={`${cal(resolved.perServing.calories)} cal`} />
+              <Row
+                title="Carbs · Fat · Protein"
+                value={`${Math.round(resolved.perServing.carbs)} · ${Math.round(
+                  resolved.perServing.fat,
+                )} · ${Math.round(resolved.perServing.protein)} g`}
+              />
+              {recipe.prepMin != null && recipe.cookMin != null ? (
+                <Row
+                  title="Time"
+                  /* "Cook 0m" is not a time, it is a recipe with no cooking. */
+                  value={
+                    recipe.cookMin
+                      ? `Prep ${recipe.prepMin}m · Cook ${recipe.cookMin}m`
+                      : `Prep ${recipe.prepMin}m · no cooking`
+                  }
+                />
+              ) : (
+                work && (
+                  <Row title="Time" value={`About ${formatMinutes(work.mins)}, from the method`} />
+                )
+              )}
+              {rest != null && (
+                <Row title="Before you start" value={`${formatRest(rest)} resting or chilling`} />
+              )}
+            </div>
+
             <div className="servings">
               <button
                 className="servings__btn"
@@ -1720,6 +1754,13 @@ function HealthPanel({ resolved }: { resolved: NonNullable<ReturnType<typeof res
           </div>
         </>
       )}
+
+      {/* The whole panel, not just the nutrients that moved the score. The bars
+          above answer "why this number"; this answers "what am I eating", and
+          the two are different questions. Same seventeen nutrients and the same
+          FDA daily values a packet uses. */}
+      <div className="section-label">Full nutrition, per serving</div>
+      <NutritionLabel n={resolved.perServing} />
     </>
   )
 }

@@ -19,7 +19,10 @@ export const PERIOD_LABELS: Record<MealKey, string> = {
   morning: 'Morning',
   afternoon: 'Afternoon',
   evening: 'Evening',
-  late: 'Late',
+  /* Named for what it is rather than when it is. The clock rule is unchanged —
+     anything logged from 9pm lands here — but "Late" described the hour and
+     "Snacks" describes the food, which is what people are looking for. */
+  late: 'Snacks',
 }
 
 /** Boundaries in local hours. `late` wraps past midnight. */
@@ -358,6 +361,10 @@ export interface Profile {
   nutrientGoals: Partial<Record<NutrientKey, number>>
   workoutsPerWeek: number
   minutesPerWorkout: number
+  /** Nightly sleep target, in minutes. */
+  sleepGoalMin: number
+  /** Daily step target. */
+  stepGoal: number
   /** Manual override of the computed hydration target. */
   waterGoalOverrideMl?: number
   onboarded: boolean
@@ -389,8 +396,29 @@ export interface Settings {
    */
   shareName: boolean
   shareStreak: boolean
-  /** Today's calories against the day's target. Off by default. */
-  shareCalories: boolean
+  /**
+   * Progress against a goal, as a percentage and nothing else.
+   *
+   * Followers see "68% of calories", never 1,300 of 1,900 — the figure that
+   * lets someone cheer you on without handing them your intake. The absolute
+   * numbers are not published at all, so there is nothing to leak later.
+   */
+  shareCaloriePct: boolean
+  shareWaterPct: boolean
+  shareStepPct: boolean
+  shareMacroPct: boolean
+  /** The name and length of today's workouts. Off until it is asked for. */
+  shareExercise: boolean
+  /**
+   * Whether this account has been asked what its friends may see.
+   *
+   * The question is asked the first time someone is followed, because that is
+   * the first moment it means anything — asking during sign-up would be a
+   * privacy screen about a feature they have not used.
+   */
+  sharingAsked: boolean
+  /** @deprecated Replaced by `shareCaloriePct`; kept so old saves migrate. */
+  shareCalories?: boolean
 }
 
 /* ---------------------------------------------------- intermittent fasting -- */
@@ -430,6 +458,16 @@ export interface FastingSettings {
 export interface DayLog {
   water: number // ml
   completed: boolean
+  /**
+   * Minutes slept, and steps walked, for the day.
+   *
+   * Both are optional and both are entered by hand. There is no web API for
+   * either — no pedometer, no health store — so an absent value means "not
+   * recorded" and must not be read as a zero, or every untouched day would
+   * report no sleep at all.
+   */
+  sleepMin?: number
+  steps?: number
 }
 
 export interface AppData {

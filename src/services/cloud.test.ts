@@ -105,7 +105,7 @@ describe('diffCollection', () => {
       const { changed } = diffCollection(days, null, next)
 
       expect(changed).toEqual([
-        { date: '2026-08-06', water: 500, completed: false },
+        { date: '2026-08-06', water: 500, completed: false, sleep_min: null, steps: null },
       ])
     })
 
@@ -115,9 +115,24 @@ describe('diffCollection', () => {
       const { changed, gone } = diffCollection(days, prev, next)
 
       expect(changed).toEqual([
-        { date: '2026-08-06', water: 750, completed: true },
+        { date: '2026-08-06', water: 750, completed: true, sleep_min: null, steps: null },
       ])
       expect(gone).toEqual([])
+    })
+
+    /* Null, not zero: a day with no figure has not been slept through, it has
+       not been recorded, and the two must not arrive at the server the same. */
+    it('sends sleep and steps, and nulls when they are absent', () => {
+      const next = withDays({
+        '2026-08-06': { water: 500, completed: false, sleepMin: 435, steps: 8200 },
+        '2026-08-07': { water: 0, completed: false },
+      })
+      const { changed } = diffCollection(days, null, next)
+
+      expect(changed).toEqual([
+        { date: '2026-08-06', water: 500, completed: false, sleep_min: 435, steps: 8200 },
+        { date: '2026-08-07', water: 0, completed: false, sleep_min: null, steps: null },
+      ])
     })
 
     it('deletes a day that disappeared', () => {

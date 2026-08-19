@@ -45,8 +45,21 @@ export interface Person {
   streak: number | null
   /** YYYY-MM-DD of their most recent logged day. */
   lastLogged: string | null
-  calories: number | null
-  calorieGoal: number | null
+  /**
+   * Progress against their own goals, 0–100 and occasionally past it.
+   *
+   * Percentages only, by design. What someone eats, drinks and walks in a day
+   * is theirs; how close they are to the target they set is the part worth
+   * cheering, and it is all this screen was ever using the raw figures for.
+   */
+  caloriePct: number | null
+  waterPct: number | null
+  stepPct: number | null
+  proteinPct: number | null
+  carbsPct: number | null
+  fatPct: number | null
+  /** Today's workout, when they share it: "Running, 35 min". */
+  exercise: string | null
   /** True when following them needs their approval. */
   private: boolean
   /** True when nothing about them is visible: they share nothing, or they are
@@ -61,8 +74,13 @@ export interface PublishedProfile {
   display_name: string | null
   streak: number | null
   last_logged: string | null
-  calories: number | null
-  calorie_goal: number | null
+  calorie_pct: number | null
+  water_pct: number | null
+  step_pct: number | null
+  protein_pct: number | null
+  carbs_pct: number | null
+  fat_pct: number | null
+  exercise: string | null
 }
 
 interface UsernameRow {
@@ -76,8 +94,13 @@ interface SocialRow {
   display_name: string | null
   streak: number | null
   last_logged: string | null
-  calories: number | null
-  calorie_goal: number | null
+  calorie_pct: number | null
+  water_pct: number | null
+  step_pct: number | null
+  protein_pct: number | null
+  carbs_pct: number | null
+  fat_pct: number | null
+  exercise: string | null
 }
 
 /* -------------------------------------------------------------- hydration -- */
@@ -113,11 +136,23 @@ async function hydrate(userIds: string[]): Promise<Map<string, Person>> {
       name: p?.display_name ?? null,
       streak: p?.streak ?? null,
       lastLogged: p?.last_logged ?? null,
-      calories: p?.calories ?? null,
-      calorieGoal: p?.calorie_goal ?? null,
+      caloriePct: p?.calorie_pct ?? null,
+      waterPct: p?.water_pct ?? null,
+      stepPct: p?.step_pct ?? null,
+      proteinPct: p?.protein_pct ?? null,
+      carbsPct: p?.carbs_pct ?? null,
+      fatPct: p?.fat_pct ?? null,
+      exercise: p?.exercise ?? null,
       private: p?.private ?? false,
       empty:
-        !p || (p.display_name === null && p.streak === null && p.calories === null),
+        !p ||
+        (p.display_name === null &&
+          p.streak === null &&
+          p.calorie_pct === null &&
+          p.water_pct === null &&
+          p.step_pct === null &&
+          p.protein_pct === null &&
+          p.exercise === null),
     })
   }
   return out
@@ -348,8 +383,13 @@ export const NOTHING_PUBLISHED: PublishedProfile = {
   display_name: null,
   streak: null,
   last_logged: null,
-  calories: null,
-  calorie_goal: null,
+  calorie_pct: null,
+  water_pct: null,
+  step_pct: null,
+  protein_pct: null,
+  carbs_pct: null,
+  fat_pct: null,
+  exercise: null,
 }
 
 /**
