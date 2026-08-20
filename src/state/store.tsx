@@ -136,7 +136,7 @@ function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
 
 /* ------------------------------------------------------------ navigation -- */
 
-export type TabKey = 'today' | 'plan' | 'friends' | 'progress' | 'more'
+export type TabKey = 'today' | 'nutriscan' | 'plan' | 'friends' | 'progress' | 'more'
 
 export type Route =
   | { name: 'tab'; tab: TabKey }

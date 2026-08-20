@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MEAL_KEYS, PERIOD_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { TopBar } from '../components/ui'
 import { WeekStrip } from '../components/charts'
 import { WidgetGrid } from '../components/WidgetGrid'
+import { Confetti, celebratedToday, markCelebrated } from '../components/Confetti'
 import { cal } from '../lib/format'
 import { addDays, longDate, today } from '../lib/dates'
 
@@ -20,6 +21,7 @@ export function Today() {
     setDate,
     totalsFor,
     dayLog,
+    macroTargets,
     logStreak,
     push,
     setTab,
@@ -28,6 +30,20 @@ export function Today() {
 
   const totals = totalsFor(date)
   const log = dayLog(date)
+
+  /* Every macro target met is the one moment in the day worth marking, so it
+     is marked once and then left alone. */
+  const [celebrating, setCelebrating] = useState(false)
+  useEffect(() => {
+    const n = totals.nutrients
+    const allMet =
+      n.protein >= macroTargets.protein &&
+      n.carbs >= macroTargets.carbs &&
+      n.fat >= macroTargets.fat
+    if (!allMet || celebratedToday(date)) return
+    markCelebrated(date)
+    setCelebrating(true)
+  }, [date, totals.nutrients, macroTargets])
 
   const week = useMemo(() => {
     const out: {
@@ -65,6 +81,8 @@ export function Today() {
 
   return (
     <>
+      {celebrating && <Confetti onDone={() => setCelebrating(false)} />}
+
       <TopBar
         right={
           <>

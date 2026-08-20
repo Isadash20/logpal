@@ -166,94 +166,160 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
  * deliberate and it is the whole design of this screen: it is enough to know
  * whether to cheer someone on, and it never says what they ate, drank or weigh.
  */
-function GoalBars({ person }: { person: Person }) {
-  /* The bar is always the percentage. That is what a bar is for, and the
-     figure appears beside it only when they chose to publish one. An account
-     sharing exact numbers publishes the percentage too, so the row never has
-     to be drawn twice. */
-  const rows: { label: string; pct: number | null; detail: string | null; color: string }[] = [
-    {
-      label: 'Calories',
-      pct: person.caloriePct,
-      detail:
-        person.calories !== null && person.calorieGoal
-          ? `${person.calories.toLocaleString()} / ${person.calorieGoal.toLocaleString()} cal`
-          : null,
-      color: 'var(--accent)',
-    },
-    {
-      label: 'Water',
-      pct: person.waterPct,
-      detail:
-        person.waterMl !== null && person.waterGoalMl
-          ? `${(person.waterMl / 1000).toFixed(1)} / ${(person.waterGoalMl / 1000).toFixed(1)} L`
-          : null,
-      color: 'var(--water)',
-    },
-    {
-      label: 'Steps',
-      pct: person.stepPct,
-      detail:
-        person.steps !== null && person.stepGoal
-          ? `${person.steps.toLocaleString()} / ${person.stepGoal.toLocaleString()}`
-          : null,
-      color: 'var(--steps)',
-    },
-    {
-      label: 'Protein',
-      pct: person.proteinPct,
-      detail: person.proteinG !== null ? `${person.proteinG} g` : null,
-      color: 'var(--protein)',
-    },
-    {
-      label: 'Carbs',
-      pct: person.carbsPct,
-      detail: person.carbsG !== null ? `${person.carbsG} g` : null,
-      color: 'var(--carbs)',
-    },
-    {
-      label: 'Fat',
-      pct: person.fatPct,
-      detail: person.fatG !== null ? `${person.fatG} g` : null,
-      color: 'var(--fat)',
-    },
-  ].filter((r) => r.pct !== null || r.detail !== null)
+function FriendBoard({ person }: { person: Person }) {
+  /* Their day in the shape Home has: the same cards, the same order, carrying
+     whatever they publish. A widget with nothing behind it is not drawn at all
+     rather than drawn empty, so the board is a picture of what they share
+     without ever announcing what they do not. */
+  const macros = [
+    { label: 'Carbs', pct: person.carbsPct, gram: person.carbsG, color: 'var(--carbs)' },
+    { label: 'Fat', pct: person.fatPct, gram: person.fatG, color: 'var(--fat)' },
+    { label: 'Protein', pct: person.proteinPct, gram: person.proteinG, color: 'var(--protein)' },
+  ].filter((m) => m.pct !== null || m.gram !== null)
 
-  if (!rows.length) return null
+  const hasCalories = person.caloriePct !== null || person.calories !== null
+  const hasWater = person.waterPct !== null
+  const hasSteps = person.stepPct !== null || person.steps !== null
+
+  if (!hasCalories && !macros.length && !hasWater && !hasSteps && !person.exercise) return null
 
   return (
-    <>
-      <div className="section-label">Today, against their goals</div>
-      <div className="card" style={{ padding: '12px 16px 14px' }}>
-        {rows.map((b) => (
-          <div key={b.label} style={{ marginBottom: 10 }}>
+    <div className="fboard">
+      {hasCalories && (
+        <div className="widget" style={{ gridColumn: 'span 4' }}>
+          <div className="widget__body">
+            <div className="widget__title">Calories</div>
+            <div className="widget__value">
+              <span className="num">
+                {person.calories !== null
+                  ? `${person.calories.toLocaleString()}`
+                  : `${person.caloriePct}%`}
+              </span>
+              {person.calories !== null && person.calorieGoal && (
+                <span className="widget__unit">/ {person.calorieGoal.toLocaleString()} cal</span>
+              )}
+              {person.calories === null && <span className="widget__unit">of their goal</span>}
+            </div>
+            <span className="tile__bar" style={{ marginTop: 'auto' }}>
+              <span
+                className="tile__fill"
+                style={{
+                  width: `${Math.min(100, person.caloriePct ?? 0)}%`,
+                  background: 'var(--accent)',
+                }}
+              />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {!!macros.length && (
+        <div className="widget" style={{ gridColumn: 'span 4' }}>
+          <div className="widget__body">
+            <div className="widget__title">Macros</div>
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 10,
-                fontSize: 13.5,
-                marginBottom: 5,
+                display: 'grid',
+                gridTemplateColumns: `repeat(${macros.length}, 1fr)`,
+                gap: 6,
+                marginTop: 4,
               }}
             >
-              <span style={{ color: 'var(--text-2)' }}>{b.label}</span>
-              <span className="num" style={{ fontWeight: 700 }}>
-                {b.detail ?? `${b.pct}%`}
-                {b.detail && b.pct !== null && (
-                  <span style={{ color: 'var(--text-3)', fontWeight: 600 }}> · {b.pct}%</span>
-                )}
-              </span>
-            </div>
-            <div className="progress" style={{ height: 8 }}>
-              <div
-                className="progress__fill"
-                style={{ width: `${Math.min(100, b.pct ?? 0)}%`, background: b.color }}
-              />
+              {macros.map((m) => (
+                <div key={m.label}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{m.label}</span>
+                    <span
+                      style={{ width: 7, height: 7, borderRadius: 999, background: m.color }}
+                    />
+                  </div>
+                  <div className="num" style={{ fontSize: 19, fontWeight: 800, marginTop: 2 }}>
+                    {m.gram !== null ? `${m.gram} g` : `${m.pct}%`}
+                  </div>
+                  <span className="tile__bar" style={{ marginTop: 6 }}>
+                    <span
+                      className="tile__fill"
+                      style={{ width: `${Math.min(100, m.pct ?? 0)}%`, background: m.color }}
+                    />
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </>
+        </div>
+      )}
+
+      {hasWater && (
+        <div className="widget" style={{ gridColumn: 'span 2' }}>
+          <div className="widget__body">
+            <div className="widget__title">
+              <Icon name="water" size={15} />
+              Water
+            </div>
+            <div className="widget__value">
+              <span className="num">
+                {person.waterMl !== null
+                  ? `${(person.waterMl / 1000).toFixed(1)} L`
+                  : `${person.waterPct}%`}
+              </span>
+            </div>
+            <span className="tile__bar" style={{ marginTop: 'auto' }}>
+              <span
+                className="tile__fill"
+                style={{
+                  width: `${Math.min(100, person.waterPct ?? 0)}%`,
+                  background: 'var(--water)',
+                }}
+              />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {hasSteps && (
+        <div className="widget" style={{ gridColumn: 'span 2' }}>
+          <div className="widget__body">
+            <div className="widget__title">
+              <Icon name="steps" size={15} />
+              Steps
+            </div>
+            <div className="widget__value">
+              <span className="num">
+                {person.steps !== null ? person.steps.toLocaleString() : `${person.stepPct}%`}
+              </span>
+            </div>
+            <span className="tile__bar" style={{ marginTop: 'auto' }}>
+              <span
+                className="tile__fill"
+                style={{
+                  width: `${Math.min(100, person.stepPct ?? 0)}%`,
+                  background: 'var(--steps)',
+                }}
+              />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {person.exercise && (
+        <div className="widget" style={{ gridColumn: 'span 4' }}>
+          <div className="widget__body">
+            <div className="widget__title">
+              <Icon name="dumbbell" size={15} />
+              Exercise
+            </div>
+            <div className="widget__value" style={{ fontSize: 17 }}>
+              <span className="num">{person.exercise}</span>
+            </div>
+            {person.exerciseCalories !== null && (
+              <div className="widget__sub">
+                {person.exerciseCalories.toLocaleString()} cal burned
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -268,37 +334,35 @@ function GoalBars({ person }: { person: Person }) {
  * rather than fixed.
  */
 function NudgeBar({ person, onSend }: { person: Person; onSend(emoji: string): void }) {
-  const [count, setCount] = useState(0)
+  /* Every tap sends one and nothing latches, so a run of six claps is six
+     claps. The flourish is per tap rather than per emoji, which is why the
+     key carries a counter: the same button pressed twice has to animate
+     twice, and React would otherwise reuse the element and show nothing. */
+  const [flights, setFlights] = useState<{ id: number; emoji: string }[]>([])
   const done = (person.caloriePct ?? 0) >= 90 || (person.stepPct ?? 0) >= 100
   const order = done ? NUDGES : [...NUDGES].reverse()
+
+  const send = (emoji: string) => {
+    onSend(emoji)
+    const id = flights.length ? flights[flights.length - 1].id + 1 : 1
+    setFlights((f) => [...f, { id, emoji }])
+    window.setTimeout(() => setFlights((f) => f.filter((x) => x.id !== id)), 900)
+  }
 
   return (
     <>
       <div className="section-label">Send a nudge</div>
-      <div className="card" style={{ padding: '12px 12px 14px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {order.map((n) => (
-            <button
-              key={n.emoji}
-              className="fpill"
-              style={{ fontSize: 15 }}
-              /* Every tap sends one. Nothing stays selected: these are
-                 messages, not a setting, so there is no state for a pressed
-                 one to be in. */
-              onClick={() => {
-                onSend(n.emoji)
-                setCount((c) => c + 1)
-              }}
-            >
-              <span style={{ fontSize: 17 }}>{n.emoji}</span> {n.label}
-            </button>
-          ))}
-        </div>
-        {count > 0 && (
-          <div className="hint" style={{ padding: '10px 4px 0' }}>
-            {count === 1 ? 'Sent' : `Sent ${count}`}
-          </div>
-        )}
+      <div className="card nudgebar">
+        {order.map((emoji) => (
+          <button key={emoji} className="nudge" onClick={() => send(emoji)}>
+            {emoji}
+          </button>
+        ))}
+        {flights.map((f) => (
+          <span key={f.id} className="nudge__flight" aria-hidden="true">
+            {f.emoji}
+          </span>
+        ))}
       </div>
     </>
   )
@@ -801,7 +865,6 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
 
   const [person, setPerson] = useState<Person | null>(null)
   const [state, setState] = useState<FollowState>('none')
-  const [followsMe, setFollowsMe] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -830,7 +893,6 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
             ? 'pending'
             : 'none',
       )
-      setFollowsMe(conn.followers.some((p) => p.userId === userId))
       setError(null)
     } catch (err) {
       setError((err as Error).message)
@@ -909,41 +971,21 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
           </>
         ) : (
           <>
-            <GoalBars person={shown} />
-
-            {shown.exercise && (
-              <>
-                <div className="section-label">Today's workout</div>
-                <div className="card">
-                  <Row
-                    title={shown.exercise}
-                    sub={
-                      shown.exerciseCalories !== null
-                        ? `${shown.exerciseCalories.toLocaleString()} cal burned`
-                        : 'Shared by them'
-                    }
-                  />
-                </div>
-              </>
+            {/* Their streak first, the way Home leads with yours. */}
+            {!!shown.streak && (
+              <div className="streakline">
+                <span className="streak">
+                  <Icon name="flame" size={14} />
+                  <span className="num">{shown.streak}</span>
+                  <span className="streak__unit">{shown.streak === 1 ? 'day' : 'days'}</span>
+                </span>
+                {shown.lastLogged && (
+                  <span className="streakline__last">Last logged {friendlyDate(shown.lastLogged)}</span>
+                )}
+              </div>
             )}
 
-            <div className="card">
-              {/* A streak of zero is left out rather than shown as "0 days",
-                  the same rule Home uses for its own badge. It is not a
-                  statistic anyone wants reported back at them. */}
-              {!!shown.streak && (
-                <Row
-                  title="Logging streak"
-                  value={shown.streak === 1 ? '1 day' : `${shown.streak} days`}
-                />
-              )}
-              {shown.lastLogged && (
-                <Row title="Last logged" value={friendlyDate(shown.lastLogged)} />
-              )}
-              {!shown.streak && !shown.lastLogged && (
-                <Row title="No streak yet" sub="They have not logged a day in a row." />
-              )}
-            </div>
+            <FriendBoard person={shown} />
 
             {state === 'following' && (
               <NudgeBar person={shown} onSend={(emoji) => void sendNudge(userId, emoji)} />
@@ -952,15 +994,6 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
           </>
         )}
 
-        {followsMe && (
-          <>
-            <div className="section-label">Follows you</div>
-            <div className="hint" style={{ paddingTop: 0 }}>
-              They can see whatever you share. Remove them from the Followers list on
-              the previous screen.
-            </div>
-          </>
-        )}
       </div>
 
       {askShare && <SharingPrompt onClose={() => setAskShare(false)} />}

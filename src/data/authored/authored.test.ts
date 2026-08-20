@@ -35,8 +35,8 @@ describe('authored recipes', () => {
 
   it('state macros that add up to the stated calories', () => {
     /* Atwater: 4 kcal a gram for protein and carbohydrate, 9 for fat, and
-       fibre at 2 rather than 4. It is counted inside carbohydrate but is only
-       partly available, so a high-fibre dish legitimately comes in under the
+       fiber at 2 rather than 4. It is counted inside carbohydrate but is only
+       partly available, so a high-fiber dish legitimately comes in under the
        naive sum. Real food lands within a few percent of this; anything further
        out is a typo, not biochemistry. */
     for (const r of AUTHORED_RECIPES) {

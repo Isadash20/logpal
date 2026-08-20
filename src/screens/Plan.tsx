@@ -23,7 +23,7 @@ import { PlanPane } from './Planner'
  * the one job it now does.
  */
 export function Plan() {
-  const { push, data, date } = useApp()
+  const { push, data } = useApp()
 
   const planned = data.planEntries.length
   const unbought = data.shopping.filter((s) => !s.checked).length
@@ -51,19 +51,6 @@ export function Plan() {
                 }`
               : 'Put recipes on days and build a grocery list'}
           </span>
-        </span>
-        <span className="row__chev">
-          <Icon name="forward" size={18} strokeWidth={2.2} />
-        </span>
-      </button>
-
-      <button className="planbanner" onClick={() => push({ name: 'worthIt', date })}>
-        <span className="planbanner__icon">
-          <Icon name="chart" size={22} />
-        </span>
-        <span className="planbanner__main">
-          <span className="planbanner__title">NutriScan</span>
-          <span className="planbanner__sub">Scan or search a food, see how it scores</span>
         </span>
         <span className="row__chev">
           <Icon name="forward" size={18} strokeWidth={2.2} />

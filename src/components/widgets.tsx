@@ -518,6 +518,39 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
   )
 }
 
+/* -------------------------------------------------------------- exercise -- */
+
+function ExerciseWidget({ date, h, editing }: WidgetProps) {
+  const { data, totalsFor } = useApp()
+  const open = useOpen(editing)
+  const totals = totalsFor(date)
+  const workouts = data.exerciseEntries.filter((e) => e.date === date)
+
+  return (
+    <button
+      className="widget__body widget__body--tap"
+      onClick={() => open({ name: 'exerciseSearch', date, kind: 'cardio' })}
+    >
+      <span className="widget__title">
+        <Icon name="dumbbell" size={15} />
+        Exercise
+      </span>
+      <span className="widget__value" style={{ fontSize: workouts.length ? 17 : 20 }}>
+        <span className="num">
+          {workouts.length
+            ? workouts.map((e) => e.name).join(', ')
+            : 'Nothing logged'}
+        </span>
+      </span>
+      {h > 1 && workouts.length > 0 && (
+        <span className="widget__sub">
+          {totals.exerciseMinutes} min · {cal(totals.exerciseCalories)} cal
+        </span>
+      )}
+    </button>
+  )
+}
+
 export const WIDGETS: Record<WidgetId, (p: WidgetProps) => ReactElement> = {
   calories: CaloriesWidget,
   macros: MacrosWidget,
@@ -525,4 +558,5 @@ export const WIDGETS: Record<WidgetId, (p: WidgetProps) => ReactElement> = {
   water: WaterWidget,
   sleep: SleepWidget,
   steps: StepsWidget,
+  exercise: ExerciseWidget,
 }

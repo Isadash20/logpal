@@ -18,7 +18,15 @@
  * table to hold what is essentially a cosmetic choice.
  */
 
-export const WIDGET_IDS = ['calories', 'macros', 'fasting', 'water', 'sleep', 'steps'] as const
+export const WIDGET_IDS = [
+  'calories',
+  'macros',
+  'fasting',
+  'water',
+  'sleep',
+  'steps',
+  'exercise',
+] as const
 
 export type WidgetId = (typeof WIDGET_IDS)[number]
 
@@ -57,6 +65,7 @@ export const WIDGET_LABELS: Record<WidgetId, string> = {
   water: 'Water',
   sleep: 'Sleep',
   steps: 'Steps',
+  exercise: 'Exercise',
 }
 
 /** The smallest each widget still reads at, so resizing cannot break one. */
@@ -67,6 +76,7 @@ export const MIN_WIDTH: Record<WidgetId, WidgetWidth> = {
   water: 1,
   sleep: 1,
   steps: 1,
+  exercise: 2,
 }
 
 /** What Home looked like before it was arrangeable, to the pixel. */
@@ -79,6 +89,10 @@ export function defaultLayout(): WidgetLayout {
       { id: 'water', w: 2, h: 2 },
       { id: 'sleep', w: 2, h: 2 },
       { id: 'steps', w: 2, h: 2 },
+      /* Full width and one row: it is a line of text, not a gauge, and it sits
+         under the rest because it is a record of what happened rather than a
+         target to work towards. */
+      { id: 'exercise', w: 4, h: 1 },
     ],
     hidden: [],
   }

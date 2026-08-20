@@ -41,7 +41,7 @@ export type NutritionTag = (typeof NUTRITION_TAGS)[number]
  * Named because people on semaglutide and tirzepatide are now a large part of
  * who uses a calorie tracker, and they are looking for something specific:
  * appetite is small, so every bite has to carry protein, and fat and sugar sit
- * badly. This is that combination, protein-dense, some fibre, modest portion,
+ * badly. This is that combination, protein-dense, some fiber, modest portion,
  * not greasy, not sweet, rather than a medical claim. Nothing here is advice;
  * it is a filter over nutrition the recipe already declares.
  */

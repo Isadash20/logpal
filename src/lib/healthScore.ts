@@ -166,7 +166,7 @@ export function healthScore(n: Nutrients, opts: ScoreOptions = {}): HealthScore 
 
   /* Averaged over the nutrients actually measured, not over a fixed six.
    *
-   * The catalogue's nutrition carries protein and fibre for everything and
+   * The catalogue's nutrition carries protein and fiber for everything and
    * potassium or vitamin C for almost nothing, so dividing by six meant a dish
    * could do everything right on the figures that exist and still only reach a
    * third of the available credit. Nutrient density is a rate, and a rate
@@ -178,7 +178,7 @@ export function healthScore(n: Nutrients, opts: ScoreOptions = {}): HealthScore 
   const peakGood = densities.length ? Math.max(...densities) : 0
   /* Weighted toward what the food is best at, because averaging alone marks a
      dish down for the nutrients it was never going to carry. A frittata is
-     eggs and spinach: excellent protein, almost no fibre, and its fibre should
+     eggs and spinach: excellent protein, almost no fiber, and its fiber should
      not cancel its protein. 2.2× par is a genuinely dense serving. */
   const goodIndex = Math.min(1, (peakGood * 0.6 + avgGood * 0.4) / 2.2)
 

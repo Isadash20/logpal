@@ -13,14 +13,14 @@ import { requireClient } from '../lib/supabase'
  * calling this with their id.
  */
 
-/** What can be sent, and what each one is for. */
-export const NUDGES = [
-  { emoji: '👏', label: 'Nice work' },
-  { emoji: '💪', label: 'Strong' },
-  { emoji: '🔥', label: 'On fire' },
-  { emoji: '🫡', label: 'Finish it' },
-  { emoji: '🤔', label: 'Still time' },
-] as const
+/**
+ * What can be sent.
+ *
+ * Emoji alone, with no wording attached. A clap already means what it means,
+ * and the labels underneath ("Nice work", "Still time") turned five taps into
+ * five sentences someone had to read before choosing.
+ */
+export const NUDGES = ['👏', '💪', '🔥', '🎉', '🫡', '🤔'] as const
 
 export interface Nudge {
   id: string

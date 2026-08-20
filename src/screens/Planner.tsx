@@ -432,7 +432,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
       { title: 'Build muscle', term: 'High Protein', minCalories: 350 },
       { title: 'Lighter meals', term: 'Low Calorie' },
       { title: 'GLP-1 friendly', term: 'GLP-1 Friendly' },
-      { title: 'High fibre', term: 'High Fiber' },
+      { title: 'High fiber', term: 'High Fiber' },
       { title: 'Low carb', term: 'Low Carb' },
       { title: 'Vegetarian', term: 'Vegetarian' },
       { title: 'Vegan', term: 'Vegan' },

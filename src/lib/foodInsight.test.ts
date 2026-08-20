@@ -29,7 +29,7 @@ describe('analyseFood', () => {
     expect(r.carbs).toBe('Mostly sugar')
   })
 
-  it('recognises whole grain when the fibre backs it up', () => {
+  it('recognises whole grain when the fiber backs it up', () => {
     const r = analyseFood(food('Whole Wheat Bread'), n({ calories: 120, carbs: 22, fiber: 4 }))
     expect(r.carbs).toBe('Whole grain')
   })

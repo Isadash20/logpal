@@ -44,6 +44,9 @@ import { cloudEnabled } from './lib/supabase'
 
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
   { key: 'today', label: 'Home', icon: 'home' },
+  /* Beside Home, because it is used before eating rather than after: the rest
+     of the app records what happened, this one is consulted first. */
+  { key: 'nutriscan', label: 'NutriScan', icon: 'nutriscan' },
   { key: 'plan', label: 'Plan', icon: 'plan' },
   { key: 'progress', label: 'Progress', icon: 'progress' },
   { key: 'friends', label: 'Friends', icon: 'user' },
@@ -127,6 +130,8 @@ function Shell() {
       case 'tab':
         return route.tab === 'today' ? (
           <Today />
+        ) : route.tab === 'nutriscan' ? (
+          <WorthIt date={date} asTab />
         ) : route.tab === 'plan' ? (
           <Plan />
         ) : route.tab === 'friends' ? (

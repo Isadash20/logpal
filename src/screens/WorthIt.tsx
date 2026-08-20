@@ -8,7 +8,7 @@ import { cal } from '../lib/format'
 import { scaleNutrients } from '../lib/nutrition'
 import { healthScore } from '../lib/healthScore'
 import { worthIt, type DayBudget, type WorthItScore } from '../lib/worthIt'
-import { analyseFood, type Insight } from '../lib/foodInsight'
+import { analyseFood, type FoodInsight, type Insight } from '../lib/foodInsight'
 import { searchLocal } from '../services/foodSearch'
 import { loadFoodDb, onFoodDbGrown } from '../services/foodDb'
 import { lookupBarcode, searchProducts } from '../services/openFoodFacts'
@@ -21,7 +21,17 @@ import { lookupBarcode, searchProducts } from '../services/openFoodFacts'
  * on what is left of it. They disagree often, and that is the point: a tin of
  * sardines is excellent and a poor idea with 150 calories to go.
  */
-export function WorthIt({ date, food: initial }: { date: string; food?: Food }) {
+export function WorthIt({
+  date,
+  food: initial,
+  asTab,
+}: {
+  date: string
+  food?: Food
+  /* As a tab there is nothing behind it, so the search view has no back arrow
+     and backing out of a result returns to the search rather than the stack. */
+  asTab?: boolean
+}) {
   const { pop, push, data, totalsFor, macroTargets, settings } = useApp()
   const [food, setFood] = useState<Food | null>(initial ?? null)
   const [query, setQuery] = useState('')
@@ -35,6 +45,10 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
      a third column would not fit on a phone anyway. */
   const [other, setOther] = useState<Food | null>(null)
   const [picking, setPicking] = useState<'first' | 'second'>('first')
+  /* Two ways in, asked before anything else. A search box on arrival makes the
+     screen look like the food search it is not, and hides the scanner, which is
+     the faster route when the thing is in your hand. */
+  const [stage, setStage] = useState<'choose' | 'search'>('choose')
 
   useEffect(() => {
     void loadFoodDb()
@@ -91,17 +105,56 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
     if (!other) return null
     const s0 = other.servings[0]
     const on = scaleNutrients(other.nutrients, s0 ? s0.multiplier : 1)
-    return { food: other, n: on, fit: worthIt(on, budget), health: healthScore(on).score }
+    return {
+      food: other,
+      n: on,
+      fit: worthIt(on, budget),
+      health: healthScore(on).score,
+      insight: analyseFood(other, on),
+    }
   }, [other, budget])
 
   if (!food || picking === 'second') {
+    const heading = picking === 'second' ? 'Compare with' : 'NutriScan'
+    const back =
+      stage === 'search'
+        ? () => setStage('choose')
+        : picking === 'second'
+          ? () => setPicking('first')
+          : asTab
+            ? undefined
+            : pop
+
+    if (stage === 'choose') {
+      return (
+        <>
+          <TopBar title={heading} onBack={back} solid />
+          <div className="scroll">
+            <div className="pickways">
+              <button
+                className="pickway"
+                onClick={() => push({ name: 'scan', date, mode: 'worth' })}
+              >
+                <span className="pickway__icon">
+                  <Icon name="barcode" size={38} />
+                </span>
+                <span className="pickway__label">Scan a barcode</span>
+              </button>
+              <button className="pickway" onClick={() => setStage('search')}>
+                <span className="pickway__icon">
+                  <Icon name="search" size={34} />
+                </span>
+                <span className="pickway__label">Manual search</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )
+    }
+
     return (
       <>
-        <TopBar
-          title={picking === 'second' ? 'Compare with' : 'NutriScan'}
-          onBack={picking === 'second' ? () => setPicking('first') : pop}
-          solid
-        />
+        <TopBar title={heading} onBack={back} solid />
         <div className="searchbar">
           <div className="searchbar__box">
             <Icon name="search" size={17} />
@@ -109,6 +162,7 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
               className="searchbar__input"
               placeholder="Search a food or type a barcode"
               autoCapitalize="none"
+              autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -121,15 +175,6 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
         </div>
 
         <div className="scroll">
-          <div className="card">
-            <Row
-              left={<span className="avatar"><Icon name="barcode" size={18} /></span>}
-              title="Scan a barcode"
-              chevron
-              onClick={() => push({ name: 'scan', date, mode: 'worth' })}
-            />
-          </div>
-
           {query.trim().length >= 2 && !results.length && !remote.length && (
             <Empty title="Nothing found" />
           )}
@@ -159,8 +204,29 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
 
   return (
     <>
-      <TopBar title="NutriScan" onBack={() => (initial ? pop() : setFood(null))} solid />
+      <TopBar
+        title="NutriScan"
+        onBack={() => (initial && !asTab ? pop() : setFood(null))}
+        solid
+      />
       <div className="scroll">
+        {/* Comparing comes first when there are two. The chart is the reason
+            the second food was scanned, so it opens the screen and the full
+            readings for each follow underneath it. */}
+        {otherSide && nutrients && fit && (
+          <>
+            <Compare
+              a={{ food, n: nutrients, fit, health: health?.score ?? 0 }}
+              b={otherSide}
+            />
+            <div style={{ padding: '2px 16px 10px' }}>
+              <button className="textbtn" style={{ padding: 0 }} onClick={() => setOther(null)}>
+                Clear comparison
+              </button>
+            </div>
+          </>
+        )}
+
         <div className="pagetitle" style={{ paddingBottom: 2 }}>
           {food.name}
         </div>
@@ -219,53 +285,43 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
           </div>
         </div>
 
-        {nutrients && (
-          <div className="card">
-            <Row title="Calories" value={`${cal(nutrients.calories)} cal`} />
-            <Row
-              title="Carbs · Fat · Protein"
-              value={`${Math.round(nutrients.carbs)} · ${Math.round(nutrients.fat)} · ${Math.round(
-                nutrients.protein,
-              )} g`}
-            />
-            <Row title="Fibre" value={`${Math.round(nutrients.fiber)} g`} />
-            <Row title="Left today" value={`${cal(Math.max(0, budget.caloriesLeft))} cal`} />
-          </div>
-        )}
-
-        {fit && (
-          <div className="card" style={{ padding: '10px 16px 14px' }}>
-            {fit.notes.map((t) => (
-              <div key={t} style={{ fontSize: 13.5, padding: '4px 0', color: 'var(--text-2)' }}>
-                {t}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {insight && (insight.protein || insight.carbs || insight.fat) && (
-          <div className="card">
-            {insight.protein && <Row title="Protein" value={insight.protein} />}
-            {insight.carbs && <Row title="Carbohydrate" value={insight.carbs} />}
-            {insight.fat && <Row title="Fat" value={insight.fat} />}
-          </div>
-        )}
+        {nutrients && <Facts n={nutrients} insight={insight} />}
 
         {insight && <InsightList title="In its favour" items={insight.good} />}
         {insight && <InsightList title="Worth knowing" items={insight.watch} />}
 
-        {otherSide && nutrients && fit && (
+        {/* The second food in full, under the first, in the order they were
+            scanned. */}
+        {otherSide && (
           <>
-            <div className="section-label">Side by side</div>
-            <Compare
-              a={{ food, n: nutrients, fit, health: health?.score ?? 0 }}
-              b={otherSide}
-            />
-            <div style={{ padding: '4px 16px 0' }}>
-              <button className="textbtn" onClick={() => setOther(null)}>
-                Clear comparison
-              </button>
+            <div className="pagetitle" style={{ paddingBottom: 2, paddingTop: 10 }}>
+              {otherSide.food.name}
             </div>
+            {otherSide.food.brand && (
+              <div className="hint" style={{ paddingTop: 0 }}>
+                {otherSide.food.brand}
+              </div>
+            )}
+            <div className="verdict">
+              <div className="verdict__scores">
+                <ScoreDial
+                  label="Fits your plan"
+                  value={otherSide.fit.score}
+                  color={scoreColor(otherSide.fit.score)}
+                />
+                <ScoreDial
+                  label="Health score"
+                  value={otherSide.health}
+                  color={scoreColor(otherSide.health)}
+                />
+              </div>
+            </div>
+            <div className="card">
+              <Row title="Serving" value={otherSide.food.servings[0]?.label ?? '-'} />
+            </div>
+            <Facts n={otherSide.n} insight={otherSide.insight} />
+            <InsightList title="In its favour" items={otherSide.insight.good} />
+            <InsightList title="Worth knowing" items={otherSide.insight.watch} />
           </>
         )}
 
@@ -273,7 +329,13 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
         <div style={{ height: 96 }} />
 
         <div className="ractions">
-          <button className="btn btn--ghost" onClick={() => setPicking('second')}>
+          <button
+            className="btn btn--ghost"
+            onClick={() => {
+              setPicking('second')
+              setStage('choose')
+            }}
+          >
             {otherSide ? 'Compare another' : 'Compare'}
           </button>
           <button
@@ -288,6 +350,8 @@ export function WorthIt({ date, food: initial }: { date: string; food?: Food }) 
   )
 
   function pick(f: Food) {
+    setQuery('')
+    setStage('choose')
     if (picking === 'second') {
       setOther(f)
       setPicking('first')
@@ -314,6 +378,29 @@ function FoodRow({ food, onPick }: { food: Food; onPick(): void }) {
    how the number sits without the screen telling anyone what to do. */
 function scoreColor(score: number): string {
   return score >= 7 ? 'var(--positive)' : score >= 4.5 ? 'var(--warning)' : 'var(--danger)'
+}
+
+/**
+ * The reading itself, one figure a row.
+ *
+ * Carbohydrate, fat and protein used to share a line as "9 · 1 · 25 g", which
+ * is fine on a diary entry and wrong here: this screen exists to be read
+ * carefully, and three numbers behind one label cannot be. Where the food's
+ * make-up is known, it sits beside the gram count rather than in a section of
+ * its own.
+ */
+function Facts({ n, insight }: { n: Nutrients; insight: FoodInsight | null }) {
+  return (
+    <div className="card">
+      <Row title="Calories" value={`${cal(n.calories)} cal`} />
+      <Row title="Carbs" sub={insight?.carbs ?? undefined} value={`${Math.round(n.carbs)} g`} />
+      <Row title="Fat" sub={insight?.fat ?? undefined} value={`${Math.round(n.fat)} g`} />
+      <Row title="Protein" sub={insight?.protein ?? undefined} value={`${Math.round(n.protein)} g`} />
+      <Row title="Fiber" value={`${Math.round(n.fiber)} g`} />
+      <Row title="Sugar" value={`${Math.round(n.sugar)} g`} />
+      <Row title="Sodium" value={`${Math.round(n.sodium)} mg`} />
+    </div>
+  )
 }
 
 function InsightList({ title, items }: { title: string; items: Insight[] }) {
@@ -354,18 +441,39 @@ function Compare({
   a: { food: Food; n: Nutrients; fit: WorthItScore; health: number }
   b: { food: Food; n: Nutrients; fit: WorthItScore; health: number }
 }) {
+  /* The fourth value is which side leads: positive for the left, negative for
+     the right. Calories, sugar and sodium are inverted, since less of each is
+     the better showing. */
   const rows: [string, string, string, number][] = [
     ['Fits your plan', a.fit.score.toFixed(1), b.fit.score.toFixed(1), a.fit.score - b.fit.score],
     ['Health score', a.health.toFixed(1), b.health.toFixed(1), a.health - b.health],
     ['Calories', cal(a.n.calories), cal(b.n.calories), b.n.calories - a.n.calories],
+    ['Carbs', `${Math.round(a.n.carbs)} g`, `${Math.round(b.n.carbs)} g`, 0],
+    ['Fat', `${Math.round(a.n.fat)} g`, `${Math.round(b.n.fat)} g`, 0],
     ['Protein', `${Math.round(a.n.protein)} g`, `${Math.round(b.n.protein)} g`, a.n.protein - b.n.protein],
-    ['Fibre', `${Math.round(a.n.fiber)} g`, `${Math.round(b.n.fiber)} g`, a.n.fiber - b.n.fiber],
+    ['Fiber', `${Math.round(a.n.fiber)} g`, `${Math.round(b.n.fiber)} g`, a.n.fiber - b.n.fiber],
     ['Sugar', `${Math.round(a.n.sugar)} g`, `${Math.round(b.n.sugar)} g`, b.n.sugar - a.n.sugar],
     ['Sodium', `${Math.round(a.n.sodium)} mg`, `${Math.round(b.n.sodium)} mg`, b.n.sodium - a.n.sodium],
   ]
 
+  const gap = a.fit.score - b.fit.score
+  const leader = gap > 0 ? a : b
+  const lead = Math.abs(gap)
+
   return (
     <>
+      <div className="section-label">Side by side</div>
+
+      <div className="card" style={{ padding: '12px 16px 14px', textAlign: 'center' }}>
+        <div style={{ fontSize: 13, color: 'var(--text-2)' }}>Better for your plan</div>
+        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 2 }}>
+          {lead < 0.3 ? 'Line ball' : leader.food.name}
+        </div>
+        <div className="num" style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 2 }}>
+          {a.fit.score.toFixed(1)} against {b.fit.score.toFixed(1)}
+        </div>
+      </div>
+
       <div className="cmp cmp--head">
         <span />
         <span className="cmp__name">{a.food.name}</span>

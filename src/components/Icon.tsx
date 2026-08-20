@@ -42,6 +42,7 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'steps'
+  | 'nutriscan'
   | 'stars'
   | 'plan'
 
@@ -91,6 +92,10 @@ const PATHS: Record<IconName, string> = {
   sun: 'M12 17a5 5 0 100-10 5 5 0 000 10zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   moon: 'M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z',
   /* Two footprints, one ahead of the other. */
+  /* A scan frame with a barcode inside it: the corners say "point this at
+     something", the bars say what at. */
+  nutriscan:
+    'M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2M9 9v6M12 9v6M15 9v6',
   steps: 'M7 4.5a2.5 2.5 0 015 0c0 2-1 3-1 4.5H8c0-1.5-1-2.5-1-4.5zM8 11h3v2.5a1.5 1.5 0 01-3 0zM13 12.5a2.5 2.5 0 015 0c0 2-1 3-1 4.5h-3c0-1.5-1-2.5-1-4.5zM14 19h3v1.5a1.5 1.5 0 01-3 0z',
   stars: 'M12 3l1.6 3.6L17 8l-3.4 1.4L12 13l-1.6-3.6L7 8l3.4-1.4zM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z',
   plan: 'M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1zM8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01',

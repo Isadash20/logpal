@@ -503,12 +503,6 @@ export function AddSheetContent({
       sub: 'Calories only',
       onClick: go(() => push({ name: 'quickAdd', date })),
     },
-    {
-      icon: 'chart',
-      label: 'NutriScan',
-      sub: 'Score a food first',
-      onClick: go(() => push({ name: 'worthIt', date })),
-    },
   ]
 
   return (

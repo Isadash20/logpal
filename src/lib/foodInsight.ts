@@ -65,7 +65,7 @@ const PROTEIN_SOURCES: { match: RegExp; name: string; note: string; tone: Tone }
   { match: /cottage cheese/, name: 'Cottage cheese', note: 'Mostly casein, slow digesting.', tone: 'good' },
   { match: /chicken|turkey|beef|pork|lamb|steak|mince/, name: 'Meat', note: 'Complete protein.', tone: 'good' },
   { match: /salmon|tuna|cod|shrimp|prawn|sardine|mackerel|haddock|tilapia/, name: 'Fish or shellfish', note: 'Complete protein.', tone: 'good' },
-  { match: /lentil|chickpea|black bean|kidney bean|bean\b/, name: 'Pulses', note: 'Protein and fibre together; low in methionine on their own.', tone: 'good' },
+  { match: /lentil|chickpea|black bean|kidney bean|bean\b/, name: 'Pulses', note: 'Protein and fiber together; low in methionine on their own.', tone: 'good' },
   { match: /almond|peanut|cashew|walnut|pistachio|nut butter/, name: 'Nuts', note: 'Protein arrives with a good deal of fat.', tone: 'good' },
 ]
 
@@ -124,7 +124,7 @@ export function analyseFood(food: Food, n: Nutrients): FoodInsight {
       carbs = 'Whole grain'
       good.push({
         label: 'Whole grain carbohydrate',
-        detail: `${Math.round(n.fiber)} g fibre alongside ${Math.round(n.carbs)} g of carbs.`,
+        detail: `${Math.round(n.fiber)} g fiber alongside ${Math.round(n.carbs)} g of carbs.`,
         tone: 'good',
       })
     } else if (sugarShare >= 0.65) {
@@ -135,10 +135,10 @@ export function analyseFood(food: Food, n: Nutrients): FoodInsight {
         tone: 'watch',
       })
     } else if (fiberShare >= 0.15) {
-      carbs = 'High fibre'
+      carbs = 'High fiber'
       good.push({
-        label: 'Fibre rich',
-        detail: `${Math.round(n.fiber)} g fibre, ${Math.round(fiberShare * 100)}% of the carbohydrate.`,
+        label: 'Fiber rich',
+        detail: `${Math.round(n.fiber)} g fiber, ${Math.round(fiberShare * 100)}% of the carbohydrate.`,
         tone: 'good',
       })
     } else {
@@ -203,7 +203,7 @@ export function analyseFood(food: Food, n: Nutrients): FoodInsight {
   }
 
   if (n.fiber >= 5) {
-    good.push({ label: 'Good fibre', detail: `${Math.round(n.fiber)} g in one serving.`, tone: 'good' })
+    good.push({ label: 'Good fiber', detail: `${Math.round(n.fiber)} g in one serving.`, tone: 'good' })
   }
   if (n.sugar >= 20) {
     watch.push({ label: 'Sugar heavy', detail: `${Math.round(n.sugar)} g of sugar.`, tone: 'watch' })

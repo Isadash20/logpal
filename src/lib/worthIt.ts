@@ -14,9 +14,9 @@ import type { Nutrients } from '../types'
  *
  *  - what it costs against what is left,
  *  - how much protein it returns for those calories,
- *  - how much fibre it returns for those calories.
+ *  - how much fiber it returns for those calories.
  *
- * Protein and fibre are measured against the *plan's own* density rather than
+ * Protein and fiber are measured against the *plan's own* density rather than
  * a fixed figure. Someone on 1,500 calories and 190 g of protein needs far
  * more protein per calorie than someone on 3,000 and 140 g, and a food that
  * suits the first would drag the second nowhere.
@@ -30,7 +30,7 @@ export interface DayBudget {
   /** Protein still to eat, and the day's target. */
   proteinLeft: number
   proteinTarget: number
-  /** Fibre target for the day. */
+  /** Fiber target for the day. */
   fiberTarget: number
 }
 
@@ -86,7 +86,7 @@ export function worthIt(n: Nutrients, budget: DayBudget): WorthItScore {
 
   /* Cost scales the return rather than being added to it.
    *
-   * Adding them let a food with no protein and no fibre score half marks for
+   * Adding them let a food with no protein and no fiber score half marks for
    * being cheap, which put a fizzy drink and a chicken breast in the same band.
    * A quarter is kept as a floor so fitting the day is worth something on its
    * own, and the rest has to be earned. */
@@ -105,7 +105,7 @@ export function worthIt(n: Nutrients, budget: DayBudget): WorthItScore {
     )
   }
   notes.push(`${Math.round(n.protein)} g protein, ${Math.round(density(n.protein, kcal))} g per 100 cal`)
-  notes.push(`${Math.round(n.fiber)} g fibre`)
+  notes.push(`${Math.round(n.fiber)} g fiber`)
   if (n.protein >= budget.proteinLeft && budget.proteinLeft > 0) {
     notes.push('Covers the protein you still need today')
   }
