@@ -6,7 +6,7 @@ import type { Nutrients } from '../types'
  * Samsung Food files recipes under High Protein, Low Carb, High Fiber and so
  * on, and those labels are the main way anyone navigates a library of a hundred
  * thousand recipes. Theirs come from whoever uploaded the recipe, which is why
- * their tags are uneven — a recipe is "keto" because someone said so.
+ * their tags are uneven. A recipe is "keto" because someone said so.
  *
  * Ours are computed from the nutrition we already resolve, per serving. That
  * costs nothing, cannot be gamed, and applies to a recipe somebody typed in
@@ -41,8 +41,8 @@ export type NutritionTag = (typeof NUTRITION_TAGS)[number]
  * Named because people on semaglutide and tirzepatide are now a large part of
  * who uses a calorie tracker, and they are looking for something specific:
  * appetite is small, so every bite has to carry protein, and fat and sugar sit
- * badly. This is that combination — protein-dense, some fibre, modest portion,
- * not greasy, not sweet — rather than a medical claim. Nothing here is advice;
+ * badly. This is that combination, protein-dense, some fibre, modest portion,
+ * not greasy, not sweet, rather than a medical claim. Nothing here is advice;
  * it is a filter over nutrition the recipe already declares.
  */
 function isGlp1Friendly(n: Nutrients): boolean {
@@ -76,7 +76,7 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
   // "Low sugar" is not an FDA claim either; 5 g a serving is the common line.
   if (n.sugar <= 5) out.push('Low Sugar')
 
-  /* 21 CFR 101.60: sugar free is under 0.5 g a serving. Strict on purpose —
+  /* 21 CFR 101.60: sugar free is under 0.5 g a serving. Strict on purpose,
      anything with fruit or honey in it will not qualify, and a Sugar Free
      filter that returned sweetened recipes would be the one lie in a set of
      tags whose whole point is that they are computed and cannot lie. */
@@ -89,14 +89,14 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
   if (n.sodium <= 140) out.push('Low Sodium')
 
   /* 21 CFR 101.62: low cholesterol is 20 mg or less per serving. Filterable
-     for anyone who wants it, but deliberately not scored — the 2020–2025
+     for anyone who wants it, but deliberately not scored. The 2020-2025
      Dietary Guidelines set no numeric limit, and scoring it made eggs the
      worst thing in the catalogue. */
   if ((n.cholesterol ?? 0) <= 20) out.push('Low Cholesterol')
 
   /* 21 CFR 101.60 puts low calorie at 40 kcal per serving, which is written
      for a single food and absurd for a dinner. 400 was the first meal-sized
-     translation and it matched 505 of 528 recipes — a filter that returns
+     translation and it matched 505 of 528 recipes. A filter that returns
      almost everything answers no question at all. 250 is a genuinely light
      serving and leaves the label meaning something. */
   if (n.calories <= 250) out.push('Low Calorie')
@@ -111,8 +111,8 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
 /**
  * Diet labels read off the ingredient list.
  *
- * The catalogue is USDA's, and USDA files recipes by food group — "Protein
- * Foods", "Vegetables", "Grains" — not by diet. Nothing in the source data says
+ * The catalogue is USDA's, and USDA files recipes by food group, "Protein
+ * Foods", "Vegetables", "Grains", not by diet. Nothing in the source data says
  * vegetarian, so matching the word against tags and titles found almost
  * nothing, and a Vegetarian filter that returns four recipes out of five
  * hundred is worse than no filter at all: it reads as "there is nothing here
@@ -120,7 +120,7 @@ export function nutritionTagsFor(n: Nutrients): NutritionTag[] {
  *
  * Reading the ingredients instead answers it properly. The lists below are the
  * things that disqualify, which is the only direction that can be decided from
- * an ingredient list — the absence of meat is knowable, whereas "is this dish
+ * an ingredient list. The absence of meat is knowable, whereas "is this dish
  * authentically vegan" is not.
  */
 
@@ -178,7 +178,7 @@ export type DietTag = 'Vegan' | 'Vegetarian' | 'Pescatarian' | 'No Added Sugar'
  *
  * Fruit is deliberately absent: a smoothie sweetened only by its own bananas
  * is what most people mean by no added sugar, and excluding it would leave the
- * filter as thin as the FDA's 0.5 g line already makes "Sugar Free" — eleven
+ * filter as thin as the FDA's 0.5 g line already makes "Sugar Free", eleven
  * recipes out of five hundred, which answers nobody's question.
  */
 export const ADDED_SUGARS = [

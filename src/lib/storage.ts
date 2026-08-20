@@ -46,7 +46,7 @@ export const localAdapter: PersistenceAdapter = {
     try {
       localStorage.setItem(KEY, JSON.stringify(data))
     } catch {
-      // Quota exceeded — drop the network food cache first, it is rebuildable.
+      // Quota exceeded, drop the network food cache first, it is rebuildable.
       try {
         localStorage.setItem(KEY, JSON.stringify({ ...data, foodCache: {} }))
       } catch {
@@ -72,8 +72,8 @@ const LEGACY_PERIOD: Record<string, string> = {
  *
  * A saved account had one calorie switch and it was off by default. Spreading
  * the new defaults over it would turn on water, steps and macros for people
- * who never agreed to any of them, so an existing save keeps its answer —
- * calories, and only calories, if that is what it had — and is asked about the
+ * who never agreed to any of them, so an existing save keeps its answer,
+ * calories, and only calories, if that is what it had, and is asked about the
  * rest the next time it adds someone.
  */
 function migrateSettings(base: Settings, saved?: Partial<Settings>): Settings {
@@ -85,7 +85,7 @@ function migrateSettings(base: Settings, saved?: Partial<Settings>): Settings {
    * The first sharing model was one boolean, `shareCalories`. The second was
    * five booleans, one per figure. This is the third: a level per figure. A
    * save can be at any of them, and a `true` from either earlier model means
-   * "share this", which is now `percent` — never `exact`, because nobody who
+   * "share this", which is now `percent`, never `exact`, because nobody who
    * ticked a box was agreeing to publish the number itself. */
   const legacy = saved as Record<string, unknown>
   const fromBool = (v: unknown): ShareLevel | null =>
@@ -188,7 +188,7 @@ export function defaultProfile(): Profile {
     workoutsPerWeek: 3,
     minutesPerWorkout: 30,
     /* Eight hours and ten thousand steps: the figures people already have in
-       their heads, which matters more here than precision — neither is a
+       their heads, which matters more here than precision, neither is a
        clinical target and both are meant to be changed. */
     sleepGoalMin: 480,
     stepGoal: 10000,

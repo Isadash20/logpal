@@ -1,7 +1,7 @@
 import { r, type Authored } from './recipe'
 
 /**
- * Beef, weighted towards brisket — which the USDA library does not cover at
+ * Beef, weighted towards brisket, which the USDA library does not cover at
  * all, and which is the cut people search for by name.
  *
  * Internal temperatures follow FSIS: 160°F for ground beef, 145°F with a
@@ -14,7 +14,7 @@ export const BEEF_RECIPES: Authored[] = [
     id: 'slow_cooker_brisket',
     name: 'Slow-Cooker Beef Brisket',
     description:
-      'Eight hours unattended. The only decision that matters is slicing across the grain at the end — with it, the same brisket eats like string.',
+      'Eight hours unattended. The only decision that matters is slicing across the grain at the end, with it, the same brisket eats like string.',
     servings: 8, prep: 20, cook: 480,
     tags: ['Dinner', 'Main dish', 'American', 'High Protein'],
     ingredients: [
@@ -110,7 +110,7 @@ export const BEEF_RECIPES: Authored[] = [
     id: 'brisket_tacos',
     name: 'Brisket Tacos with Charred Corn',
     description:
-      'The best use for leftover brisket. Char the corn hard in a dry pan — the black spots are the point.',
+      'The best use for leftover brisket. Char the corn hard in a dry pan. The black spots are the point.',
     servings: 6, prep: 15, cook: 15,
     tags: ['Dinner', 'Lunch', 'Main dish', 'Mexican'],
     ingredients: [
@@ -168,7 +168,7 @@ export const BEEF_RECIPES: Authored[] = [
     id: 'brisket_chili',
     name: 'Brisket Chili',
     description:
-      'Cubed brisket instead of ground beef, which is the whole difference — it stays in pieces you have to chew.',
+      'Cubed brisket instead of ground beef, which is the whole difference. It stays in pieces you have to chew.',
     servings: 8, prep: 20, cook: 180,
     tags: ['Dinner', 'Main dish', 'Soup', 'American', 'High Fiber'],
     ingredients: [
@@ -216,7 +216,7 @@ export const BEEF_RECIPES: Authored[] = [
     steps: [
       'Stir the parsley, garlic, vinegar, oil and pepper flakes with half the salt and leave it to sit.',
       'Season the steak with the rest of the salt and the pepper. Sear in a very hot pan, 4 minutes a side, to 145°F internal for medium.',
-      'Rest the steak at least 5 minutes — cutting early loses the juice onto the board.',
+      'Rest the steak at least 5 minutes, cutting early loses the juice onto the board.',
       'Cook the asparagus in the same pan for 4 minutes, rolling it in the beef fat.',
       'Slice the steak across the grain and spoon the chimichurri over both.',
     ],

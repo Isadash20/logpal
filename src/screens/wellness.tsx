@@ -9,12 +9,12 @@ import { addDays, fromKey, lastNDays, today } from '../lib/dates'
  * Sleep and steps.
  *
  * Both are typed in. The web has no pedometer and no access to a phone's health
- * store, so there is nothing to read from — which is why every screen here says
+ * store, so there is nothing to read from, which is why every screen here says
  * what it is showing you rather than implying a sensor. A day with no entry is
  * left out of the averages instead of counting as a zero.
  */
 
-/** "7h 30m" — hours first, because that is how anyone says it. */
+/** "7h 30m", hours first, because that is how anyone says it. */
 export function formatSleep(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = Math.round(minutes % 60)
@@ -22,7 +22,7 @@ export function formatSleep(minutes: number): string {
   return m ? `${h}h ${m}m` : `${h}h`
 }
 
-/** M T W T F S S — `shortDate` gives "Aug 19", whose initial is the month. */
+/** M T W T F S S, `shortDate` gives "Aug 19", whose initial is the month. */
 function weekdayInitial(key: string): string {
   return fromKey(key).toLocaleDateString(undefined, { weekday: 'narrow' })
 }
@@ -42,7 +42,7 @@ export function SleepScreen({ date }: { date: string }) {
   const pctFull = goal > 0 ? Math.min(1, slept / goal) : 0
 
   /* Last night, not tonight. Sleep is recorded in the morning for the night
-     that just ended, so the entry belongs to the day you wake up on — which is
+     that just ended, so the entry belongs to the day you wake up on, which is
      what `date` already is. */
   const week = lastNDays(7)
   const recorded = week.map((d) => dayLog(d).sleepMin).filter((v): v is number => v != null)
@@ -65,7 +65,7 @@ export function SleepScreen({ date }: { date: string }) {
           }}
         >
           {/* A ring that fills towards the target, in the same language the
-              fasting dial uses — this is a duration against a goal too. */}
+              fasting dial uses. This is a duration against a goal too. */}
           <svg width="112" height="112" viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border)" strokeWidth="11" />
             {/* No arc at all when nothing is logged: a round cap on a
@@ -94,7 +94,7 @@ export function SleepScreen({ date }: { date: string }) {
               className="num"
               style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05 }}
             >
-              {log.sleepMin == null ? '—' : formatSleep(slept)}
+              {log.sleepMin == null ? '-' : formatSleep(slept)}
               <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-2)' }}>
                 {' '}
                 / {formatSleep(goal)}
@@ -185,10 +185,6 @@ export function SleepScreen({ date }: { date: string }) {
               </span>
             }
           />
-          <div className="hint">
-            Typed in, not measured — a browser cannot see your phone's sleep tracking, so this is
-            what you tell it.
-          </div>
         </div>
 
         <div style={{ height: 24 }} />
@@ -263,7 +259,7 @@ export function StepsScreen({ date }: { date: string }) {
               className="num"
               style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05 }}
             >
-              {log.steps == null ? '—' : walked.toLocaleString()}
+              {log.steps == null ? '-' : walked.toLocaleString()}
               <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-2)' }}>
                 {' '}
                 / {goal.toLocaleString()}
@@ -329,7 +325,7 @@ export function StepsScreen({ date }: { date: string }) {
             title="Average a day"
             value={avg == null ? 'No days logged' : Math.round(avg).toLocaleString()}
           />
-          <Row title="Best day" value={best == null ? '—' : best.toLocaleString()} />
+          <Row title="Best day" value={best == null ? '-' : best.toLocaleString()} />
           <Row title="Days recorded" value={`${recorded.length} of 7`} />
         </div>
 
@@ -357,11 +353,6 @@ export function StepsScreen({ date }: { date: string }) {
               </span>
             }
           />
-          <div className="hint">
-            Typed in, not counted. There is no step sensor a web app can read, so copy the number
-            across from your phone or watch. It is kept out of the calorie budget on purpose —
-            exercise you have already logged would otherwise be counted twice.
-          </div>
         </div>
 
         <div style={{ height: 24 }} />

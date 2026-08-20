@@ -99,7 +99,7 @@ export function parseSpokenFood(text: string): ParsedItem[] {
         qty = NUMBER_WORDS[words[0]] ?? parseFloat(words[0])
         words.shift()
       }
-      // Strip measure and size words wherever they sit, not just in front —
+      // Strip measure and size words wherever they sit, not just in front,
       // "small bowl of oatmeal" has to reduce to "oatmeal".
       const kept = words.filter((w) => !MEASURE_WORDS.has(w) && !SIZE_WORDS.has(w))
       return { qty: qty || 1, query: kept.join(' ').trim() }
@@ -126,7 +126,7 @@ export function VoiceLog({ date }: { date: string }) {
   useEffect(() => () => recRef.current?.stop(), [])
 
   /* Spoken items are matched with `searchLocal`, which reads the bulk database
-     — so it has to be resident by the time someone stops talking. Started on
+, so it has to be resident by the time someone stops talking. Started on
      mount rather than on match, because the download is slower than the pause
      between speaking and matching. */
   useEffect(() => {
@@ -136,7 +136,7 @@ export function VoiceLog({ date }: { date: string }) {
   function start() {
     const rec = getRecognition()
     if (!rec) {
-      setError('Voice input needs the Web Speech API — available in Chrome, Edge and Safari.')
+      setError('Voice input needs the Web Speech API, available in Chrome, Edge and Safari.')
       return
     }
     recRef.current = rec
@@ -221,7 +221,7 @@ export function VoiceLog({ date }: { date: string }) {
             <Icon name="mic" size={44} strokeWidth={1.8} />
           </button>
           <div style={{ marginTop: 16, fontSize: 15, color: 'var(--text-2)' }}>
-            {listening ? 'Listening — say what you ate' : 'Tap and say what you ate'}
+            {listening ? 'Listening, say what you ate' : 'Tap and say what you ate'}
           </div>
           {!listening && !transcript && (
             <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text-3)' }}>
@@ -274,7 +274,7 @@ export function VoiceLog({ date }: { date: string }) {
                   sub={
                     m.food
                       ? `${m.qty} × ${m.food.servings[0].label}`
-                      : 'No match — tap to search manually'
+                      : 'No match, tap to search manually'
                   }
                   value={
                     m.food
@@ -309,7 +309,7 @@ export function VoiceLog({ date }: { date: string }) {
         )}
 
         <div className="hint">
-          Matching runs against the built-in database on this device — nothing is sent
+          Matching runs against the built-in database on this device. Nothing is sent
           anywhere. Everything is shown for review before it&apos;s logged.
         </div>
       </div>

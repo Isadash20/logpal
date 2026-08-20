@@ -33,7 +33,7 @@ export function MealsList() {
       <div className="scroll">
         {data.savedMeals.length === 0 ? (
           <Empty title="No saved meals">
-            A meal bundles several foods so you can log them together — a usual breakfast,
+            A meal bundles several foods so you can log them together. A usual breakfast,
             a go-to lunch.
           </Empty>
         ) : (
@@ -369,7 +369,7 @@ export function MyFoods() {
       <div className="scroll">
         {data.customFoods.length === 0 ? (
           <Empty title="No custom foods">
-            Create a food when something isn&apos;t in the database — homemade dishes,
+            Create a food when something isn&apos;t in the database, homemade dishes,
             local brands, supplements.
           </Empty>
         ) : (

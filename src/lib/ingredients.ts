@@ -5,8 +5,8 @@ import { emptyNutrients, scaleNutrients } from './nutrition'
  * Turning a written ingredient line into something with calories on it.
  *
  * This is the piece the whole meal planner stands on. A recipe is a list of
- * sentences written for a person — "1 ¼ cups all-purpose flour", "1 red bell
- * pepper, sliced", "Cooking spray" — and a planner has to answer "how many
+ * sentences written for a person, "1 ¼ cups all-purpose flour", "1 red bell
+ * pepper, sliced", "Cooking spray", and a planner has to answer "how many
  * calories is that" for every one of them. Everything else in the feature is
  * presentation over this file's output.
  *
@@ -40,7 +40,7 @@ const VULGAR_RE = new RegExp(`[${Object.keys(VULGAR).join('')}]`)
  * may not have used is the worse direction for a calorie tracker to err in.
  *
  * Returns null when the line does not start with a number at all, which is a
- * real and common case — "Cooking spray", "Salt and pepper to taste".
+ * real and common case, "Cooking spray", "Salt and pepper to taste".
  */
 function readQuantity(s: string): { qty: number; rest: string } | null {
   const text = s.trim()
@@ -67,7 +67,7 @@ function readQuantity(s: string): { qty: number; rest: string } | null {
   if (num) {
     let qty = parseFloat(num[1])
     let rest = dropRange(text.slice(num[0].length).trim())
-    // A whole number followed by a unicode fraction — "1 ½ cups".
+    // A whole number followed by a unicode fraction, "1 ½ cups".
     if (VULGAR_RE.test(rest[0] ?? '')) {
       qty += VULGAR[rest[0]]
       rest = rest.slice(1).trim()
@@ -84,7 +84,7 @@ function readQuantity(s: string): { qty: number; rest: string } | null {
 
 /** Drops the upper half of "1-2" / "2 to 3"; the low end already stands. */
 function dropRange(s: string): string {
-  const range = s.match(/^(?:-|–|—|to)\s*\d+(?:\s*\/\s*\d+)?(?:\.\d+)?/)
+  const range = s.match(/^(?:-|, |, |to)\s*\d+(?:\s*\/\s*\d+)?(?:\.\d+)?/)
   return range ? s.slice(range[0].length).trim() : s
 }
 
@@ -106,7 +106,7 @@ interface UnitDef {
  * The units recipes actually use.
  *
  * US volume measures, because the food database is USDA and its household
- * portions are written the same way — that alignment is the whole reason a
+ * portions are written the same way. That alignment is the whole reason a
  * "1 cup" ingredient can be priced without converting to grams first.
  */
 const UNITS: UnitDef[] = [
@@ -134,7 +134,7 @@ const UNITS: UnitDef[] = [
   { key: 'oz', kind: 'weight', base: 28.3495, aliases: ['oz', 'ounce'] },
   { key: 'lb', kind: 'weight', base: 453.592, aliases: ['lb', 'lbs', 'pound'] },
 
-  /* Counted things. No base amount — how much a "clove" weighs depends
+  /* Counted things. No base amount, how much a "clove" weighs depends
      entirely on what it is a clove of, so these resolve through the matched
      food's own serving list instead. */
   { key: 'clove', kind: 'count', aliases: ['clove'] },
@@ -164,7 +164,7 @@ for (const u of UNITS) {
 export const UNIT_BY_KEY = new Map(UNITS.map((u) => [u.key, u]))
 
 /* Note what is deliberately absent from UNITS: `large`, `medium`, `small`,
-   `jumbo`, `whole`. "1 large egg" has no unit — it is one egg, and `large`
+   `jumbo`, `whole`. "1 large egg" has no unit. It is one egg, and `large`
    describes it. Listing them as units would leave the name as "egg" carrying a
    phantom measure, and would strip the word before the database, which does
    stock "Egg, Large" as its own entry, ever got to see it. */
@@ -190,7 +190,7 @@ function unitFor(word: string): UnitDef | null {
 /**
  * Containers whose size is printed on them.
  *
- * A can is not a measure — it is a package that states one — so the number to
+ * A can is not a measure. It is a package that states one, so the number to
  * price is the "(15 ounce)" beside it, not the container itself. See
  * `containerSize`.
  */
@@ -234,14 +234,14 @@ export interface ParsedIngredient {
   /**
    * Preparation and qualifiers: "chopped", "or parsley, minced", "for serving".
    * Split off because it is written for the cook and only confuses a database
-   * lookup — "1 red bell pepper, sliced" must search for a pepper, not a slice.
+   * lookup, "1 red bell pepper, sliced" must search for a pepper, not a slice.
    */
   note: string | null
 }
 
 /**
  * Preparation words. When a line has no comma, a trailing one of these is still
- * preparation — "2 cups chicken breasts cooked" reads the same as
+ * preparation, "2 cups chicken breasts cooked" reads the same as
  * "2 cups chicken breasts, cooked" and has to lose the word just the same.
  */
 const PREP_WORDS = [
@@ -295,7 +295,7 @@ export function parseIngredient(line: string): ParsedIngredient {
   const lead = text.match(/^([A-Za-z]+)\b/)
   if (lead && FILLER.has(lead[1].toLowerCase())) text = text.slice(lead[0].length).trim()
 
-  // Size words stay in the name — "large egg" is a real database entry — but a
+  // Size words stay in the name, "large egg" is a real database entry, but a
   // leading one is recorded so it can be shown on its own line, as recipes do.
   const notes = [...parens]
 
@@ -319,14 +319,14 @@ export function parseIngredient(line: string): ParsedIngredient {
   /* A tin priced by what is in it.
    *
    * "1 can tuna fish, packed in water (5 ounces, drained)" is five ounces of
-   * tuna, and reading it as one uncountable "can" left the line — and the
-   * recipe's calories with it — blank. Multiplying by the printed size only
+   * tuna, and reading it as one uncountable "can" left the line, and the
+   * recipe's calories with it, blank. Multiplying by the printed size only
    * works because `matchIngredient` now refuses matches that change what the
    * food is; the earlier attempt at this turned a can of pumpkin into fifteen
    * ounces of pumpkin seeds.
    *
-   * The same reading fixes the packages that name no unit at all — "1 block
-   * extra-firm tofu (14 ounce)", "4 bone-in pork chops (8 ounces each)" — which
+   * The same reading fixes the packages that name no unit at all, "1 block
+   * extra-firm tofu (14 ounce)", "4 bone-in pork chops (8 ounces each)", which
    * were being priced as one database serving each. */
   if (qty != null && (unit === null || CONTAINER.has(unit))) {
     const size = containerSize(notes)
@@ -351,7 +351,7 @@ export function parseIngredient(line: string): ParsedIngredient {
  * Things that are genuinely zero, resolved before any search runs.
  *
  * Water and ice carry no calories, and the database has no clean entry for
- * either — searching sent "cold water" to Cold Water Sardines and "1 cup ice"
+ * either, searching sent "cold water" to Cold Water Sardines and "1 cup ice"
  * to a 530-calorie cup of ice cream. Neither is a near miss to be tuned away;
  * they are the search doing its job on a query that has no right answer.
  */
@@ -375,7 +375,7 @@ function tokens(s: string): string[] {
 /**
  * A word reduced to its stem for comparison.
  *
- * Recipes write plurals and the database writes singulars — "4 medium apples"
+ * Recipes write plurals and the database writes singulars, "4 medium apples"
  * against "Apple", "acorn squashes" against "Squash, acorn", "broccoli florets"
  * against "Broccoli". Comparing the surface forms means none of those match,
  * which was the single largest source of "no match" in the catalogue.
@@ -398,8 +398,8 @@ const SIZE_WORDS = new Set([
 /**
  * The word an ingredient is really about.
  *
- * English compounds are head-final — "orange juice" is a juice, "black pepper"
- * is a pepper, "fat-free dry milk" is a milk — so the last meaningful word is
+ * English compounds are head-final, "orange juice" is a juice, "black pepper"
+ * is a pepper, "fat-free dry milk" is a milk, so the last meaningful word is
  * the thing itself and the ones before it are modifiers. Requiring a candidate
  * to contain that word is what stops "cinnamon" landing on a cinnamon bun and
  * "salt" on a chocolate sea salt bar.
@@ -415,7 +415,7 @@ function headNoun(name: string): string {
  *
  * `searchLocal` is built for a person choosing from a list: it always returns
  * its best guess, however poor, because a human will simply not tap the wrong
- * one. Used automatically that becomes a liability — every bad guess silently
+ * one. Used automatically that becomes a liability. Every bad guess silently
  * becomes calories. This narrows the result to candidates that plausibly *are*
  * the ingredient, and returns null rather than settling.
  *
@@ -429,7 +429,7 @@ function headNoun(name: string): string {
  * Words that turn one food into another.
  *
  * "Pumpkin" and "pumpkin seeds" share a head noun and are not the same
- * ingredient — one is a vegetable, the other is 560 calories per cup of fat.
+ * ingredient. One is a vegetable, the other is 560 calories per cup of fat.
  * When a candidate carries one of these and the line did not ask for it, it is
  * a different food wearing the same name, so it is refused outright rather than
  * ranked lower. This is the confidence the tinned-goods note in `servingFor`
@@ -448,7 +448,7 @@ const DERIVED = new Set([
  *
  * FoodData Central is American, and a good part of this catalogue is not:
  * "courgettes", "aubergine", "beef mince" and "cornflour" all failed to match
- * anything at all. Translating the word before the search is the whole fix —
+ * anything at all. Translating the word before the search is the whole fix,
  * the food is in the database under its other name.
  */
 const SYNONYMS: Record<string, string> = {
@@ -511,7 +511,7 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
    * "1 medium celery stalk (chopped)" is a celery stalk to a cook and a
    * three-word phrase nothing is filed under to a database. Rather than trying
    * to guess which words matter, ask for the whole thing, then the same thing
-   * without size adjectives, then the bare noun — and stop at the first rung
+   * without size adjectives, then the bare noun, and stop at the first rung
    * that answers. The full phrase still gets first refusal, so "brown rice"
    * never degrades to "rice" while a brown rice entry exists. */
   const words = tokens(name)
@@ -543,7 +543,7 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
       let extra = 0
       for (const w of foodWords) if (!asked.has(w) && !STOP.has(w)) extra++
       /* Ties go to the earlier candidate, which is the one the ranked search
-         already preferred — this reorders within the shortlist, it does not
+         already preferred. This reorders within the shortlist, it does not
          replace the ranking. */
       if (extra < bestExtra) {
         bestExtra = extra
@@ -567,7 +567,7 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
  * and for a count unit like "clove" there is no sensible fallback at all.
  *
  * Weights are the exception and go through grams first. An ounce is an ounce
- * whatever the food, so the conversion is exact — while USDA's own labels
+ * whatever the food, so the conversion is exact, while USDA's own labels
  * include "1 oz yields" (an ounce of raw meat *after* cooking, about 20 g) and
  * "Guideline amount per fl oz of" (2.5 g of coconut milk). Both contain "oz",
  * both used to win the label match, and both are how five ounces of tuna came
@@ -624,7 +624,7 @@ function servingFor(
   }
 
   /* Volume with no matching serving. Water's density is the only assumption
-     available without a per-food figure, and it is wrong for oil and flour —
+     available without a per-food figure, and it is wrong for oil and flour,
      so this is deliberately last, and callers surface it as approximate. */
   if (unitDef?.base && unitDef.kind === 'volume') {
     const withGrams = servings.find((s) => s.grams && s.grams > 0)
@@ -661,7 +661,7 @@ function servingFor(
    * match happened to be is how a can of pumpkin became fifteen ounces of
    * pumpkin seeds. An undercount you can see beats an overcount you cannot. */
 
-  // No unit at all — "2 eggs", "1 avocado". The food's own first serving is
+  // No unit at all, "2 eggs", "1 avocado". The food's own first serving is
   // exactly the right notion of "one of them".
   if (!parsed.unit) return { serving: servings[0], servings: qty }
 
@@ -721,7 +721,7 @@ export function resolveIngredient(
    * "Salt and pepper, to taste", "Cooking spray", "Lettuce, as needed" name a
    * food without saying how much, so there is nothing to scale and any answer
    * would be invented. Charging them one whole database serving is how
-   * "Salt and pepper" became a 210-calorie chocolate sea salt bar — a recipe
+   * "Salt and pepper" became a 210-calorie chocolate sea salt bar. A recipe
    * gaining a third of its calories from a seasoning nobody weighed.
    *
    * The match is still returned: the shopping list wants the name even though
@@ -776,7 +776,7 @@ const FRACTIONS: [number, string][] = [
  * An amount written the way a recipe writes it.
  *
  * Recipes say "1 ½ cups", never "1.5 cups", and scaling a recipe to three
- * servings is exactly when thirds appear — so decimals here would make the
+ * servings is exactly when thirds appear, so decimals here would make the
  * common case look broken.
  */
 export function formatQuantity(n: number): string {
@@ -822,8 +822,8 @@ export function formatAmount(qty: number | null, unit: string | null): string {
  * Weight and volume are asked separately because people genuinely mix them:
  * someone can weigh in kilograms and still cook in cups, which is the normal
  * British and Australian kitchen. Taken straight from the existing Units
- * screen — `weightUnit` decides pounds against grams, `waterUnit` decides cups
- * against millilitres — so there is no new preference to set and no way for the
+ * screen, `weightUnit` decides pounds against grams, `waterUnit` decides cups
+ * against millilitres, so there is no new preference to set and no way for the
  * two to disagree with the rest of the app.
  */
 export interface UnitPrefs {
@@ -849,7 +849,7 @@ const LB_THRESHOLD = 16
 /**
  * Rewrites an amount into the reader's own units.
  *
- * Only converts across the same kind — a weight becomes another weight, a
+ * Only converts across the same kind. A weight becomes another weight, a
  * volume another volume. Counts are left exactly as written, because "3 cloves
  * garlic" has no metric equivalent and inventing one would be worse than
  * leaving it. An amount already in the wanted unit is returned untouched rather
@@ -890,7 +890,7 @@ export function convertAmount(
 /**
  * An amount written for this reader.
  *
- * Metric rounds to whole numbers — "237 ml", not "236.588 ml" and not "1 ⅕" —
+ * Metric rounds to whole numbers, "237 ml", not "236.588 ml" and not "1 ⅕",
  * because that is how metric recipes are written. Imperial and cup measures
  * keep the fractions, because that is how theirs are.
  */

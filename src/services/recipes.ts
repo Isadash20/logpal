@@ -27,7 +27,7 @@ import {
  * Recipes, priced.
  *
  * A recipe arrives as sentences and has to leave as calories. That work happens
- * here, once per recipe, and is cached — resolving a ten-ingredient recipe means
+ * here, once per recipe, and is cached, resolving a ten-ingredient recipe means
  * ten searches across a couple of hundred thousand foods, which is fine once and
  * far too slow on every render of a planner showing twenty-one meals.
  *
@@ -48,7 +48,7 @@ export interface ResolvedRecipe {
   /** Nutrition for the whole recipe. */
   total: Nutrients
   health: HealthScore
-  /** Dietary labels worked out from the nutrition — High Protein, Low Carb… */
+  /** Dietary labels worked out from the nutrition, High Protein, Low Carb… */
   nutritionTags: NutritionTag[]
   /** Vegan / Vegetarian / Pescatarian, read off the ingredient list. */
   dietTags: DietTag[]
@@ -69,7 +69,7 @@ const CACHE = new Map<string, ResolvedRecipe>()
  *
  * `foodDbSize()` reads a length. The first version of this ran a search for
  * "chicken" and counted the hits, which is a scan of every row in the database
- * — per recipe, on every render, with a hundred and twenty recipe cards on
+ *, per recipe, on every render, with a hundred and twenty recipe cards on
  * screen. The cache meant to make resolution cheap was the most expensive thing
  * in the feature.
  */
@@ -91,7 +91,7 @@ function fingerprint(recipe: Recipe): string {
 /**
  * Prices a recipe.
  *
- * Recipes written in the app's own editor already carry `items` — the editor
+ * Recipes written in the app's own editor already carry `items`. The editor
  * builds them by picking foods directly, so there is nothing to parse and
  * nothing to guess. Only recipes that came in as text need the parser.
  */
@@ -123,7 +123,7 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
 
   /* Published nutrition wins for the headline figures when the recipe has it.
      The per-ingredient calories below still come from the parser, because
-     that is a breakdown nobody else can supply — but the number at the top of
+     that is a breakdown nobody else can supply, but the number at the top of
      the screen should be the one its author stands behind. */
   const perServing = recipe.nutritionPerServing
     ? ({ ...emptyNutrients(), ...recipe.nutritionPerServing } as Nutrients)
@@ -160,7 +160,7 @@ export function resolveRecipe(recipe: Recipe, extraFoods: Food[] = []): Resolved
  * The cheap path, and the one every list uses. Five hundred recipes across
  * sixteen rails is eight thousand lookups if each one has to be resolved; with
  * published nutrition it is eight thousand property reads. Falls back to the
- * full resolve only for recipes with no published figures — which means the
+ * full resolve only for recipes with no published figures, which means the
  * user's own, of which there are never many.
  */
 export interface RecipeSummary {
@@ -203,7 +203,7 @@ export function summarise(recipe: Recipe, extraFoods: Food[] = []): RecipeSummar
 }
 
 /**
- * Total working minutes — the recipe's own figure, or one read off its method.
+ * Total working minutes. The recipe's own figure, or one read off its method.
  *
  * The whole USDA catalogue ships without prep or cook times, which showed as a
  * dash on every card and, worse, meant every cook-time filter silently dropped
@@ -214,7 +214,7 @@ export function totalMinutes(r: Recipe): number | null {
   return workingMinutes(r)?.mins ?? null
 }
 
-/** "1h 15m", "25m" — the form both reference apps use on a card. */
+/** "1h 15m", "25m". The form both reference apps use on a card. */
 export function formatMinutes(mins: number): string {
   if (mins < 60) return `${mins}m`
   const h = Math.floor(mins / 60)
@@ -230,7 +230,7 @@ export function ingredientCount(r: Recipe): number {
 /**
  * Everything the user can plan from: what they wrote, then what shipped.
  *
- * Theirs first, always — a recipe someone typed in should never rank below one
+ * Theirs first, always. A recipe someone typed in should never rank below one
  * that came with the app. After that the eight hand-written seeds, then the
  * USDA catalogue, which is the largest but the least personal.
  */
@@ -241,7 +241,7 @@ export function allRecipes(userRecipes: Recipe[]): Recipe[] {
   /* The eight hand-written seeds are a fallback, not a supplement.
    *
    * They exist so the Plan tab is not empty if recipes.json never arrives, and
-   * they are the only recipes in the app with no photograph — so while the
+   * they are the only recipes in the app with no photograph, so while the
    * catalogue is still downloading they were the entire screen, which is why
    * Plan opened as a wall of blank cards. With five hundred illustrated
    * recipes available there is no reason to mix them in. */
@@ -276,7 +276,7 @@ export interface RecipeFilters {
   ingredients?: string[]
   /**
    * Ingredients that must NOT appear. Allergies, dislikes, anything being
-   * avoided — the question "what can I eat" is often asked that way round, and
+   * avoided. The question "what can I eat" is often asked that way round, and
    * the ingredient filter alone can only answer the other one.
    */
   exclude?: string[]
@@ -293,7 +293,7 @@ export type SortKey = 'relevance' | 'calories' | 'time' | 'health' | 'name'
  * Everything combines with AND. Adding a word or a chip always narrows, never
  * widens: High Protein *and* Dinner, and "cod" plus "lemon" means recipes with
  * both, not the union of the two. Ingredients were OR at first, on the theory
- * that naming three things in the fridge invites anything using any of them —
+ * that naming three things in the fridge invites anything using any of them,
  * but in use a second ingredient reads as "and also", and an OR that grows the
  * result set as you keep typing feels broken. `exclude` is still the stricter
  * mirror: one banned hit drops the recipe.

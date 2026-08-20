@@ -9,7 +9,7 @@ const n = (o: Partial<Nutrients>): Nutrients =>
 describe('health score', () => {
   it('rates a spinach and egg frittata well', () => {
     /* The case that prompted the rebalance: 132 calories carrying 9.6 g of
-       protein, from eggs and spinach, previously scored 4.6 — "Moderate",
+       protein, from eggs and spinach, previously scored 4.6, "Moderate",
        one notch above the bottom band. */
     const s = healthScore(
       n({ calories: 132, protein: 9.58, fat: 9.61, satFat: 3.19, carbs: 1.94,

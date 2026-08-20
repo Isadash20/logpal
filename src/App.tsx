@@ -34,6 +34,7 @@ import {
 import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
 import { SleepScreen, StepsScreen } from './screens/wellness'
 import { BarcodeScanner } from './screens/Scanner'
+import { WorthIt } from './screens/WorthIt'
 import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
@@ -44,11 +45,8 @@ import { cloudEnabled } from './lib/supabase'
 const TABS: { key: TabKey; label: string; icon: IconName }[] = [
   { key: 'today', label: 'Home', icon: 'home' },
   { key: 'plan', label: 'Plan', icon: 'plan' },
-  /* Friends is a place you go, not a setting you find. It was three taps deep
-     under Settings, which is the wrong depth for a screen whose whole purpose
-     is to be checked on. */
-  { key: 'friends', label: 'Friends', icon: 'user' },
   { key: 'progress', label: 'Progress', icon: 'progress' },
+  { key: 'friends', label: 'Friends', icon: 'user' },
   { key: 'more', label: 'Settings', icon: 'settings' },
 ]
 
@@ -86,7 +84,7 @@ function Shell() {
         </div>
       )
     }
-    /* Signed in but no handle yet — the rest of signing up. Reached both by
+    /* Signed in but no handle yet. The rest of signing up. Reached both by
        Google, which hands back only an address, and by an email sign-up that
        had to wait for confirmation. Undefined means the lookup is still in
        flight, and gating on that would flash this screen at everyone. */
@@ -166,7 +164,10 @@ function Shell() {
         return <QuickAdd date={route.date} />
 
       case 'scan':
-        return <BarcodeScanner date={route.date} />
+        return <BarcodeScanner date={route.date} mode={route.mode} />
+
+      case 'worthIt':
+        return <WorthIt date={route.date} food={route.food} />
 
       case 'voiceLog':
         return <VoiceLog date={route.date} />

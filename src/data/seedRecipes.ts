@@ -6,7 +6,7 @@ import type { Recipe } from '../types'
  * Written for LogPal rather than collected: Samsung Food's library is community
  * content and MyFitnessPal's is licensed, so neither could be shipped here even
  * though both are what makes those apps feel full on first run. These are
- * plain, widely-known preparations written in our own words — enough that the
+ * plain, widely-known preparations written in our own words, enough that the
  * planner, the shopping list and the search have something real to work on
  * before anyone has typed a recipe in.
  *
@@ -103,7 +103,7 @@ export const SEED_RECIPES: Recipe[] = [
       '2 tablespoons olive oil',
       '1 tablespoon lemon juice',
       /* A quarter teaspoon, not one. The feta brings most of the salt already,
-         and the original teaspoon worked out at 1,150 mg a serving — which the
+         and the original teaspoon worked out at 1,150 mg a serving, which the
          health score was quite right to mark down. The recipe was wrong, not
          the score. */
       '¼ teaspoon salt',

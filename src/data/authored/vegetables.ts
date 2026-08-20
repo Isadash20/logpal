@@ -66,7 +66,7 @@ export const VEGETABLE_RECIPES: Authored[] = [
     id: 'bhindi_masala',
     name: 'Bhindi Masala',
     description:
-      'Okra fried dry before anything wet goes near it. Wash and dry the pods well ahead — water is what turns them ropy.',
+      'Okra fried dry before anything wet goes near it. Wash and dry the pods well ahead, water is what turns them ropy.',
     servings: 4, prep: 15, cook: 25,
     tags: ['Side dish', 'Main dish', 'Indian', 'Vegan', 'Vegetarian', 'Gluten Free'],
     ingredients: [
@@ -226,7 +226,7 @@ export const VEGETABLE_RECIPES: Authored[] = [
     ],
     steps: [
       'Soften the onion and garlic in the butter for 6 minutes without colouring them.',
-      'Add the stock and bring to a boil, then add the asparagus and peas and cook 6 minutes — no longer, or the colour goes.',
+      'Add the stock and bring to a boil, then add the asparagus and peas and cook 6 minutes. No longer, or the colour goes.',
       'Blend smooth, season with the salt, pepper and lemon juice.',
       'Swirl the yogurt through each bowl.',
     ],
@@ -239,7 +239,7 @@ export const VEGETABLE_RECIPES: Authored[] = [
     id: 'asparagus_feta_frittata',
     name: 'Asparagus and Feta Frittata',
     description:
-      'Started on the hob and finished under the broiler. Pull it while the middle still moves — it sets on the counter.',
+      'Started on the hob and finished under the broiler. Pull it while the middle still moves. It sets on the counter.',
     servings: 4, prep: 10, cook: 20,
     tags: ['Breakfast', 'Brunch', 'Main dish', 'Vegetarian', 'Gluten Free', 'Low Carb'],
     ingredients: [

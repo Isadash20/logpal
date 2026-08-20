@@ -51,7 +51,7 @@ const UA = 'LogPal/0.1 (recipe photo lookup; contact via github.com/Isadash20/lo
  * Licences we can honour.
  *
  * CC0 and public domain ask for nothing. CC BY asks for credit, which is shown
- * on the recipe anyway, so it is in — and including it roughly quadruples the
+ * on the recipe anyway, so it is in, and including it roughly quadruples the
  * pool, which is the difference between four recipes with photographs and
  * twenty.
  *
@@ -92,7 +92,7 @@ async function withRetry(fn, label) {
     } catch (err) {
       if (!String(err.message).includes('429') || attempt === 3) throw err
       const wait = 2000 * (attempt + 1)
-      console.log(`      throttled, waiting ${wait / 1000}s — ${label}`)
+      console.log(`      throttled, waiting ${wait / 1000}s, ${label}`)
       await sleep(wait)
     }
   }
@@ -117,8 +117,8 @@ async function search(query) {
    * a qualifier ("pan", "bowl") that every food photograph matches, and the
    * first is often a cooking verb, which is how "roasted okra pan" came back
    * with roasted chestnuts. So drop the words that describe how a thing is
-   * cooked or served and require everything that is left — the ingredients and
-   * the dish — to appear in the photographer's own description. */
+   * cooked or served and require everything that is left. The ingredients and
+   * the dish, to appear in the photographer's own description. */
   const required = query
     .toLowerCase()
     .split(/\s+/)
@@ -128,12 +128,12 @@ async function search(query) {
   for (const photo of data?.photos ?? []) {
     const alt = String(photo.alt ?? '').toLowerCase()
 
-    /* Pexels ranks loosely too — "lassi" will return generic drinks. Where the
+    /* Pexels ranks loosely too, "lassi" will return generic drinks. Where the
        photo carries a description, it must mention the dish; where it carries
        none, it is kept, because a missing alt is common and not a signal. */
     /* The subject has to be there; the rest only rank.
      *
-     * Requiring every word found almost nothing — "cod lemon herbs" wants a
+     * Requiring every word found almost nothing, "cod lemon herbs" wants a
      * photograph tagged with all three, and photographers write one line about
      * the dish. Requiring the first word keeps cod photographs only, and the
      * others decide which cod photograph. */
@@ -163,7 +163,7 @@ async function main() {
   const files = sourceFiles()
   const sources = new Map(files.map((f) => [f, readFileSync(f, 'utf8')]))
 
-  /* Only the ones still without a picture — Pexels throttles, so a run that
+  /* Only the ones still without a picture, Pexels throttles, so a run that
      gets halfway should be resumable rather than starting over. */
   const queries = []
   const owner = new Map()
@@ -177,12 +177,12 @@ async function main() {
 
   /* Two recipes sharing a photo query would both match the same
      `photo: '...'` string, so the write-back below would stamp one recipe
-     twice and leave the other bare — which is exactly what happened once.
+     twice and leave the other bare, which is exactly what happened once.
      Checked before any network call, and across every file rather than
      within one, now that the library is split up. */
   const seen = new Set()
   for (const q of queries) {
-    if (seen.has(q)) throw new Error(`duplicate photo query: "${q}" — give each recipe its own`)
+    if (seen.has(q)) throw new Error(`duplicate photo query: "${q}", give each recipe its own`)
     seen.add(q)
   }
 
@@ -203,15 +203,15 @@ async function main() {
       // Distinct pictures: two recipes sharing one photo reads as a bug.
       /* No fallback to a photograph already in use. Taking `candidates[0]`
          anyway is how two recipes ended up sharing one picture even with the
-         used-set seeded — better to leave it and re-run with a different
+         used-set seeded, better to leave it and re-run with a different
          query. */
       const pick = candidates.find((c) => !used.has(c.url))
       if (pick) {
         used.add(pick.url)
         found.set(query, pick)
-        console.log(`  ✓ ${query}\n      ${pick.title} — ${pick.licence}`)
+        console.log(`  ✓ ${query}\n      ${pick.title}, ${pick.licence}`)
       } else {
-        console.log(`  ✗ ${query} — nothing freely licensed`)
+        console.log(`  ✗ ${query}. Nothing freely licensed`)
       }
     } catch (err) {
       console.log(`  ! ${query}: ${err.message}`)

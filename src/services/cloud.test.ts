@@ -6,8 +6,8 @@ import { days, diffCollection, foodEntries, measurements } from './cloud'
 
 /**
  * The differ decides what gets written to and deleted from a user's account.
- * A mistake here does not throw — it quietly loses a day's food or re-uploads
- * the entire diary every 250 ms — so it is tested directly rather than only
+ * A mistake here does not throw. It quietly loses a day's food or re-uploads
+ * the entire diary every 250 ms, so it is tested directly rather than only
  * through the UI.
  */
 

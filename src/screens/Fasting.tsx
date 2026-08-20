@@ -160,7 +160,7 @@ export function Fasting() {
             <Row
               title="Eating window"
               sub={`${win.eatHours}h once the fast ends`}
-              value={`${formatClock(win.endsAt)} – ${formatClock(win.eatingClosesAt)}`}
+              value={`${formatClock(win.endsAt)}, ${formatClock(win.eatingClosesAt)}`}
             />
           </div>
         )}
@@ -181,7 +181,7 @@ export function Fasting() {
             <Stat label="Fasts done" value={String(stats.total)} />
             <Stat
               label="Longest"
-              value={stats.longestMs ? formatDuration(stats.longestMs) : '—'}
+              value={stats.longestMs ? formatDuration(stats.longestMs) : '-'}
             />
           </div>
           <Row
@@ -190,7 +190,7 @@ export function Fasting() {
           />
           <Row
             title="Average length"
-            value={stats.averageMs ? formatDuration(stats.averageMs) : '—'}
+            value={stats.averageMs ? formatDuration(stats.averageMs) : '-'}
           />
         </div>
 
@@ -212,7 +212,7 @@ export function Fasting() {
                   title={formatDuration(len)}
                   sub={`${shortDate(new Date(f.startedAt).toISOString().slice(0, 10))} · ${formatClock(
                     f.startedAt
-                  )} – ${formatClock(f.endedAt!)} · ${PROTOCOL_BY_KEY[f.protocol].label}`}
+                  )}, ${formatClock(f.endedAt!)} · ${PROTOCOL_BY_KEY[f.protocol].label}`}
                   left={
                     <span
                       style={{
@@ -264,7 +264,7 @@ export function Fasting() {
           <div style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 16 }}>
             You&apos;re {formatDuration(elapsed)} in
             {complete
-              ? ' and past your target — nicely done.'
+              ? ' and past your target, nicely done.'
               : `, ${formatDuration(current.targetHours * 3_600_000 - elapsed)} short of ${current.targetHours}h.`}
           </div>
           <button

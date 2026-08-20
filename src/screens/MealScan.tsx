@@ -38,7 +38,7 @@ export interface Estimate {
  *
  * Each phrase is matched against the food database and scaled by any quantity
  * or size word attached to it. This is an estimate from what you typed, not
- * from the photo — no vision model is involved, and the screen says so.
+ * from the photo. No vision model is involved, and the screen says so.
  */
 export function estimateFromDescription(text: string, pool: Food[]): Estimate {
   const lower = text.toLowerCase()
@@ -132,7 +132,7 @@ export function MealScan({ date }: { date: string }) {
     const v = videoRef.current
     if (!v || !v.videoWidth) return
     const canvas = document.createElement('canvas')
-    // Cap the stored image — a full-res frame bloats localStorage fast.
+    // Cap the stored image. A full-res frame bloats localStorage fast.
     const scale = Math.min(1, 900 / v.videoWidth)
     canvas.width = v.videoWidth * scale
     canvas.height = v.videoHeight * scale
@@ -152,7 +152,7 @@ export function MealScan({ date }: { date: string }) {
 
   async function runEstimate() {
     setWorking(true)
-    // Only has to be resident — searchLocal reads the bulk database itself.
+    // Only has to be resident, searchLocal reads the bulk database itself.
     await loadFoodDb()
     setEstimate(estimateFromDescription(description, data.customFoods))
     setWorking(false)
@@ -266,7 +266,7 @@ export function MealScan({ date }: { date: string }) {
               />
             </div>
             <div className="hint">
-              The estimate comes from your description, not the photo — no vision model is
+              The estimate comes from your description, not the photo. No vision model is
               connected. Size words like <em>large</em> or <em>small</em> scale the portions.
             </div>
 
@@ -329,9 +329,9 @@ export function MealScan({ date }: { date: string }) {
                       sub={
                         it.food
                           ? `${Math.round(it.qty * 100) / 100} × ${it.food.servings[0].label}`
-                          : 'No match — not counted'
+                          : 'No match, not counted'
                       }
-                      value={it.food ? cal(it.nutrients.calories) : '—'}
+                      value={it.food ? cal(it.nutrients.calories) : '-'}
                       right={
                         <button
                           className="iconbtn"

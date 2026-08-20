@@ -20,7 +20,7 @@ import type { WidgetId } from '../lib/widgetLayout'
  * each takes the size it has been given so it can decide what to drop. A
  * widget narrowed to one column keeps its headline number and loses the
  * sub-line; a widget one row tall loses its progress bar. Nothing is ever
- * squeezed — the parts that do not fit are simply not drawn.
+ * squeezed. The parts that do not fit are simply not drawn.
  */
 
 export interface WidgetProps {
@@ -46,7 +46,7 @@ function useOpen(editing: boolean) {
  *
  * Shown instead of the bar once a widget is tall enough to have the room. A
  * bar reads as a sliver in a widget three rows high, and the space wants
- * filling with something — so the same figure is drawn as the shape every
+ * filling with something, so the same figure is drawn as the shape every
  * other progress display in the app uses: the fasting dial, and the sleep and
  * step screens.
  *
@@ -61,7 +61,7 @@ function Ring({
   label,
   over,
 }: {
-  /** 0–1 and beyond; 1 is the goal. */
+  /** 0-1 and beyond; 1 is the goal. */
   value: number
   color: string
   caption?: string
@@ -220,7 +220,7 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
   return (
     <div className="widget__body">
       {/* Expanded, each macro gets its own ring, filled by how much of that
-          macro's target has been eaten — the same thing the grams line says,
+          macro's target has been eaten. The same thing the grams line says,
           drawn. The compact form keeps the share-of-calories split instead,
           because three numbers that add to 100 is the comparison worth having
           when there is only room for one line. */}
@@ -382,7 +382,7 @@ function WaterWidget({ date, w, h, editing }: WidgetProps) {
       </span>
       <span className="widget__value">
         <span className="num">{fmt(log.water)}</span>
-        {/* One column is too narrow for "6 / 13.1 cups" — the goal is the
+        {/* One column is too narrow for "6 / 13.1 cups". The goal is the
             half to drop, since the bar underneath already shows the ratio. */}
         {w > 1 && (
           <span className="widget__unit">
@@ -437,7 +437,7 @@ function SleepWidget({ date, w, h, editing }: WidgetProps) {
         Sleep
       </span>
       <span className="widget__value">
-        <span className="num">{log.sleepMin == null ? '—' : formatSleep(log.sleepMin)}</span>
+        <span className="num">{log.sleepMin == null ? '-' : formatSleep(log.sleepMin)}</span>
         {w > 1 && <span className="widget__unit">/ {formatSleep(goal)}</span>}
       </span>
       {h > 1 && (
@@ -485,7 +485,7 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
         Steps
       </span>
       <span className="widget__value">
-        <span className="num">{log.steps == null ? '—' : log.steps.toLocaleString()}</span>
+        <span className="num">{log.steps == null ? '-' : log.steps.toLocaleString()}</span>
         {w > 1 && <span className="widget__unit">/ {goal.toLocaleString()}</span>}
       </span>
       {h > 1 && (

@@ -1,11 +1,11 @@
--- LogPal — Supabase schema
+-- LogPal, Supabase schema
 --
 -- Run this once in the Supabase SQL editor against a fresh project.
 -- Safe to re-run: every statement is idempotent.
 --
 -- Every table carries `user_id uuid not null default auth.uid()` and has row
 -- level security switched on, so a query can only ever see the signed-in user's
--- own rows. The client never sends `user_id` — the default fills it in, and the
+-- own rows. The client never sends `user_id`. The default fills it in, and the
 -- policy's `with check` makes it impossible to write anyone else's.
 --
 -- Primary keys are composite on (user_id, ...) rather than on the id alone.
@@ -201,7 +201,7 @@ end $$;
 -- Kept in their own table rather than as a column on logpal_profile because
 -- this one is deliberately world-readable. Uniqueness has to be enforceable
 -- across accounts, and a friend search has to be able to see other people's
--- handles — neither works under a policy that hides every row but your own.
+-- handles, neither works under a policy that hides every row but your own.
 --
 -- Note what is NOT here: no email, no display name, nothing but the handle and
 -- the id it belongs to.
@@ -234,7 +234,7 @@ create unique index if not exists logpal_usernames_lower
 /*
  * Resolves a handle to the address its account signs in with.
  *
- * Signing in by username needs this because Supabase authenticates on email —
+ * Signing in by username needs this because Supabase authenticates on email,
  * the client has to turn one into the other before it can call
  * signInWithPassword.
  *
@@ -278,7 +278,7 @@ grant execute on function email_for_username(text) to anon, authenticated;
  */
 
 -- What an account publishes. One row per user, and only for users who share
--- something — the client deletes the row when every toggle is turned off,
+-- something. The client deletes the row when every toggle is turned off,
 -- which is the only honest implementation of "share nothing".
 --
 -- Every column but `private` is nullable and null means *not shared*. The
@@ -297,8 +297,8 @@ create table if not exists logpal_social_profile (
   updated_at   timestamptz not null default now()
 );
 
--- Directed edges: `follower` follows `followee`. Asymmetric on purpose — this
--- is following, not mutual friendship — so the pair is ordered and both
+-- Directed edges: `follower` follows `followee`. Asymmetric on purpose. This
+-- is following, not mutual friendship, so the pair is ordered and both
 -- directions can exist independently.
 create table if not exists logpal_follows (
   follower   uuid not null default auth.uid() references auth.users on delete cascade,
@@ -323,7 +323,7 @@ alter table logpal_follows enable row level security;
  * status 'accepted' against a private account and read it by simply asking.
  *
  * An account with no row here has not opted into any of this and has nothing
- * published, so there is nothing for approval to protect — the follow is
+ * published, so there is nothing for approval to protect. The follow is
  * accepted and sees an empty profile.
  */
 create or replace function logpal_follow_status()
@@ -353,8 +353,8 @@ create trigger logpal_follows_set_status
 /*
  * Accepting is the only thing an update may do.
  *
- * The update policy below has to let the followee write the row — that is what
- * accepting a request is — and a policy cannot see the row's previous values,
+ * The update policy below has to let the followee write the row. That is what
+ * accepting a request is, and a policy cannot see the row's previous values,
  * so on its own it would also let them move `follower` to an arbitrary account
  * and forge "this person follows me". Nobody gains access that way, but the
  * forged account would find a follow it never made sitting in its own list.

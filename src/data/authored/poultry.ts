@@ -2,7 +2,7 @@ import { r, type Authored } from './recipe'
 
 /**
  * Chicken and turkey. Turkey is here in quantity because the shipped catalogue
- * treats it as a holiday bird, and paired with sweet potato throughout — the
+ * treats it as a holiday bird, and paired with sweet potato throughout. The
  * combination people search for and the one that returned four results.
  *
  * All poultry to the FSIS minimum of 165°F, ground or whole.
@@ -103,7 +103,7 @@ export const POULTRY_RECIPES: Authored[] = [
     id: 'turkey_meatballs_sweet_potato_mash',
     name: 'Turkey Meatballs with Sweet Potato Mash',
     description:
-      'Ground turkey needs help staying tender — the grated onion and the breadcrumbs soaked in milk are that help.',
+      'Ground turkey needs help staying tender. The grated onion and the breadcrumbs soaked in milk are that help.',
     servings: 4, prep: 20, cook: 30,
     tags: ['Dinner', 'Main dish', 'High Protein'],
     ingredients: [
@@ -167,7 +167,7 @@ export const POULTRY_RECIPES: Authored[] = [
     id: 'turkey_okra_gumbo',
     name: 'Turkey and Okra Gumbo',
     description:
-      'A dark roux and a pound of okra. The roux takes twenty minutes of standing over it and cannot be rushed — if it smells burnt, start again.',
+      'A dark roux and a pound of okra. The roux takes twenty minutes of standing over it and cannot be rushed, if it smells burnt, start again.',
     servings: 6, prep: 25, cook: 90,
     tags: ['Dinner', 'Main dish', 'Soup', 'American'],
     ingredients: [
@@ -186,7 +186,7 @@ export const POULTRY_RECIPES: Authored[] = [
     ],
     steps: [
       'Make the roux: cook the flour and oil together over medium-low heat, stirring constantly, for 20 to 25 minutes, until it is the colour of milk chocolate.',
-      'Add the onion, celery, pepper and garlic and cook 8 minutes — the roux stops darkening once they go in.',
+      'Add the onion, celery, pepper and garlic and cook 8 minutes. The roux stops darkening once they go in.',
       'Whisk in the stock, add the turkey, seasoning and bay leaves, and simmer 45 minutes, to 165°F internal and tender.',
       'Sear the okra separately in a dry pan for 5 minutes, then add it and simmer 20 minutes more.',
     ],

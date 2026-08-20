@@ -234,7 +234,7 @@ export function NutritionScreen({ date }: { date: string }) {
                     {fmt(value)}
                   </span>
                   <span className="num" style={{ textAlign: 'right', color: 'var(--text-2)' }}>
-                    {goal > 0 ? fmt(goal) : '—'}
+                    {goal > 0 ? fmt(goal) : '-'}
                   </span>
                   <span
                     className="num"
@@ -243,7 +243,7 @@ export function NutritionScreen({ date }: { date: string }) {
                       color: left < 0 ? 'var(--danger)' : 'var(--text-2)',
                     }}
                   >
-                    {goal > 0 ? fmt(left) : '—'}
+                    {goal > 0 ? fmt(left) : '-'}
                   </span>
                 </div>
               )
@@ -252,7 +252,7 @@ export function NutritionScreen({ date }: { date: string }) {
             <div className="hint">
               Goals for vitamins and minerals are percentages of the reference daily
               value. Micronutrient data is only as complete as the food entry it came
-              from — many database items list macros only.
+              from, many database items list macros only.
             </div>
           </div>
         )}

@@ -81,14 +81,14 @@ function scaleNutrientsLocal(n: Nutrients, by: number): Nutrients {
  * Merging by name matters more than it looks: planning three recipes that each
  * want an onion should put "3 onions" on the list once, not three separate
  * lines you discover at three different points in the shop. Anything already in
- * the Food List is skipped — that is the whole point of keeping one.
+ * the Food List is skipped. That is the whole point of keeping one.
  *
  * Returns how many lines were newly added, so the caller can say so.
  */
 function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
   const lines = recipe.ingredients ?? []
   // The list is written in the reader's own units, like the recipe it came
-  // from — a shopping list in cups for someone who buys in grams is a list
+  // from. A shopping list in cups for someone who buys in grams is a list
   // they have to convert in the aisle.
   const prefs = unitPrefsFrom(d.settings)
   let added = 0
@@ -153,7 +153,10 @@ export type Route =
     }
   | { name: 'createFood'; barcode?: string; returnTo?: { date: string } }
   | { name: 'quickAdd'; date: string }
-  | { name: 'scan'; date: string }
+  /* `mode` decides where a scan lands: the diary, or the worth-it screen. The
+     camera and the lookup are identical either way, so they are not duplicated. */
+  | { name: 'scan'; date: string; mode?: 'log' | 'worth' }
+  | { name: 'worthIt'; date: string; food?: Food }
   | { name: 'voiceLog'; date: string }
   | { name: 'mealScan'; date: string }
   | { name: 'exerciseSearch'; date: string; kind: 'cardio' | 'strength' }
@@ -247,7 +250,7 @@ interface Ctx {
     servingLabel: string
     nutrients: Nutrients
     entryId?: string
-    /** Omitted for new entries — derived from the clock. */
+    /** Omitted for new entries, derived from the clock. */
     meal?: MealKey
   }): void
   deleteEntry(id: string): void
@@ -285,7 +288,7 @@ interface Ctx {
   planMeal(opts: { recipeId: string; date: string; slot: MealSlot; servings?: number }): void
   unplanMeal(id: string): void
   setPlanServings(id: string, servings: number): void
-  /** Moves a planned meal to another day or slot — what drag-and-drop commits. */
+  /** Moves a planned meal to another day or slot, what drag-and-drop commits. */
   movePlanEntry(id: string, date: string, slot: MealSlot): void
   /** Writes a planned meal into the diary as real food entries. */
   logPlanEntry(id: string): void
@@ -309,8 +312,8 @@ interface Ctx {
   /**
    * Bookmarks a recipe, or removes the bookmark.
    *
-   * One action behind two controls — the star on a card and the bookmark on the
-   * recipe itself — because they were separate states and a recipe could end up
+   * One action behind two controls. The star on a card and the bookmark on the
+   * recipe itself, because they were separate states and a recipe could end up
    * starred but not saved, or saved three times over. Writes both the id (which
    * the Plan shelf reads) and a saved meal (which the food search reads), so
    * the two places it shows up can never disagree.
@@ -384,7 +387,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [reconciledFor, setReconciledFor] = useState<string | null>(null)
 
   /* The last snapshot known to match the server. `pushChanges` diffs against
-     it, so it must only advance when a push actually succeeds — otherwise a
+     it, so it must only advance when a push actually succeeds, otherwise a
      failed write is silently forgotten and that change never reaches the
      cloud. */
   const syncedRef = useRef<AppData | null>(null)
@@ -411,7 +414,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* On sign-in, reconcile with the cloud.
 
      An empty cloud means this account has never synced, so whatever is on this
-     device is lifted up rather than being wiped by an empty server — that is
+     device is lifted up rather than being wiped by an empty server. That is
      the upgrade path from the localStorage-only version. Otherwise the cloud
      copy wins, because it is the one that has seen every device. */
   const userId = session?.user.id ?? null
@@ -686,7 +689,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const n = totals.nutrients
 
     /* A level is a ceiling, and each rung writes only its own fields. An
-       account on `percent` publishes no absolute figure at all — there is
+       account on `percent` publishes no absolute figure at all. There is
        nothing on the server to be exposed later by a policy that slips. */
     const pct = (value: number, goal: number, level: ShareLevel) =>
       level === 'off' || goal <= 0 ? null : Math.max(0, Math.round((value / goal) * 100))
@@ -738,7 +741,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     macroTargets,
   ])
 
-  /* Held so an unchanged summary does not become a write on every keystroke —
+  /* Held so an unchanged summary does not become a write on every keystroke,
      this sits downstream of the whole diary, which changes constantly, while
      what it publishes changes a few times a day. Cleared on failure so the
      next change retries rather than assuming the server agrees. */
@@ -750,7 +753,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     /* Not until this account's cloud copy has landed. Before that `data` is
        still whatever the device happened to hold, which after switching
-       accounts is the *previous* user's name — and publishing it, even for a
+       accounts is the *previous* user's name, and publishing it, even for a
        moment, puts it in front of the new account's followers.
        `syncing` cannot gate this. It is set inside the reconcile effect, which
        runs in the same commit as this one, so the value read here is still the
@@ -1003,7 +1006,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     saveScannedFood: (f) =>
       update((d) => {
-        // Only keep entries carrying real nutrition — a barcode that resolved
+        // Only keep entries carrying real nutrition. A barcode that resolved
         // to an empty record is worse than no result at all.
         if (f.nutrients.calories <= 0 && f.nutrients.protein <= 0 && f.nutrients.carbs <= 0) {
           return
@@ -1227,7 +1230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       update((d) => {
         const clean = q.trim()
         if (clean.length < 2) return
-        /* Most recent first, case-insensitively deduplicated, and capped —
+        /* Most recent first, case-insensitively deduplicated, and capped,
            a search box offering forty past searches is a wall, not a help. */
         d.recentSearches = [
           clean,
@@ -1247,7 +1250,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setStack([{ name: 'tab', tab: 'today' }])
       setActiveTab('today')
 
-      /* Clearing only this device would be a lie when there is an account —
+      /* Clearing only this device would be a lie when there is an account,
          the next sync would pull everything straight back down. Marking the
          cloud as empty afterwards stops the save effect from re-uploading the
          blank slate as a diff against stale state. */

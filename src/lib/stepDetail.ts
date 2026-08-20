@@ -5,13 +5,13 @@ import { parseIngredient, formatAmount } from './ingredients'
  *
  * The reference app puts a row of chips under every step: the ingredients that
  * step consumes, and the equipment it uses, with appliance settings spelled out
- * ("Oven — Heat, 400°F, 15min"). It is the single thing that makes a method
+ * ("Oven, Heat, 400°F, 15min"). It is the single thing that makes a method
  * readable while cooking, because you can see what to reach for without
  * scrolling back to the ingredient list.
  *
  * Nothing here is authored per recipe. Ingredients are matched by name against
  * the recipe's own list, equipment by keyword, and appliance settings are read
- * out of the sentence — so it works across all 1200 recipes without anyone
+ * out of the sentence, so it works across all 1200 recipes without anyone
  * writing chips by hand.
  */
 
@@ -23,7 +23,7 @@ export interface StepIngredient {
 export interface StepAppliance {
   /** "Oven", "Stovetop", "Microwave"… */
   name: string
-  /** "Preheat, 400°F" / "Heat, 400°F, 15min" — empty when nothing was stated. */
+  /** "Preheat, 400°F" / "Heat, 400°F, 15min", empty when nothing was stated. */
   setting: string
 }
 
@@ -57,10 +57,10 @@ const EQUIPMENT: [string, RegExp][] = [
 ]
 
 const F_DEGREES = /(\d{3})\s*[°º]?\s*F\b/i
-const MINUTES = /(\d+)(?:\s*(?:to|–|-)\s*(\d+))?\s*(?:minutes?|mins?)\b/i
-const HOURS = /(\d+)(?:\s*(?:to|–|-)\s*(\d+))?\s*(?:hours?|hrs?)\b/i
+const MINUTES = /(\d+)(?:\s*(?:to|, |-)\s*(\d+))?\s*(?:minutes?|mins?)\b/i
+const HOURS = /(\d+)(?:\s*(?:to|, |-)\s*(\d+))?\s*(?:hours?|hrs?)\b/i
 
-/** "Preheat, 400°F" or "Heat, 400°F, 15min" — only what the step actually says. */
+/** "Preheat, 400°F" or "Heat, 400°F, 15min", only what the step actually says. */
 function applianceFor(step: string): StepAppliance[] {
   const out: StepAppliance[] = []
   const deg = step.match(F_DEGREES)
@@ -68,9 +68,9 @@ function applianceFor(step: string): StepAppliance[] {
   const hrs = step.match(HOURS)
 
   const time = hrs
-    ? `${hrs[1]}${hrs[2] ? `–${hrs[2]}` : ''}h`
+    ? `${hrs[1]}${hrs[2] ? `, ${hrs[2]}` : ''}h`
     : mins
-      ? `${mins[1]}${mins[2] ? `–${mins[2]}` : ''}min`
+      ? `${mins[1]}${mins[2] ? `, ${mins[2]}` : ''}min`
       : ''
 
   if (/\b(preheat|oven|bake|roast|broil)\b/i.test(step)) {

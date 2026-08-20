@@ -2,7 +2,7 @@ import { r, type Authored } from './recipe'
 
 /**
  * Lamb, which the shipped catalogue has five of. Paired deliberately with
- * eggplant, okra and chickpeas — the vegetables it is actually cooked with, and
+ * eggplant, okra and chickpeas. The vegetables it is actually cooked with, and
  * the ones a paired search comes up empty on.
  *
  * FSIS minimums: 145°F with a three-minute rest for chops and leg, 160°F ground.
@@ -12,7 +12,7 @@ export const LAMB_RECIPES: Authored[] = [
     id: 'lamb_chops_asparagus',
     name: 'Rosemary Lamb Chops with Asparagus',
     description:
-      'Fifteen minutes. Stand the chops on their fat edge for a minute first — it renders and gives you the fat to cook the rest in.',
+      'Fifteen minutes. Stand the chops on their fat edge for a minute first. It renders and gives you the fat to cook the rest in.',
     servings: 4, prep: 10, cook: 15,
     tags: ['Dinner', 'Main dish', 'Mediterranean', 'High Protein', 'Low Carb', 'Gluten Free'],
     ingredients: [
@@ -136,7 +136,7 @@ export const LAMB_RECIPES: Authored[] = [
     id: 'lamb_kofta_skewers',
     name: 'Lamb Kofta Skewers',
     description:
-      'Mix it far more than you would a burger — kofta needs the protein worked so it clings to the skewer.',
+      'Mix it far more than you would a burger, kofta needs the protein worked so it clings to the skewer.',
     servings: 4, prep: 20, cook: 12,
     tags: ['Dinner', 'Main dish', 'Middle Eastern', 'High Protein', 'Low Carb'],
     ingredients: [

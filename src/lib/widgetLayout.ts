@@ -2,9 +2,9 @@
  * The Home screen's widget board.
  *
  * Home used to be a fixed stack: calories, macros, then four tiles in a set
- * order. Which of those matter is personal — someone eating to a fasting
+ * order. Which of those matter is personal. Someone eating to a fasting
  * protocol wants that timer first, someone cutting wants calories, and plenty
- * of people never want to see a step count — so the layout is theirs to
+ * of people never want to see a step count, so the layout is theirs to
  * arrange rather than ours to decide.
  *
  * Deliberately a *flow*, not free placement on an x/y plane. Widgets are held
@@ -13,7 +13,7 @@
  * than a packing algorithm. iOS does the same thing: move one widget and the
  * others close up behind it.
  *
- * Device-local on purpose. It is a view preference, not data — a phone and a
+ * Device-local on purpose. It is a view preference, not data. A phone and a
  * laptop reasonably want different arrangements, and syncing it would need a
  * table to hold what is essentially a cosmetic choice.
  */
@@ -109,7 +109,7 @@ export function saveLayout(layout: WidgetLayout): void {
  *
  * A widget added in a later version has to appear for people who already have
  * a saved board, or it would be invisible to exactly the users who have been
- * here longest — and one that has been removed from the app must not leave a
+ * here longest, and one that has been removed from the app must not leave a
  * hole behind.
  */
 export function reconcile(saved: Partial<WidgetLayout>): WidgetLayout {

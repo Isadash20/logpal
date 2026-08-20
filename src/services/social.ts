@@ -10,7 +10,7 @@ import { requireClient } from '../lib/supabase'
  * signed-in user. What one person sees of another is exactly what that person's
  * own client wrote into `logpal_social_profile`, and that write is filtered by
  * their `shareName` / `shareStreak` / `shareCalories` settings before it leaves
- * the device. A field they have not shared is not in the table — not hidden in
+ * the device. A field they have not shared is not in the table, not hidden in
  * the UI, not null-checked at read time. Absent.
  *
  * ## Two tables, two round trips
@@ -46,7 +46,7 @@ export interface Person {
   /** YYYY-MM-DD of their most recent logged day. */
   lastLogged: string | null
   /**
-   * Progress against their own goals, 0–100 and occasionally past it.
+   * Progress against their own goals, 0-100 and occasionally past it.
    *
    * Percentages only, by design. What someone eats, drinks and walks in a day
    * is theirs; how close they are to the target they set is the part worth
@@ -81,7 +81,7 @@ export interface Person {
   private: boolean
   /** True when nothing about them is visible: they share nothing, or they are
    *  private and this account is not an accepted follower. The two are
-   *  indistinguishable from here on purpose — a private account should not
+   *  indistinguishable from here on purpose. A private account should not
    *  advertise that it has something worth asking for. */
   empty: boolean
 }
@@ -145,7 +145,7 @@ interface SocialRow {
 /**
  * Turns a set of user ids into people.
  *
- * Handles come back for everyone — that table is world-readable, which is what
+ * Handles come back for everyone. That table is world-readable, which is what
  * makes search possible at all. Published fields come back only for those whose
  * policy allows it, so an id with a handle and no profile is the normal case for
  * a private account you do not follow, not an error.
@@ -338,7 +338,7 @@ export async function followState(me: string, them: string): Promise<FollowState
 /**
  * Follows someone, and reports what actually happened.
  *
- * The client does not decide between "following" and "requested" — a database
+ * The client does not decide between "following" and "requested". A database
  * trigger sets `status` from the target's own privacy flag, because a client
  * that could write 'accepted' itself could read a private account by asking
  * nicely. The insert selects the row back so the button shows the truth rather
@@ -351,7 +351,7 @@ export async function follow(me: string, them: string): Promise<FollowState> {
     .select('status')
     .single()
   if (error) {
-    // Already there — another device, or the double-fired click the browser
+    // Already there, another device, or the double-fired click the browser
     // tooling produces. Report where that left things rather than failing.
     if (error.code === '23505') return followState(me, them)
     throw error
@@ -382,7 +382,7 @@ export async function acceptFollower(me: string, them: string): Promise<void> {
 /**
  * Declines a pending request, or removes someone who is already following.
  *
- * One function because it is one act — the row goes away — and the only thing
+ * One function because it is one act. The row goes away, and the only thing
  * that differs is what it is called on screen.
  */
 export async function removeFollower(me: string, them: string): Promise<void> {
@@ -411,7 +411,7 @@ export async function fetchPrivate(me: string): Promise<boolean> {
  * Sets the private flag.
  *
  * Upsert rather than update: someone who shares nothing has no row, and going
- * private has to work for them too — otherwise the switch would silently do
+ * private has to work for them too, otherwise the switch would silently do
  * nothing until they also shared something.
  *
  * Existing accepted followers keep their access, which is what every other
@@ -425,7 +425,7 @@ export async function setPrivate(value: boolean): Promise<void> {
   if (error) throw error
 }
 
-/** Nothing shared at all — what an account with every toggle off publishes. */
+/** Nothing shared at all, what an account with every toggle off publishes. */
 export const NOTHING_PUBLISHED: PublishedProfile = {
   display_name: null,
   streak: null,
@@ -453,7 +453,7 @@ export const NOTHING_PUBLISHED: PublishedProfile = {
  * Publishes the summary.
  *
  * `private` is deliberately absent from the payload. PostgREST writes only the
- * columns it is handed, so the flag survives an upsert from here — which
+ * columns it is handed, so the flag survives an upsert from here, which
  * matters, because this runs on every diary change and the sharing screen must
  * not be undone by logging lunch.
  *

@@ -172,7 +172,7 @@ export function Progress() {
                     value={
                       latest
                         ? `${Math.round(inToDisplay(latest.value, settings.heightUnit) * 10) / 10} ${settings.heightUnit}`
-                        : '—'
+                        : '-'
                     }
                     chevron
                     onClick={() => push({ name: 'measurement', key: m.key })}

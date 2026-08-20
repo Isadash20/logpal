@@ -10,7 +10,7 @@ import type {
   WeeklyGoal,
 } from '../types'
 
-/** Atwater factors — kcal per gram. */
+/** Atwater factors, kcal per gram. */
 export const KCAL_PER_G = { carbs: 4, protein: 4, fat: 9, alcohol: 7 } as const
 
 /** One pound of body fat ≈ 3500 kcal. Drives the weekly-goal deficit. */
@@ -101,10 +101,10 @@ export const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
 }
 
 export const ACTIVITY_DESCRIPTIONS: Record<ActivityLevel, string> = {
-  'not-very-active': 'Sitting most of the day — desk work, driving, studying',
-  'lightly-active': 'On your feet a few hours — teaching, retail, light housework',
-  active: 'On your feet most of the day — nursing, waiting tables, warehouse work',
-  'very-active': 'Hard physical work all day — construction, farming, landscaping',
+  'not-very-active': 'Sitting most of the day, desk work, driving, studying',
+  'lightly-active': 'On your feet a few hours, teaching, retail, light housework',
+  active: 'On your feet most of the day, nursing, waiting tables, warehouse work',
+  'very-active': 'Hard physical work all day, construction, farming, landscaping',
 }
 
 export function tdee(profile: Profile, age: number): number {
@@ -228,7 +228,7 @@ export function projectedWeight(opts: {
 /* ---------------------------------------------------------- body types -- */
 
 /**
- * Body-fat estimates by self-reported build. These are deliberately coarse —
+ * Body-fat estimates by self-reported build. These are deliberately coarse,
  * the point is to separate "180 lb muscular" from "180 lb soft" so protein and
  * hydration targets differ, not to pretend we measured anyone.
  */
@@ -294,7 +294,7 @@ function baseWaterPerKg(ageYears: number): number {
  * Body mass sets the baseline, activity level adds a fixed allowance, and
  * logged exercise adds roughly 12 ml per active minute. Taller bodies lose
  * marginally more through skin, so height nudges it up. Clamped to a sane
- * 1.4–5.0 L so an outlier profile can't produce a dangerous number.
+ * 1.4-5.0 L so an outlier profile can't produce a dangerous number.
  */
 export function waterGoalMl(opts: {
   weightLb: number
@@ -342,7 +342,7 @@ export const GOAL_DESCRIPTIONS: Record<GoalKind, string> = {
 }
 
 /**
- * Protein target in grams, scaled to lean mass rather than total weight —
+ * Protein target in grams, scaled to lean mass rather than total weight,
  * scaling to total weight over-prescribes protein for heavier bodies.
  */
 export function proteinTarget(profile: Profile, weightLb: number): number {
@@ -359,7 +359,7 @@ export function proteinTarget(profile: Profile, weightLb: number): number {
     recomp: 1.4,
   }
 
-  /* A hard cut needs more still — muscle loss scales with how steep the
+  /* A hard cut needs more still, muscle loss scales with how steep the
      deficit is, not merely with the fact of being in one. */
   const steepCut = profile.goal.kind === 'lose-weight' && profile.goal.rate <= -1.5
   return Math.round(lean * (perLb[profile.goal.kind] + (steepCut ? 0.15 : 0)))

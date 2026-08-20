@@ -189,7 +189,7 @@ h4 {
   padding-bottom: 20px;
 }
 
-/* Boxed right-hand control — the reference app's signature field affordance. */
+/* Boxed right-hand control. The reference app's signature field affordance. */
 .boxed {
   border: 1px solid var(--border-strong);
   border-radius: 10px;
@@ -218,7 +218,7 @@ h4 {
   min-width: 0;
   display: grid;
   /* Five tabs since Friends became one of them. Named explicitly rather than
-     auto-fit so the columns stay equal — an auto grid gave "Progress" more
+     auto-fit so the columns stay equal. An auto grid gave "Progress" more
      room than "Plan" and the icons stopped lining up. */
   grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
@@ -273,7 +273,7 @@ h4 {
 
 /* ----------------------------------------------------------------- card -- */
 
-/* Cards float on the wash with side margins — never edge to edge. */
+/* Cards float on the wash with side margins, never edge to edge. */
 .card {
   background: var(--surface);
   border-radius: 16px;
@@ -649,7 +649,7 @@ button.row:active {
   opacity: 0.45;
 }
 
-/* The near-black button. Reserved for the one committing action on a screen —
+/* The near-black button. Reserved for the one committing action on a screen,
    it outranks the accent button, so never show two at once. */
 .btn--ink {
   background: var(--ink);
@@ -788,7 +788,7 @@ button.row:active {
   background: var(--surface);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
   padding-bottom: env(safe-area-inset-bottom);
-  /* Percentage of the scrim, which Sheet pins to visualViewport — the region
+  /* Percentage of the scrim, which Sheet pins to visualViewport. The region
      genuinely on screen once the keyboard and Safari's toolbars are taken out.
      vh/dvh both measure the layout viewport, which the keyboard does not
      shrink, so neither can be trusted here. The vh line is only a fallback for
@@ -1015,8 +1015,8 @@ button.row:active {
 /* ------------------------------------------------------------------ auth -- */
 
 /* Sign-in gets its own input vocabulary rather than reusing `.field`/`.input`.
-   Those are built for settings rows — label on the left, value right-aligned in
-   the tabular-numeral font — which is right for "Weight  174 lb" and wrong for
+   Those are built for settings rows, label on the left, value right-aligned in
+   the tabular-numeral font, which is right for "Weight  174 lb" and wrong for
    an email address, where it reads as a broken value instead of something you
    type into. Credentials want a stacked label and a box with visible edges. */
 
@@ -1151,7 +1151,7 @@ button.row:active {
   flex: none;
 }
 
-/* Paired tiles — intermittent fasting and water, side by side under the
+/* Paired tiles, intermittent fasting and water, side by side under the
    macros. Both are whole-card buttons rather than cards containing buttons, so
    the entire tile is the tap target on a phone. */
 .tilerow {
@@ -1223,7 +1223,7 @@ button.row:active {
   border-radius: var(--r-full);
 }
 
-/* "3 days" rather than a bare "3" — the flame alone does not say what unit. */
+/* "3 days" rather than a bare "3". The flame alone does not say what unit. */
 .streak__unit {
   font-size: 12px;
   font-weight: 700;
@@ -1232,7 +1232,7 @@ button.row:active {
 
 /* --------------------------------------------------------------- social -- */
 
-/* Initial-letter avatar. There is no photo upload and no gravatar call — a
+/* Initial-letter avatar. There is no photo upload and no gravatar call. A
    letter on the accent wash identifies a row well enough and keeps the whole
    feature free of a third-party request per person shown. */
 .avatar {
@@ -1279,7 +1279,7 @@ button.row:active {
 
 /* Image-led cards, the way every recipe app does it: the photo is the content
    and the text sits on top of it. This is the single biggest visual difference
-   from the rest of LogPal, where cards are text on a surface — a recipe list
+   from the rest of LogPal, where cards are text on a surface. A recipe list
    that looks like the diary reads as a spreadsheet of dinners. */
 
 .rgrid {
@@ -1289,7 +1289,7 @@ button.row:active {
   padding: 12px 14px 0;
 }
 
-/* Horizontal rail — used per day in the planner and per section on browse. */
+/* Horizontal rail, used per day in the planner and per section on browse. */
 .rrail {
   display: flex;
   gap: 10px;
@@ -1425,7 +1425,7 @@ button.row:active {
   display: block;
 }
 
-/* Three numbers across the top — ingredients, time, score. Doubles as the tab
+/* Three numbers across the top, ingredients, time, score. Doubles as the tab
    bar for the sections below, which is how Samsung Food does it: the summary
    and the navigation are the same control, so the header stays short. */
 .rstats {
@@ -1464,7 +1464,7 @@ button.row:active {
   margin-top: 1px;
 }
 
-/* Servings stepper — ⊖ 4 servings ⊕ with the unit toggle beside it. */
+/* Servings stepper, ⊖ 4 servings ⊕ with the unit toggle beside it. */
 .servings {
   display: flex;
   align-items: center;
@@ -1874,7 +1874,7 @@ button.row:active {
 }
 
 /* Selected reads as filled-dark, matching the reference app rather than the
-   accent — an accent-filled pill competes with the Apply button below it. */
+   accent. An accent-filled pill competes with the Apply button below it. */
 .fpill {
   padding: 7px 13px;
   border-radius: var(--r-full);
@@ -1893,7 +1893,7 @@ button.row:active {
 
 /* Sticky footer so Apply is reachable without scrolling a long sheet. */
 /* A real flex row at the bottom of the sheet now, so it no longer needs to be
-   sticky inside a scroller — and can't be scrolled out of reach. */
+   sticky inside a scroller, and can't be scrolled out of reach. */
 .fsheet__actions {
   flex: none;
   display: flex;
@@ -2146,7 +2146,7 @@ button.row:active {
 .chip--appliance b { font-size: 13px; font-weight: 700; }
 .chip--appliance em { font-size: 11.5px; }
 
-/* An excluded ingredient is not a selected one — it reads as a strike-through
+/* An excluded ingredient is not a selected one. It reads as a strike-through
    rather than a highlight, so "no peanuts" never looks like "peanuts". */
 .fpill--off {
   background: var(--surface-3);
@@ -2155,7 +2155,7 @@ button.row:active {
   text-decoration: line-through;
 }
 
-/* The wait before a recipe starts — proving, marinating, chilling. Sits under
+/* The wait before a recipe starts, proving, marinating, chilling. Sits under
    the working time rather than beside it, because it is a different kind of
    number and reading them as one total is exactly the confusion to avoid. */
 .rstats__aside {
@@ -2167,7 +2167,7 @@ button.row:active {
 /* ------------------------------------------------------------- widgets -- */
 
 /* Home's arrangeable board. Four columns, a fixed row height, and CSS grid
-   packing the rest — see lib/widgetLayout.ts for why the model is an ordered
+   packing the rest, see lib/widgetLayout.ts for why the model is an ordered
    list rather than coordinates. */
 .wgrid {
   display: grid;
@@ -2270,7 +2270,7 @@ button.row:active {
 }
 
 /* Sits over the widget's own content, so it is reachable whatever is drawn
-   underneath — including a widget whose whole body is a button. */
+   underneath, including a widget whose whole body is a button. */
 .widget__remove {
   position: absolute;
   top: 6px;
@@ -2329,7 +2329,7 @@ button.row:active {
 }
 
 /* Three equal actions in a row. Done is the primary one but no wider than the
-   others — it was a full-width slab beside two text links, which read as the
+   others. It was a full-width slab beside two text links, which read as the
    only button on screen. */
 .wedit__actions {
   display: grid;
@@ -2401,4 +2401,69 @@ button.row:active {
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow-1);
+}
+
+/* ------------------------------------------------------------- verdict -- */
+
+/* The two scores on the worth-it screen: the band as a headline, then the
+   dials that produced it. */
+.verdict {
+  margin: 4px 14px 12px;
+  padding: 14px 16px 16px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.verdict__band {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.verdict__scores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------------- comparison -- */
+
+/* Label on the left, one column per food. Equal columns so the eye can run
+   down them; the leading value in each row is the one in accent. */
+.cmp {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px;
+  font-size: 13.5px;
+}
+
+.cmp--head {
+  padding: 0 16px 6px;
+  font-weight: 700;
+}
+
+.cmp__name {
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.cmp__label {
+  color: var(--text-2);
+}
+
+.cmp__value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-num);
+}
+
+.cmp__value--lead {
+  color: var(--accent);
+  font-weight: 700;
 }

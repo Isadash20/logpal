@@ -165,7 +165,7 @@ export function Goals() {
             options={BODY_TYPES.map((b) => ({ value: b.key, label: b.label }))}
           />
           <div className="hint">
-            {BODY_TYPES.find((b) => b.key === profile.bodyType)?.description} — sets your
+            {BODY_TYPES.find((b) => b.key === profile.bodyType)?.description}, sets your
             estimated lean mass, which drives protein ({proteinTarget(profile, latestWeight)} g)
             and water.
           </div>
@@ -233,7 +233,7 @@ export function Goals() {
         {plan.flooredCalories && (
           <div className="hint" style={{ color: 'var(--warning)', fontWeight: 600 }}>
             Your pace would drop below the minimum this app recommends, so the target was
-            raised to {cal(plan.calories)}. A slower pace is easier to sustain — worth
+            raised to {cal(plan.calories)}. A slower pace is easier to sustain, worth
             running past a clinician first.
           </div>
         )}
@@ -257,7 +257,7 @@ function MacroDialog({ onClose }: { onClose(): void }) {
     <Dialog title="Macro split" onClose={onClose}>
       <div className="hint" style={{ padding: '0 0 12px' }}>
         On the calculated plan, protein is anchored to your lean mass and fat is held at a
-        minimum of 20% of calories — carbs take the remainder. Switch to a custom plan to
+        minimum of 20% of calories, carbs take the remainder. Switch to a custom plan to
         set the percentages yourself.
       </div>
       <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>

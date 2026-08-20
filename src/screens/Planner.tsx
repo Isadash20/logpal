@@ -45,7 +45,7 @@ import { catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
  *
  * Every calorie figure in this feature comes from resolving ingredient text
  * against that database, and until it loads there are only the 324 curated seed
- * foods to match against — so nearly every line reads "no match" and every
+ * foods to match against, so nearly every line reads "no match" and every
  * recipe under-reports. It used to be loaded exclusively by the food search,
  * voice log and meal scan screens, none of which anyone passes through on the
  * way to browsing recipes, so the planner was reliably looking at the smallest
@@ -143,7 +143,7 @@ function RecipeCard({
           <img className="rcard__img" src={recipe.imageUrl} alt="" loading="lazy" />
         ) : (
           /* Most recipes here are typed in, not imported, so no image is the
-             normal case rather than a failure — it gets a deliberate treatment
+             normal case rather than a failure. It gets a deliberate treatment
              instead of a broken-image box. */
           <span className="rcard__fallback">
             <Icon name="note" size={30} strokeWidth={1.6} />
@@ -187,7 +187,7 @@ const DAYS_SHOWN = 7
 /**
  * Prep: the calendar half.
  *
- * A pane rather than a screen — it lives inside the Plan tab beside the
+ * A pane rather than a screen. It lives inside the Plan tab beside the
  * browsing half, because choosing meals and scheduling them are two halves of
  * one sitting. Making Prep its own pushed screen meant leaving the recipes to
  * go and place them, then coming back for the next one.
@@ -315,7 +315,7 @@ function PlannerDay({
  * The filter sheet's vocabulary, in the groups the reference app uses.
  *
  * Nutrition is ours and is computed from each recipe's own numbers, so those
- * filters cannot lie — a recipe appears under High Protein because it has the
+ * filters cannot lie. A recipe appears under High Protein because it has the
  * protein, not because somebody typed the words. The rest are matched against
  * a recipe's declared tags and its title.
  */
@@ -342,7 +342,7 @@ interface DraftFilters {
   terms: string[]
   maxMinutes: number | null
   ingredients: string[]
-  /** Ingredients to keep out — allergies and dislikes. */
+  /** Ingredients to keep out, allergies and dislikes. */
   exclude: string[]
   savedOnly: boolean
 }
@@ -362,7 +362,7 @@ function countFor(group: string, f: DraftFilters, options: readonly string[]): n
 }
 
 /**
- * Plan — browse, search and organise recipes.
+ * Plan, browse, search and organise recipes.
  *
  * Modelled on Samsung Food's search, which is the part of that app doing the
  * most work: a query box, a row of filter chips that open a sheet, facets for
@@ -393,11 +393,11 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     [data.customFoods, data.foodCache],
   )
   /* Resolution is cached inside the service, so this closure is cheap to hand
-     to the filter and the sort — both need nutrition, neither should compute
+     to the filter and the sort. Both need nutrition, neither should compute
      it twice. dbSize is in the deps because the answers change as the food
      database loads. */
   /* The cheap path. Published nutrition for the catalogue, a full parse only
-     for the user's own recipes — five hundred cards across sixteen rails is
+     for the user's own recipes, five hundred cards across sixteen rails is
      eight thousand of these, and the parser was locking the main thread. */
   const resolve = useCallback(
     (r: Recipe) => summarise(r, extras),
@@ -405,7 +405,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     [extras, dbSize],
   )
 
-  /* The written vocabulary rather than words counted out of the catalogue —
+  /* The written vocabulary rather than words counted out of the catalogue,
      that produced "oil", "powder" and "sauce", which are the commonest final
      words in an ingredient list and useless to tap. */
   const popular = STARTER_INGREDIENTS
@@ -421,7 +421,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
   /* Every rail in one pass.
    *
    * Sixteen rails each filtering five hundred recipes is eight thousand
-   * evaluations, plus twelve more passes for the tiles — which locked the main
+   * evaluations, plus twelve more passes for the tiles, which locked the main
    * thread outright once the catalogue grew past a hundred. Walking the list
    * once and dropping each recipe into whichever buckets it belongs to is the
    * same answer for a fraction of the work, and it scales with the catalogue
@@ -484,7 +484,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
      *
      * Taking the first match per category handed the same photograph to High
      * Protein, Vegetarian and Vegan, because one recipe often answers to
-     * several — and a row of identical pictures reads as a rendering fault. */
+     * several, and a row of identical pictures reads as a rendering fault. */
     const usedImages = new Set<string>()
     for (const term of TILES) {
       const pool = seededOrder(
@@ -501,7 +501,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     return {
       /* Shuffled per shelf, so the first ten are a spread of the catalogue
          rather than the first ten alphabetically. Expanding still shows
-         everything — the order is the only thing that changes. */
+         everything. The order is the only thing that changes. */
       rails: RAILS.map((r) => ({
         title: r.title,
         recipes: seededOrder(buckets.get(r.title)!, r.title),
@@ -543,7 +543,7 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
     (filters.savedOnly ? 1 : 0)
 
   /* Before anything is typed or ticked, the screen is a set of suggestions
-     rather than a hundred and twenty cards — which is what the reference app
+     rather than a hundred and twenty cards, which is what the reference app
      shows, and what makes the box feel like a way in rather than a filter. */
   const idle = !committed && activeCount === 0
 
@@ -885,7 +885,7 @@ function RecipeRail({
 /**
  * Explore: what the screen rests at.
  *
- * A stack of rails, in the order they are most likely to be wanted — what you
+ * A stack of rails, in the order they are most likely to be wanted, what you
  * saved, what you wrote, what we would suggest, then the catalogue cut by the
  * things people actually filter on. Each is a glance rather than a page, and
  * opens into a grid if you want more than a glance.
@@ -959,7 +959,7 @@ function Explore({
         <div className="card" style={{ marginTop: 18 }}>
           <Row
             title="Create your own recipe"
-            sub="Your ingredients, your method — searched and planned the same way"
+            sub="Your ingredients, your method, searched and planned the same way"
             chevron
             onClick={onCreate}
           />
@@ -1061,7 +1061,7 @@ function SearchFocus({
  *
  * Opens on the section whose chip was tapped but shows all of them, so a wrong
  * tap costs a scroll rather than a close and a re-open. Selections apply
- * immediately — the Apply button dismisses rather than commits — because the
+ * immediately. The Apply button dismisses rather than commits, because the
  * result count is visible behind the sheet and watching it move is the fastest
  * way to understand what a filter did.
  */
@@ -1113,7 +1113,7 @@ function FilterSheet({
           <div key={g.key} className="fgroup">
             {/* The heading is the sheet's title when there is only one group,
                 so repeating it here would print the word twice. `hidden` is not
-                enough — .fgroup__label sets its own display, which wins. */}
+                enough, .fgroup__label sets its own display, which wins. */}
             <div className="fgroup__label" style={ordered.length === 1 ? { display: 'none' } : undefined}>
               {g.label}
               {countFor(
@@ -1243,7 +1243,7 @@ function FilterSheet({
 /**
  * The same browsing pane as a pushed screen, for adding to one specific day.
  *
- * Reached from a day's "+" on the calendar, where the date is already decided —
+ * Reached from a day's "+" on the calendar, where the date is already decided,
  * so the recipe it opens carries that date through and planning takes one tap
  * instead of asking again.
  */
@@ -1314,7 +1314,7 @@ export function RecipeView({
 
   const made = Math.max(1, recipe.servingsMade)
   /* Every amount on screen scales with the servings stepper, which is the one
-     interaction people actually use on a recipe — cooking for two when it makes
+     interaction people actually use on a recipe, cooking for two when it makes
      four. The stored recipe never changes; only what is displayed. */
   const scale = servings / made
   const work = workingMinutes(recipe)
@@ -1325,7 +1325,7 @@ export function RecipeView({
    *
    * A recipe lives in Plan and the diary lives on Home, and until now the only
    * way across was to log it there and then. Bookmarking puts it in My Meals,
-   * where it sits alongside everything else you eat regularly — so tomorrow you
+   * where it sits alongside everything else you eat regularly, so tomorrow you
    * find it by searching for food rather than by remembering which recipe it
    * came from. Saved at the servings currently on screen, since that is the
    * portion you decided on.
@@ -1343,7 +1343,7 @@ export function RecipeView({
     setNote(
       bookmarked
         ? 'Removed from your favourites'
-        : 'Saved — it is in Favourite meals, and in My Meals when you log food',
+        : 'Saved. It is in Favourite meals, and in My Meals when you log food',
     )
   }
 
@@ -1352,7 +1352,7 @@ export function RecipeView({
       recipeId: recipe.id,
       date: date ?? today(),
       slot: targetSlot,
-      /* Servings, not recipe multiples. `PlanEntry.servings` counts portions —
+      /* Servings, not recipe multiples. `PlanEntry.servings` counts portions,
          everything downstream divides by `servingsMade` itself, so dividing
          here too priced a planned dinner at ⅜ lb of chicken. */
       servings,
@@ -1374,7 +1374,7 @@ export function RecipeView({
             aria-label={bookmarked ? 'Remove from favourites' : 'Save to favourites'}
           >
             {/* Always a bookmark. The star is a different control for a
-                different thing — foods, not meals — and swapping the glyph
+                different thing, foods, not meals, and swapping the glyph
                 would blur two distinctions the app is trying to keep. */}
             <Icon name="bookmark" size={20} />
           </button>
@@ -1397,7 +1397,7 @@ export function RecipeView({
         </div>
         {/* No blurb and no photo credit under the title. The descriptions read
             as marketing next to the numbers people came for, and the Pexels
-            licence asks for no attribution — it was offered, not required. */}
+            licence asks for no attribution. It was offered, not required. */}
 
         {/* Summary and navigation in one control: three numbers worth knowing,
             each of which opens the section behind it. */}
@@ -1416,7 +1416,7 @@ export function RecipeView({
             <div className="rstats__value">
               {/* A tilde where the figure was read off the method rather than
                   published with the recipe. */}
-              {work ? `${work.estimated ? '~' : ''}${formatMinutes(work.mins)}` : '—'}
+              {work ? `${work.estimated ? '~' : ''}${formatMinutes(work.mins)}` : '-'}
             </div>
             <div className="rstats__label">
               {recipe.steps?.length ? `${recipe.steps.length} steps` : 'Method'}
@@ -1442,7 +1442,7 @@ export function RecipeView({
           <>
             {/* Per serving, and only here.
                 A recipe's total is a number nobody eats, so this is always per
-                serving — and it belongs with the ingredients rather than to the
+                serving, and it belongs with the ingredients rather than to the
                 screen as a whole: sitting above the tabs it read as a header
                 for whichever section happened to be open. */}
             <div className="card" style={{ marginTop: 12 }}>
@@ -1622,7 +1622,7 @@ export function RecipeView({
       <div className="ractions">
         <button
           className="btn btn--ghost"
-          /* Arriving from a specific slot means the answer is already known —
+          /* Arriving from a specific slot means the answer is already known,
              asking "which meal?" when you tapped the breakfast slot is a
              question with one possible answer. */
           onClick={() => (slot ? plan(slot) : setPicking(true))}
@@ -1694,7 +1694,7 @@ function UncountedNote({
 
   return (
     <div className="hint" style={{ color: 'var(--text-3)' }}>
-      {parts.join(', and ')} — none of it counts toward the calories above.
+      {parts.join(', and ')}, none of it counts toward the calories above.
     </div>
   )
 }
@@ -1728,7 +1728,7 @@ function HealthPanel({ resolved }: { resolved: NonNullable<ReturnType<typeof res
         </div>
         <div className="hint" style={{ paddingTop: 0 }}>
           Worked out from nutrient density against FDA daily values, on the seventeen
-          nutrients LogPal tracks. Calories are not scored — a calorie is not good or bad
+          nutrients LogPal tracks. Calories are not scored. A calorie is not good or bad
           on its own, which is why this sits beside the count rather than replacing it.
         </div>
       </div>
@@ -1901,7 +1901,7 @@ export function ShoppingList() {
                   setNote(
                     n
                       ? `${n} item${n === 1 ? '' : 's'} added from your plan`
-                      : 'Nothing new to add — the week is already on your list',
+                      : 'Nothing new to add. The week is already on your list',
                   )
                 }}
               >

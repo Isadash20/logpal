@@ -9,12 +9,12 @@ type Status = 'starting' | 'scanning' | 'looking' | 'error'
 /**
  * Barcode scanner.
  *
- * Decoding goes through ZXing rather than the native `BarcodeDetector` API —
+ * Decoding goes through ZXing rather than the native `BarcodeDetector` API,
  * BarcodeDetector only exists in Chromium, so on Safari and Firefox the native
  * path silently never fires and the camera just sits there looking broken.
  * ZXing is a real decoder that runs everywhere `getUserMedia` does.
  */
-export function BarcodeScanner({ date }: { date: string }) {
+export function BarcodeScanner({ date, mode = 'log' }: { date: string; mode?: 'log' | 'worth' }) {
   const { pop, push, saveScannedFood } = useApp()
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<{ stop(): void } | null>(null)
@@ -40,7 +40,11 @@ export function BarcodeScanner({ date }: { date: string }) {
           // is searchable later without another network round trip.
           saveScannedFood(food)
           pop()
-          push({ name: 'foodDetail', food, date })
+          push(
+            mode === 'worth'
+              ? { name: 'worthIt', food, date }
+              : { name: 'foodDetail', food, date },
+          )
         } else {
           pop()
           push({ name: 'createFood', barcode: code, returnTo: { date } })
@@ -49,7 +53,7 @@ export function BarcodeScanner({ date }: { date: string }) {
         setStatus('error')
         setMessage(
           err instanceof RateLimitedError
-            ? `Too many lookups just now — try again in about ${err.retryInSeconds}s.`
+            ? `Too many lookups just now, try again in about ${err.retryInSeconds}s.`
             : 'Lookup failed. Check your connection and try again.'
         )
         handledRef.current = false

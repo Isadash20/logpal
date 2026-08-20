@@ -3,8 +3,8 @@ import type { FastProtocol, FastProtocolDef, FastSession, FastingSettings } from
 /**
  * Intermittent fasting.
  *
- * A fast is a start timestamp plus a target length. Everything else — progress,
- * streaks, whether you're currently eating — is derived, so there is no state
+ * A fast is a start timestamp plus a target length. Everything else, progress,
+ * streaks, whether you're currently eating, is derived, so there is no state
  * to keep in sync and a fast survives the app being closed.
  */
 
@@ -13,7 +13,7 @@ export const FAST_PROTOCOLS: FastProtocolDef[] = [
     key: '12:12',
     label: '12:12',
     fastHours: 12,
-    description: 'Fast 12 hours, eat 12. Roughly overnight — the gentlest start.',
+    description: 'Fast 12 hours, eat 12. Roughly overnight. The gentlest start.',
   },
   {
     key: '14:10',
@@ -37,7 +37,7 @@ export const FAST_PROTOCOLS: FastProtocolDef[] = [
     key: '20:4',
     label: '20:4',
     fastHours: 20,
-    description: 'Fast 20 hours, eat 4. Demanding — one large meal and a snack.',
+    description: 'Fast 20 hours, eat 4. Demanding. One large meal and a snack.',
   },
   {
     key: 'omad',
@@ -76,7 +76,7 @@ export function fastProgress(f: FastSession, now = Date.now()): number {
   return target > 0 ? fastElapsedMs(f, now) / target : 0
 }
 
-/** "16h 04m" — the timer readout. Seconds only appear under an hour. */
+/** "16h 04m". The timer readout. Seconds only appear under an hour. */
 export function formatDuration(ms: number): string {
   const total = Math.floor(ms / 1000)
   const h = Math.floor(total / 3600)
@@ -93,7 +93,7 @@ export function formatClock(ts: number): string {
     .toLowerCase()
 }
 
-/** Completed fasts only — an in-progress one hasn't earned a result yet. */
+/** Completed fasts only. An in-progress one hasn't earned a result yet. */
 export function completedFasts(fasts: FastSession[]): FastSession[] {
   return fasts.filter((f) => f.endedAt).sort((a, b) => b.startedAt - a.startedAt)
 }
@@ -178,7 +178,7 @@ export interface FastRecommendation {
  * Fasting helps by shrinking the window in which it's easy to overeat, so a
  * deficit gets a tighter window than a surplus. Building muscle gets the
  * loosest, because a short window makes hitting a protein target genuinely
- * hard — and where the two aims conflict, protein wins.
+ * hard, and where the two aims conflict, protein wins.
  */
 export function recommendFast(opts: {
   goalKind: 'lose-weight' | 'gain-muscle' | 'maintain' | 'recomp'
@@ -195,7 +195,7 @@ export function recommendFast(opts: {
   if (opts.goalKind === 'maintain') {
     return {
       protocol: '14:10',
-      reason: 'Roughly overnight plus a couple of hours — easy to hold indefinitely.',
+      reason: 'Roughly overnight plus a couple of hours, easy to hold indefinitely.',
       eatingStartHour: 10,
     }
   }
@@ -226,7 +226,7 @@ export function recommendFast(opts: {
   }
   return {
     protocol: '14:10',
-    reason: 'A gentle start — skip breakfast or eat dinner earlier, nothing drastic.',
+    reason: 'A gentle start, skip breakfast or eat dinner earlier, nothing drastic.',
     eatingStartHour: 10,
   }
 }

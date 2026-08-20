@@ -21,7 +21,7 @@ import { pendingRequestCount } from '../services/social'
 /* ------------------------------------------------------------------ hub -- */
 
 /**
- * Settings tab. Everything is a banner that opens its own page — a phone
+ * Settings tab. Everything is a banner that opens its own page. A phone
  * screen holds one decision comfortably and about forty badly.
  */
 export function More() {
@@ -35,7 +35,7 @@ export function More() {
 
         {/* The summary card is the way in to the profile. It used to be inert,
             with "Account" and "Profile" banners below repeating the same idea in
-            two more places — three entry points for one screen. */}
+            two more places. Three entry points for one screen. */}
         <button
           onClick={() => push({ name: 'prefsProfile' })}
           style={{
@@ -71,13 +71,13 @@ export function More() {
             <div style={{ fontSize: 18, fontWeight: 700 }}>{profile.name || 'Your profile'}</div>
             <div style={{ color: 'var(--text-2)', fontSize: 13.5 }}>
               {syncError
-                ? 'Sync problem — tap for details'
+                ? 'Sync problem, tap for details'
                 : session
                   ? syncing
                     ? 'Syncing…'
                     : (session.user.email ?? 'Signed in')
                   : cloudEnabled()
-                    ? 'Not signed in — this device only'
+                    ? 'Not signed in. This device only'
                     : `${cal(plan.calories)} cal/day · ${data.foodEntries.length} entries logged`}
             </div>
           </div>
@@ -86,7 +86,7 @@ export function More() {
           </span>
         </button>
 
-        {/* Only with credentials to sign in against — following needs two
+        {/* Only with credentials to sign in against, following needs two
             accounts, so on a device-local build the banner would open a screen
             whose only content is an explanation of why it is empty. */}
         {cloudEnabled() && <FriendsBanner />}
@@ -142,7 +142,7 @@ export function More() {
  * The count is the only reason this is a component rather than a `Banner` in
  * the list above: a request made on a private account has nowhere else to
  * surface, so it would sit unanswered until its recipient happened to open the
- * screen. A failed count is silently no badge — a settings list is not the
+ * screen. A failed count is silently no badge. A settings list is not the
  * place to report a network problem.
  */
 function FriendsBanner() {
@@ -223,8 +223,8 @@ export function PlanHub() {
 
   /* Held as a draft and only committed by the save bar. Every field here used
      to write on each keystroke, so a mistyped digit in "minutes per workout"
-     was already saved — and, now that data syncs, already pushed to the
-     account — before you could correct it. Backing out discards. */
+     was already saved, and, now that data syncs, already pushed to the
+     account, before you could correct it. Backing out discards. */
   const [waterText, setWaterText] = useState(() =>
     profile.waterGoalOverrideMl === undefined
       ? ''
@@ -343,7 +343,7 @@ export function PlanHub() {
 /* -------------------------------------------------------------- profile -- */
 
 /**
- * Profile — identity, account and physical details on one screen.
+ * Profile, identity, account and physical details on one screen.
  *
  * Account used to be its own banner beside Profile, and the Settings hub showed
  * a third profile summary above both. Three places for one idea; this is all of
@@ -352,7 +352,7 @@ export function PlanHub() {
 export function PrefsProfile() {
   const { pop, profile, settings, saveProfile, session, syncing, syncError, signOut } =
     useApp()
-  /* First and last, not the derived display name — editing the derived value
+  /* First and last, not the derived display name, editing the derived value
      directly would leave the parts it came from disagreeing with it. */
   const [firstName, setFirstName] = useState(profile.firstName ?? profile.name)
   const [lastName, setLastName] = useState(profile.lastName ?? '')
@@ -362,7 +362,7 @@ export function PrefsProfile() {
   const { feet, inches } = splitFeetInches(heightIn)
 
   /* The handle lives server-side, in its own world-readable table, so it is
-     loaded separately from the rest of the profile and saved separately too —
+     loaded separately from the rest of the profile and saved separately too,
      it can fail on its own (taken) without losing the other edits. */
   const [username, setUsername] = useState('')
   const [savedUsername, setSavedUsername] = useState<string | null>(null)
@@ -407,7 +407,7 @@ export function PrefsProfile() {
           <>
             <div className="section-label">Account</div>
             <div className="card">
-              <Row title="Signed in as" value={session.user.email ?? '—'} />
+              <Row title="Signed in as" value={session.user.email ?? '-'} />
               <Row
                 title="Sync"
                 value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
@@ -687,7 +687,7 @@ export function About() {
 
   /* No "reset all data" button here any more, by request. It was a one-tap
      path to irreversibly deleting a diary, sitting on an otherwise harmless
-     information screen — and now that data syncs, it would wipe the account
+     information screen, and now that data syncs, it would wipe the account
      rather than just this browser. Signing out is on the Account screen;
      deleting an account is a deliberate enough act to belong elsewhere. */
   return (
@@ -703,7 +703,7 @@ export function About() {
         <div className="hint">
           Whole-food nutrition comes from USDA FoodData Central; packaged products come
           from Open Food Facts, a community database. Calorie and hydration targets are
-          estimates from standard equations — none of it is medical advice.
+          estimates from standard equations, none of it is medical advice.
         </div>
 
         <div className="hint">
@@ -731,13 +731,13 @@ function SignInPrompt() {
 /**
  * Clear everything.
  *
- * Was removed from About by request, then asked for again — it earns its place
+ * Was removed from About by request, then asked for again. It earns its place
  * during testing, and the honest home for it is beside the account it affects
  * rather than on an otherwise harmless information screen.
  *
  * Behind a confirmation, and the wording changes with the situation: signed in
  * it takes the account with it, because clearing only this device would be a
- * lie — the next sync would pull everything straight back down.
+ * lie. The next sync would pull everything straight back down.
  */
 function ClearData() {
   const { resetAll, session } = useApp()
@@ -753,7 +753,7 @@ function ClearData() {
       </div>
       <div className="hint" style={{ color: 'var(--text-3)' }}>
         {session
-          ? 'Deletes your diary, weight, measurements, fasts, custom foods and recipes — from this device and from your account on every other device.'
+          ? 'Deletes your diary, weight, measurements, fasts, custom foods and recipes, from this device and from your account on every other device.'
           : 'Deletes your diary, weight, measurements, fasts, custom foods and recipes from this browser.'}
       </div>
 

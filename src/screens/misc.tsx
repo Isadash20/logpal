@@ -143,7 +143,7 @@ export function WaterScreen({ date }: { date: string }) {
     <>
       <TopBar title="Water" onBack={pop} />
       <div className="scroll">
-        {/* A bottle that actually fills — far more motivating than a number. */}
+        {/* A bottle that actually fills, far more motivating than a number. */}
         <div
           style={{
             display: 'flex',
@@ -192,7 +192,7 @@ export function WaterScreen({ date }: { date: string }) {
             </div>
             <div style={{ color: 'var(--text-2)', fontSize: 13.5, marginTop: 4 }}>
               {log.water >= waterTarget
-                ? "Goal reached — nice."
+                ? "Goal reached, nice."
                 : `${fmt(mlToDisplay(waterTarget - log.water, unit))} ${waterUnitLabel(unit)} to go`}
             </div>
             <div className="progress" style={{ marginTop: 12 }}>
@@ -204,7 +204,7 @@ export function WaterScreen({ date }: { date: string }) {
           </div>
         </div>
 
-        {/* Tap the glass you're on — sets the total, rather than nudging it. */}
+        {/* Tap the glass you're on, sets the total, rather than nudging it. */}
         <div
           style={{
             display: 'flex',
@@ -302,7 +302,7 @@ export function BarcodeScanner({ date }: { date: string }) {
     if (!supported) {
       setStatus('error')
       setMessage(
-        'Live scanning needs a camera and the Barcode Detection API — available in Chrome, Edge and Android. Enter the number below instead.'
+        'Live scanning needs a camera and the Barcode Detection API, available in Chrome, Edge and Android. Enter the number below instead.'
       )
       return
     }
@@ -476,7 +476,7 @@ export function AddSheetContent({
     fn()
   }
 
-  /* The four ways in, as tiles rather than a list — they're peers, and a grid
+  /* The four ways in, as tiles rather than a list, they're peers, and a grid
      says that better than stacked rows do. */
   const tiles: { icon: IconName; label: string; sub: string; onClick(): void }[] = [
     {
@@ -502,6 +502,12 @@ export function AddSheetContent({
       label: 'Quick add',
       sub: 'Calories only',
       onClick: go(() => push({ name: 'quickAdd', date })),
+    },
+    {
+      icon: 'chart',
+      label: 'NutriScan',
+      sub: 'Score a food first',
+      onClick: go(() => push({ name: 'worthIt', date })),
     },
   ]
 

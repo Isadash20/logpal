@@ -4,7 +4,7 @@ import { TopBar } from '../components/ui'
 import { PlanPane } from './Planner'
 
 /**
- * Plan tab — finding something to cook.
+ * Plan tab, finding something to cook.
  *
  * ## One surface, not two
  *
@@ -16,14 +16,14 @@ import { PlanPane } from './Planner'
  *
  * ## What used to be here
  *
- * Daily targets, repeat meals, my meals, my recipes, my foods and shortcuts —
+ * Daily targets, repeat meals, my meals, my recipes, my foods and shortcuts,
  * every one of which had a second home already, under Settings → Plan → Goals,
  * Settings → Foods, or the add sheet behind the "+". This tab was the duplicate
  * rather than the original, so clearing it lost nothing and gave the space to
  * the one job it now does.
  */
 export function Plan() {
-  const { push, data } = useApp()
+  const { push, data, date } = useApp()
 
   const planned = data.planEntries.length
   const unbought = data.shopping.filter((s) => !s.checked).length
@@ -33,7 +33,7 @@ export function Plan() {
       <TopBar />
       <div className="pagetitle">Meals</div>
 
-      {/* Planning sits at the top as an entry rather than a tab — the same
+      {/* Planning sits at the top as an entry rather than a tab. The same
           shape the reference app uses on its own home screen, where "Ready to
           plan your meals?" is the first card and the planner is elsewhere. */}
       <button className="planbanner" onClick={() => push({ name: 'mealPlanner' })}>
@@ -51,6 +51,19 @@ export function Plan() {
                 }`
               : 'Put recipes on days and build a grocery list'}
           </span>
+        </span>
+        <span className="row__chev">
+          <Icon name="forward" size={18} strokeWidth={2.2} />
+        </span>
+      </button>
+
+      <button className="planbanner" onClick={() => push({ name: 'worthIt', date })}>
+        <span className="planbanner__icon">
+          <Icon name="chart" size={22} />
+        </span>
+        <span className="planbanner__main">
+          <span className="planbanner__title">NutriScan</span>
+          <span className="planbanner__sub">Scan or search a food, see how it scores</span>
         </span>
         <span className="row__chev">
           <Icon name="forward" size={18} strokeWidth={2.2} />

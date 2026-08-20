@@ -10,7 +10,7 @@ import { addDays, longDate, today } from '../lib/dates'
 
 /**
  * Home screen, laid out to match the reference app: a calorie bar, a macro
- * bar, then plain rows. Deliberately flat — no rings or donuts here. The rich
+ * bar, then plain rows. Deliberately flat. No rings or donuts here. The rich
  * charts live on Progress and Nutrition, where someone has gone looking.
  */
 export function Today() {
@@ -94,7 +94,7 @@ export function Today() {
       <div className="scroll">
         <div className="pagetitle">
           {date === today() ? 'Today' : longDate(date)}
-          {/* Only from one day — a streak of zero is not worth a badge, and
+          {/* Only from one day. A streak of zero is not worth a badge, and
               showing "0" on day one is discouraging rather than motivating. */}
           {logStreak > 0 && (
             <span className="streak" title={`${logStreak} days logged in a row`}>
@@ -113,8 +113,8 @@ export function Today() {
 
         {/* --------------------------------------------------------- board -- */}
         {/* Everything above the diary is a widget now. Which of these matter is
-            personal — a fasting timer to one person, calories to another, step
-            counts to nobody at all — so the board is arranged rather than
+            personal. A fasting timer to one person, calories to another, step
+            counts to nobody at all, so the board is arranged rather than
             fixed. See lib/widgetLayout.ts. */}
         <WidgetGrid date={date} editing={editing} onEditingChange={setEditing} />
 
@@ -128,7 +128,7 @@ export function Today() {
           </button>
         </div>
 
-        {/* One card per period, spaced apart — matching the reference layout. */}
+        {/* One card per period, spaced apart, matching the reference layout. */}
         {MEAL_KEYS.map((period) => {
           const items = entriesFor(date, period)
           return (

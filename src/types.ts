@@ -1,7 +1,7 @@
 /**
  * Core domain types.
  *
- * Nutrition is always stored *per serving as logged* — never per 100g — so a
+ * Nutrition is always stored *per serving as logged*, never per 100g, so a
  * diary entry is self-contained and never re-derives from a food that may have
  * been edited later. Food records store per-serving values too; scaling by
  * `servings` happens at log time.
@@ -9,7 +9,7 @@
 
 /**
  * Entries group by when they were logged, not by a meal the user has to pick.
- * The picker was the friction — the clock already knows the answer.
+ * The picker was the friction. The clock already knows the answer.
  */
 export type MealKey = 'morning' | 'afternoon' | 'evening' | 'late'
 
@@ -19,8 +19,8 @@ export const PERIOD_LABELS: Record<MealKey, string> = {
   morning: 'Morning',
   afternoon: 'Afternoon',
   evening: 'Evening',
-  /* Named for what it is rather than when it is. The clock rule is unchanged —
-     anything logged from 9pm lands here — but "Late" described the hour and
+  /* Named for what it is rather than when it is. The clock rule is unchanged,
+     anything logged from 9pm lands here, but "Late" described the hour and
      "Snacks" describes the food, which is what people are looking for. */
   late: 'Snacks',
 }
@@ -184,7 +184,7 @@ export interface Recipe {
   servingsMade: number
   /**
    * Nutrition, one entry per ingredient that could be priced against the food
-   * database. This stays the source of truth for calories — `ingredients` below
+   * database. This stays the source of truth for calories, `ingredients` below
    * is what the recipe *says*, and this is what it *costs*. Resolved once, when
    * the recipe is written or imported, so a later change to a food record never
    * silently rewrites a recipe someone has already planned around.
@@ -197,7 +197,7 @@ export interface Recipe {
   /* ---- written form, added with the meal planner ---- */
 
   /**
-   * Ingredients exactly as written — "1 ¼ cups all-purpose flour". Shown in
+   * Ingredients exactly as written, "1 ¼ cups all-purpose flour". Shown in
    * preference to `items`, because a recipe has to read like a recipe; the
    * parsed version is for arithmetic, not for people. Absent on recipes created
    * before the planner, which are rendered from `items` instead.
@@ -216,7 +216,7 @@ export interface Recipe {
    *
    * Present on the shipped catalogue, absent on anything written in the app.
    * When it is here it is both faster and more accurate than parsing the
-   * ingredients — it came from whoever wrote the recipe — so lists, cards and
+   * ingredients. It came from whoever wrote the recipe, so lists, cards and
    * filters read this and leave the parser to the detail screen, where the
    * per-ingredient breakdown is the point.
    */
@@ -227,7 +227,7 @@ export interface Recipe {
 
 /**
  * Slots are fixed and named, unlike the diary's clock-derived periods.
- * Planning is deliberate — you choose that something is dinner — whereas
+ * Planning is deliberate. You choose that something is dinner, whereas
  * logging infers it from the time, and forcing one to be the other would mean
  * a meal planned for dinner landing in the afternoon because you cooked early.
  */
@@ -276,7 +276,7 @@ export type Sex = 'female' | 'male'
 
 /**
  * Self-reported build. Used to bias the lean-mass estimate, which in turn
- * shifts protein targets and the water goal — a muscular 180 lb body needs
+ * shifts protein targets and the water goal. A muscular 180 lb body needs
  * more of both than a soft 180 lb body at the same height.
  */
 export type BodyType = 'lean' | 'average' | 'athletic' | 'muscular' | 'heavy'
@@ -289,7 +289,7 @@ export interface BodyTypeDef {
   bodyFat: Record<Sex, number>
 }
 
-/** What the user is actually trying to do — drives the whole plan. */
+/** What the user is actually trying to do, drives the whole plan. */
 export type GoalKind =
   | 'lose-weight'
   | 'gain-muscle'
@@ -335,7 +335,7 @@ export interface MacroSplit {
 
 export interface Profile {
   /**
-   * Display name — what the app shows. Derived from `firstName`/`lastName` at
+   * Display name, what the app shows. Derived from `firstName`/`lastName` at
    * sign-up, but kept as its own field because it predates them and everything
    * that renders a name already reads it.
    */
@@ -398,7 +398,7 @@ export interface Settings {
    * column's value from the server on the next publish, rather than hiding a
    * value that is still sitting there. Turning all three off deletes the row.
    *
-   * Whether the account is private is not here — the server has to read that
+   * Whether the account is private is not here. The server has to read that
    * one to decide whether a follow needs approving, so it lives on the
    * published row.
    */
@@ -410,7 +410,7 @@ export interface Settings {
    * Three settings rather than a switch, because "share my calories" has two
    * quite different meanings: a percentage says how the day is going and hands
    * over nothing, while the number itself is the diary. Both are reasonable
-   * things to want, and which one you want differs per figure — plenty of
+   * things to want, and which one you want differs per figure. Plenty of
    * people will show an exact step count and never their intake.
    *
    * Nothing above the chosen level is published at all, so an account on
@@ -424,15 +424,15 @@ export interface Settings {
   /**
    * Workouts, which have no percentage to show.
    *
-   * `percent` is the middle rung here too, and means the names alone — "Running,
-   * 35 min" — while `exact` adds what it burned.
+   * `percent` is the middle rung here too, and means the names alone, "Running,
+   * 35 min", while `exact` adds what it burned.
    */
   shareWorkouts: ShareLevel
   /**
    * Whether this account has been asked what its friends may see.
    *
    * The question is asked the first time someone is followed, because that is
-   * the first moment it means anything — asking during sign-up would be a
+   * the first moment it means anything, asking during sign-up would be a
    * privacy screen about a feature they have not used.
    */
   sharingAsked: boolean
@@ -450,7 +450,7 @@ export interface FastProtocolDef {
 }
 
 /**
- * A single fast. `endedAt` absent means it's still running — there is at most
+ * A single fast. `endedAt` absent means it's still running. There is at most
  * one of those at a time, enforced when starting.
  */
 export interface FastSession {
@@ -479,7 +479,7 @@ export interface DayLog {
    * Minutes slept, and steps walked, for the day.
    *
    * Both are optional and both are entered by hand. There is no web API for
-   * either — no pedometer, no health store — so an absent value means "not
+   * either. No pedometer, no health store, so an absent value means "not
    * recorded" and must not be read as a zero, or every untouched day would
    * report no sleep at all.
    */
@@ -508,7 +508,7 @@ export interface AppData {
   fasts: FastSession[]
 
   /**
-   * Meal planning. Device-local for now — these three are deliberately not in
+   * Meal planning. Device-local for now. These three are deliberately not in
    * any cloud collection yet, and the sign-in reconcile carries them across a
    * cloud read rather than letting an empty server wipe them. Syncing them
    * needs three more tables; until those exist, pretending they sync would be

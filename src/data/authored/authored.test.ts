@@ -35,7 +35,7 @@ describe('authored recipes', () => {
 
   it('state macros that add up to the stated calories', () => {
     /* Atwater: 4 kcal a gram for protein and carbohydrate, 9 for fat, and
-       fibre at 2 rather than 4 — it is counted inside carbohydrate but is only
+       fibre at 2 rather than 4. It is counted inside carbohydrate but is only
        partly available, so a high-fibre dish legitimately comes in under the
        naive sum. Real food lands within a few percent of this; anything further
        out is a typo, not biochemistry. */
@@ -60,7 +60,7 @@ describe('authored recipes', () => {
     }
   })
 
-  /* Tags are free-form by design — "Makes leftovers" is useful and belongs to
+  /* Tags are free-form by design, "Makes leftovers" is useful and belongs to
      no filter. What matters is that every recipe answers to at least one meal
      type and that anything looking like a diet or cuisine is spelled the way
      the filters spell it, or the recipe is invisible to the chip that should

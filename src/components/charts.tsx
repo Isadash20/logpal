@@ -13,7 +13,7 @@ export interface RingSpec {
 }
 
 /**
- * Concentric progress rings — calories, water and protein at a glance.
+ * Concentric progress rings, calories, water and protein at a glance.
  *
  * Rings overrun rather than clamp: past 100% the arc keeps going round in a
  * lighter tone, so "over" is legible instead of just looking finished.
@@ -367,7 +367,7 @@ function smoothPath(pts: { x: number; y: number }[]): string {
 }
 
 /**
- * Weight / measurement trend. Tap or drag to scrub — the callout reads the
+ * Weight / measurement trend. Tap or drag to scrub. The callout reads the
  * exact value, which is the thing a chart this small otherwise can't tell you.
  */
 export function LineChart({
@@ -581,7 +581,7 @@ export function BarChart({
   goal?: number
   height?: number
   unit?: string
-  /** Lets a chart carry its own colour — sleep and steps have their own. */
+  /** Lets a chart carry its own colour, sleep and steps have their own. */
   color?: string
   /**
    * Whether passing the goal is worth flagging. True for calories, where over
@@ -726,9 +726,9 @@ function WeekStrip({
           }}
           aria-label={
             `${d.label}` +
-            (d.isToday ? ' — today' : '') +
-            (d.logged ? ' — logged' : '') +
-            (d.selected ? ' — selected' : '')
+            (d.isToday ? ', today' : '') +
+            (d.logged ? ', logged' : '') +
+            (d.selected ? ', selected' : '')
           }
           aria-current={d.selected ? 'date' : undefined}
         >
@@ -804,7 +804,7 @@ function WeekStrip({
 
 /* ----------------------------------------------------------- stacked bar -- */
 
-/** A single horizontal bar split by macro — used as a compact day summary. */
+/** A single horizontal bar split by macro, used as a compact day summary. */
 export function StackedBar({
   segments,
   height = 10,
@@ -905,7 +905,7 @@ export function FastDial({
   )
 }
 
-/** Recent fasts as bars against their targets — the consistency view. */
+/** Recent fasts as bars against their targets. The consistency view. */
 export function FastHistoryBars({
   fasts,
   height = 44,

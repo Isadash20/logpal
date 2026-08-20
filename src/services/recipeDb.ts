@@ -76,7 +76,7 @@ export function catalogSize(): number {
  * Per-serving calories as USDA published them.
  *
  * Kept alongside the recipes so the ingredient parser can be checked against
- * five hundred known answers rather than against itself — the only reason its
+ * five hundred known answers rather than against itself. The only reason its
  * accuracy is a number anyone can quote.
  */
 export function publishedCaloriesFor(id: string): number | undefined {

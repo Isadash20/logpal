@@ -5,7 +5,7 @@
  * ## Why this source and not a recipe site
  *
  * Recipe prose is copyrightable and almost every food blog reserves it, so the
- * obvious approach — scrape the sites Samsung Food indexes — cannot ship. These
+ * obvious approach, scrape the sites Samsung Food indexes, cannot ship. These
  * recipes are federal works: MyPlate Kitchen was USDA's, and every page carries
  * `license: creativecommons.org/publicdomain/mark/1.0` with
  * `isAccessibleForFree: true`. Public domain, commercial use included.
@@ -21,7 +21,7 @@
  *
  *   node scripts/build-recipes.mjs --limit 60
  *
- * Writes public/recipes.json — an asset rather than a module, the same way the
+ * Writes public/recipes.json. An asset rather than a module, the same way the
  * food database ships. Five hundred recipes with their methods is most of a
  * megabyte, and a megabyte compiled into the bundle is a megabyte every visitor
  * downloads before the app paints, whether or not they open the Plan tab. As an
@@ -111,7 +111,7 @@ function stepsFrom(instructions) {
     }
   }
   /* Every USDA recipe opens with "Wash hands with soap and water." It is good
-     public-health advice and terrible recipe step one — it pushes the actual
+     public-health advice and terrible recipe step one. It pushes the actual
      cooking below the fold on a phone. Dropped, along with the equivalent
      closer, so the method reads as a method. */
   const kept = out.filter(
@@ -124,7 +124,7 @@ function stepsFrom(instructions) {
  * USDA publishes one instruction per sentence, which turns asides into steps.
  *
  * The peach sorbet ended with three numbered steps reading "Serve immediately.",
- * "Freeze any leftovers…", and "They will not explode." — the last being the
+ * "Freeze any leftovers…", and "They will not explode.". The last being the
  * back half of the sentence before it. A numbered step should be something you
  * do, so a sentence that only continues the previous one is folded back into it.
  *
@@ -135,7 +135,7 @@ function stepsFrom(instructions) {
  */
 function joinFragments(steps) {
   const CONTINUES = /^(they|it|these|this|those|them|he|she|and|or|but|then|also|\*)\b/i
-  /* Declarative asides — "Banana does not need to be frozen." — are notes on
+  /* Declarative asides, "Banana does not need to be frozen.", are notes on
      the previous instruction, not instructions. Matched narrowly: a verb-list
      test for "is this an instruction" folded 1039 real steps, because plenty
      open with "While the squash bakes" or "In a large bowl". */
@@ -175,7 +175,7 @@ function amount(v) {
  * recipe means thousands of searches across a quarter of a million foods, which
  * locked the main thread solid the moment the catalogue grew. These numbers
  * come from the people who wrote the recipes, they are already on the page, and
- * they are more accurate than anything the parser produces — so the lists,
+ * they are more accurate than anything the parser produces, so the lists,
  * cards and filters read them, and the parser is kept for the recipe detail
  * screen, the shopping list and logging, where per-ingredient answers are the
  * actual point.
@@ -312,7 +312,7 @@ function chooseRecipes(all, limit) {
     }
   }
 
-  /* Bands that could not fill their quota — the top one always falls short —
+  /* Bands that could not fill their quota. The top one always falls short,
      give their remainder back to whatever else scored well, so the catalogue
      still reaches its size. */
   if (out.length < limit) {
@@ -345,8 +345,8 @@ async function main() {
    * public-health library and a poor one to cook dinner from, and useless to
    * anyone eating to gain.
    *
-   * So the whole index is fetched and the catalogue is selected afterwards —
-   * see `chooseRecipes` — on how substantial each recipe actually is. */
+   * So the whole index is fetched and the catalogue is selected afterwards,
+   * see `chooseRecipes`, on how substantial each recipe actually is. */
   const picked = slugs
   const recipes = []
   const checks = []

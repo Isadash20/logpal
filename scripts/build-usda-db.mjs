@@ -6,7 +6,7 @@
  * FDC is the right backbone for a US audience in a way Open Food Facts is not.
  * OFF is crowd-sourced and Europe-heavy: searching "white rice" there returns
  * Asda and Sainsbury's before anything a US shopper recognises, and it has
- * almost no *generic* foods at all — no plain "Shrimp", no "Chicken breast,
+ * almost no *generic* foods at all. No plain "Shrimp", no "Chicken breast,
  * grilled", only packaged goods with barcodes. FDC supplies both halves:
  *
  *   Survey (FNDDS)  ~5.4k  generic foods as people actually eat them, with
@@ -17,7 +17,7 @@
  *
  * Everything here is public domain (USDA), so it can ship inside the app.
  *
- * Get the source files from https://fdc.nal.usda.gov/download-datasets — the
+ * Get the source files from https://fdc.nal.usda.gov/download-datasets. The
  * JSON exports, unzipped into one directory. `--src` points at that directory.
  *
  * Output is two files, not one. See `pickBranded` for why.
@@ -157,16 +157,16 @@ function cleanPortionLabel(s) {
     .replace(/\s+/g, ' ')
     // Unit codes first, while they are still recognisably upper case.
     .replace(/\b(ONZ|OZA|GRM|MLT|LTR)\b/g, (m) => UNIT_ALIASES[m] ?? m)
-    /* Portion nouns arrive shouted — "1 CONTAINER", "1 SLICE", "3 PIECES".
+    /* Portion nouns arrive shouted, "1 CONTAINER", "1 SLICE", "3 PIECES".
        They are ordinary words, not acronyms, and shouting them in a serving
        picker looks like a bug. */
     .replace(/\b[A-Z]{2,}\b/g, (w) => w.toLowerCase())
-    // "1 breast quarter (yield after cooking, bone removed)" — the parenthetical
+    // "1 breast quarter (yield after cooking, bone removed)". The parenthetical
     // is survey bookkeeping and is what pushes these labels past any sane width.
     .replace(/\s*\([^)]*\)\s*$/, '')
     .trim()
 
-  // Labels arrive with dangling separators and hedges — "12 chips | about".
+  // Labels arrive with dangling separators and hedges, "12 chips | about".
   out = out.replace(/[\s|,;:-]*\b(about|approx\.?|approximately)?[\s|,;:-]*$/i, '').trim()
 
   // Truncate on a word boundary; a label cut mid-word ("1 breast quarter
@@ -250,7 +250,7 @@ const MINOR_WORDS = new Set([
 ])
 
 /**
- * Branded descriptions are shouted in the source — "STARKIST, CHUNK LIGHT TUNA
+ * Branded descriptions are shouted in the source, "STARKIST, CHUNK LIGHT TUNA
  * IN WATER". A naive rule that preserves any short all-caps token leaves "IN",
  * "TO" and "OF" capitalised mid-sentence, which reads worse than the original.
  */
@@ -274,7 +274,7 @@ function escapeRe(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-/** "ALBACORE ALBACORE WHITE TUNA" — the source really does repeat words. */
+/** "ALBACORE ALBACORE WHITE TUNA". The source really does repeat words. */
 function collapseRepeats(s) {
   return s.replace(/\b(\p{L}{3,})\b(\s+\1\b)+/giu, '$1')
 }
@@ -300,7 +300,7 @@ function dropRedundantSuffix(s) {
  * FDC descriptions are written for a nutrient database, not for a person
  * scanning a list: "Crustaceans, shrimp, mixed species, cooked, breaded and
  * fried". The leading term is the head noun, which is what makes them sort and
- * read well, so the order is kept — but the taxonomic prefixes that carry no
+ * read well, so the order is kept, but the taxonomic prefixes that carry no
  * meaning for a diner are dropped.
  */
 const NOISE_PREFIXES = [
@@ -317,7 +317,7 @@ function cleanDescription(desc, { stripTaxonomy }) {
   let s = String(desc).replace(/\s+/g, ' ').trim()
 
   /* FNDDS survey jargon. "NFS" is "not further specified" and "NS as to X" is
-     "not specified as to X" — both mark the *default* version of a food, which
+     "not specified as to X". Both mark the *default* version of a food, which
      is exactly the row a plain search for "shrimp" should land on. Left in, the
      abbreviations read as noise and, worse, stop "Shrimp, NFS" from ever
      matching a bare "shrimp" as a whole word. */
@@ -359,13 +359,13 @@ function makeRow({ id, name, brand, kind, portions, v }) {
     c: String(id),
     n: name,
     b: brand ? titleCase(brand).slice(0, 40) : '',
-    k: kind, // 0 = generic, 1 = branded — search ranks generics first
+    k: kind, // 0 = generic, 1 = branded, search ranks generics first
     p: portions.length ? portions : [['100 g', 100]],
     v,
   }
 }
 
-/** Only ever matches `.json` — the download directory usually still holds the
+/** Only ever matches `.json`. The download directory usually still holds the
  *  original `.zip` beside it, and those match the same name patterns. */
 async function findFile(dir, patterns) {
   const files = (await readdir(dir)).filter((f) => f.toLowerCase().endsWith('.json'))
@@ -386,7 +386,7 @@ async function loadJson(path) {
 /**
  * Streams one food record at a time out of a bulk export.
  *
- * The branded export is 3.3 GB — well past the maximum length of a single JS
+ * The branded export is 3.3 GB, well past the maximum length of a single JS
  * string, so `JSON.parse` on the whole file throws before it starts. FDC
  * fortunately writes exactly one record per line inside the wrapping array, so
  * the file can be read as if it were JSON Lines: skip the `{"BrandedFoods": [`
@@ -442,7 +442,7 @@ async function buildGenerics() {
   for (const src of sources) {
     const path = await findFile(SRC, src.patterns)
     if (!path) {
-      console.warn(`  ! ${src.label}: no file matched in ${SRC} — skipping`)
+      console.warn(`  ! ${src.label}: no file matched in ${SRC}, skipping`)
       continue
     }
     const arr = await loadJson(path)
@@ -467,7 +467,7 @@ async function buildGenerics() {
 }
 
 /**
- * Branded is 1.9M rows — far too many to ship, so it has to be ranked and cut.
+ * Branded is 1.9M rows, far too many to ship, so it has to be ranked and cut.
  *
  * FDC has no popularity signal at all, which is the one thing that would make
  * this easy. What it does have is a category, a brand owner and a publication
@@ -519,11 +519,11 @@ async function buildBranded() {
   }
   const path = await findFile(SRC, [/branded/i])
   if (!path) {
-    console.warn(`  ! Branded: no file matched in ${SRC} — skipping`)
+    console.warn(`  ! Branded: no file matched in ${SRC}, skipping`)
     return []
   }
 
-  console.log('  streaming branded export (a few GB — this takes a minute)…')
+  console.log('  streaming branded export (a few GB. This takes a minute)…')
 
   const scored = []
   const seen = new Set()
@@ -531,7 +531,7 @@ async function buildBranded() {
 
   for await (const food of streamFoods(path)) {
     if (++read % 100_000 === 0) {
-      console.log(`    read ${read.toLocaleString()} — kept ${scored.length.toLocaleString()}`)
+      console.log(`    read ${read.toLocaleString()}, kept ${scored.length.toLocaleString()}`)
     }
     const v = nutrientsPer100g(food)
     if (!plausible(v)) continue
@@ -541,8 +541,8 @@ async function buildBranded() {
     let name = cleanDescription(food.description ?? '', { stripTaxonomy: false })
     if (!name) continue
 
-    /* Branded descriptions usually lead with the brand — "STARKIST, CHUNK
-       LIGHT TUNA IN WATER" — and the row already carries the brand in its own
+    /* Branded descriptions usually lead with the brand, "STARKIST, CHUNK
+       LIGHT TUNA IN WATER", and the row already carries the brand in its own
        field, which the UI shows on the second line. Repeating it costs width
        in the results list and pushes the part that distinguishes one product
        from another off the end. */

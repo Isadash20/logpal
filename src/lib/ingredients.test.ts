@@ -8,7 +8,7 @@ import {
 } from './ingredients'
 
 /**
- * Every line below is copied verbatim from a real recipe — the Samsung Food and
+ * Every line below is copied verbatim from a real recipe. The Samsung Food and
  * MyFitnessPal screens this feature was modelled on. Made-up test data would
  * have been kinder to the parser and would have proved nothing: the awkward
  * cases here (`1 ¼ cups`, a bare `Cooking spray`, `1 lb boneless, skinless,
@@ -24,7 +24,7 @@ describe('parseIngredient', () => {
     name: string
     note?: string | null
   }[] = [
-    // Samsung Food — Chick-fil-A Chicken Nuggets
+    // Samsung Food, Chick-fil-A Chicken Nuggets
     { line: '1 egg', qty: 1, unit: null, name: 'egg' },
     { line: '1 cup milk', qty: 1, unit: 'cup', name: 'milk' },
     {
@@ -39,14 +39,14 @@ describe('parseIngredient', () => {
     { line: '½ cup mayonnaise', qty: 0.5, unit: 'cup', name: 'mayonnaise' },
     { line: '1 tablespoon barbecue sauce', qty: 1, unit: 'tbsp', name: 'barbecue sauce' },
 
-    // Samsung Food — Ranch Chicken Wrap
+    // Samsung Food, Ranch Chicken Wrap
     { line: '2 cups chicken breasts', qty: 2, unit: 'cup', name: 'chicken breasts' },
     { line: '¼ cup ranch dressing', qty: 0.25, unit: 'cup', name: 'ranch dressing' },
     { line: '4 tortillas', qty: 4, unit: null, name: 'tortillas' },
     { line: '1 avocado', qty: 1, unit: null, name: 'avocado' },
     { line: '2 Tbsp lemon juice', qty: 2, unit: 'tbsp', name: 'lemon juice' },
 
-    // MyFitnessPal — Sheet Pan Chicken Teriyaki
+    // MyFitnessPal, Sheet Pan Chicken Teriyaki
     {
       line: '1 lb boneless, skinless, chicken breast, cut in half lengthwise',
       qty: 1, unit: 'lb', name: 'boneless',
@@ -60,7 +60,7 @@ describe('parseIngredient', () => {
       qty: 4, unit: 'cup', name: 'cooked brown rice', note: 'for serving',
     },
 
-    // MyFitnessPal — Berry Peanut Butter Smoothie
+    // MyFitnessPal, Berry Peanut Butter Smoothie
     { line: '1 cup reduced-fat milk', qty: 1, unit: 'cup', name: 'reduced-fat milk' },
     { line: '2 tbsp smooth natural peanut butter', qty: 2, unit: 'tbsp', name: 'smooth natural peanut butter' },
     {
@@ -83,7 +83,7 @@ describe('parseIngredient', () => {
   }
 
   it('handles a line with no quantity at all', () => {
-    // Common, and must not become "0 of something" — that would silently add a
+    // Common, and must not become "0 of something". That would silently add a
     // zero-calorie row where the honest answer is "no amount given".
     const p = parseIngredient('Cooking spray')
     expect(p.qty).toBeNull()
@@ -208,7 +208,7 @@ describe('formatAmountFor', () => {
   })
 
   it('honours weight and volume choices independently', () => {
-    // Kilograms for weight, cups for volume — one person, both preferences.
+    // Kilograms for weight, cups for volume. One person, both preferences.
     expect(formatAmountFor(1, 'lb', mixed)).toBe('454 g')
     expect(formatAmountFor(2, 'cup', mixed)).toBe('2 cups')
   })

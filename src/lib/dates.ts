@@ -51,7 +51,7 @@ const MONTHS = [
   'December',
 ]
 
-/** "Today" / "Yesterday" / "Tuesday, August 2" — the diary date header. */
+/** "Today" / "Yesterday" / "Tuesday, August 2". The diary date header. */
 export function friendlyDate(key: string): string {
   const t = today()
   if (key === t) return 'Today'

@@ -4,7 +4,7 @@ import { requireClient } from '../lib/supabase'
 type Mode = 'in' | 'up'
 
 
-/** Google's mark, drawn inline — an OAuth button without it reads as generic. */
+/** Google's mark, drawn inline. An OAuth button without it reads as generic. */
 function GoogleMark() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
@@ -34,7 +34,7 @@ function GoogleMark() {
  * Shown instead of the app when cloud sync is configured and nobody is signed
  * in. "Continue without an account" is deliberately kept: LogPal was a purely
  * local app before this, and someone who does not want an account should not
- * lose the app — they get exactly the old behaviour, on this device only. It is
+ * lose the app. They get exactly the old behaviour, on this device only. It is
  * a quiet link rather than a button, though, because it is the last resort
  * rather than a peer of signing in.
  */
@@ -49,7 +49,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   const signingUp = mode === 'up'
 
   /* A failed OAuth round trip comes back as parameters on the return URL and
-     nothing else — no exception, no rejected promise, just the user landing
+     nothing else. No exception, no rejected promise, just the user landing
      back on this screen as though they had never left. Without this, a
      misconfigured Google client is indistinguishable from a mis-click. */
   useEffect(() => {
@@ -158,7 +158,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
             </span>
             <input
               className="authinput"
-              // Not type="email" when signing in — a username would fail the
+              // Not type="email" when signing in. A username would fail the
               // browser's own validation before the form ever submits.
               type={signingUp ? 'email' : 'text'}
               autoComplete={signingUp ? 'email' : 'username'}

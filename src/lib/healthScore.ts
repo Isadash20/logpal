@@ -2,7 +2,7 @@ import type { NutrientKey, Nutrients } from '../types'
 import { NUTRIENT_BY_KEY } from '../data/nutrients'
 
 /**
- * A 1–10 nutrient-density score for a serving.
+ * A 1-10 nutrient-density score for a serving.
  *
  * ## This is ours, not theirs
  *
@@ -10,7 +10,7 @@ import { NUTRIENT_BY_KEY } from '../data/nutrients'
  * seventeen and their formula is not published, so this is a different number
  * computed from FDA daily values on the nutrients we actually have. It is
  * deliberately not called the same thing anywhere in the UI, and the screen
- * that shows it says how it is worked out — a score that looks authoritative
+ * that shows it says how it is worked out. A score that looks authoritative
  * and cannot explain itself is worse than no score.
  *
  * ## How it works
@@ -18,7 +18,7 @@ import { NUTRIENT_BY_KEY } from '../data/nutrients'
  * Each nutrient contributes its share of a daily value, capped at one full day,
  * so a single serving with four days' sodium cannot swamp everything else. The
  * helpful ones pull up, the ones worth limiting pull down, and the result is
- * mapped onto 1–10. Calories are not scored directly: a calorie is not good or
+ * mapped onto 1-10. Calories are not scored directly: a calorie is not good or
  * bad on its own, which is the whole reason this sits beside the calorie count
  * rather than replacing it.
  */
@@ -40,11 +40,11 @@ const POSITIVE: NutrientKey[] = [
  * Nutrients dietary guidance is about limiting.
  *
  * Cholesterol is deliberately not here. The 2015 advisory committee dropped the
- * 300 mg cap and the 2020–2025 Dietary Guidelines set no numeric limit, since
+ * 300 mg cap and the 2020-2025 Dietary Guidelines set no numeric limit, since
  * dietary cholesterol turns out to move blood cholesterol far less than
  * saturated fat does. Scoring it anyway made eggs the single worst thing in the
- * recipe catalogue — a three-egg spinach and feta scramble came bottom of a
- * hundred and twenty recipes, below the cookies — which is not a defensible
+ * recipe catalogue. A three-egg spinach and feta scramble came bottom of a
+ * hundred and twenty recipes, below the cookies, which is not a defensible
  * thing to tell someone about breakfast. It is still shown on the nutrition
  * panel; it just no longer costs marks.
  */
@@ -56,13 +56,13 @@ const NEGATIVE: NutrientKey[] = ['satFat', 'transFat', 'sugar', 'sodium']
  * Sodium and saturated fat were previously judged per calorie, like everything
  * else, and that quietly punished food for being light. A spinach frittata is
  * 132 calories with 364 mg of sodium, which per calorie looks like nearly two
- * and a half times its share and maxed the penalty — but 364 mg is an ordinary
+ * and a half times its share and maxed the penalty, but 364 mg is an ordinary
  * amount of salt for a meal, and the dish is eggs and spinach. Judging a
  * salted savoury dish by salt-per-calorie means the lighter and more vegetable
  * it is, the worse it scores, which is precisely backwards.
  *
  * So these two are measured against what a serving may reasonably carry.
- * Saturated fat stays proportional — fat does scale with energy — but is
+ * Saturated fat stays proportional, fat does scale with energy, but is
  * allowed 15% of calories before anything is charged, above the 10% guideline
  * because a guideline for a whole day should not condemn one dish.
  */
@@ -76,12 +76,12 @@ export interface ScoredNutrient {
   /** Amount in the nutrient's own unit. */
   amount: number
   unit: string
-  /** Share of a daily value, 0–1+ — not capped, because the bar shows the truth. */
+  /** Share of a daily value, 0-1+, not capped, because the bar shows the truth. */
   dv: number
 }
 
 export interface HealthScore {
-  /** 1–10, one decimal place. */
+  /** 1-10, one decimal place. */
   score: number
   /** How it reads on screen: the wording Samsung Food uses for its own band. */
   band: 'Low' | 'Moderate' | 'Great'
@@ -93,14 +93,14 @@ export interface HealthScore {
  * Reference amounts for scoring only, where the FDA panel sets none.
  *
  * Mono- and polyunsaturated fat have no daily value, so they carry
- * `dailyValue: 0` in the nutrient table and were being skipped entirely — which
+ * `dailyValue: 0` in the nutrient table and were being skipped entirely, which
  * meant olive oil, nuts, avocado and oily fish contributed nothing good to a
  * score, while the saturated fat beside them counted in full. A Greek salad was
  * being marked down for its dressing and given no credit for it.
  *
  * These are the Institute of Medicine's acceptable intake ranges for a 2,000
  * calorie diet, in grams. They are not FDA daily values and are deliberately
- * not shown as such anywhere — they exist so the score can see a fat it should
+ * not shown as such anywhere. They exist so the score can see a fat it should
  * be pleased about.
  */
 const SCORING_REFERENCE: Partial<Record<NutrientKey, number>> = {
@@ -125,7 +125,7 @@ function entry(key: NutrientKey, n: Nutrients): ScoredNutrient | null {
  * Everything below is measured against this rather than against a whole day,
  * and it is the correction that makes the score mean anything. A 358-calorie
  * Greek salad is 18% of a day's energy, so 23% of a day's protein is *better
- * than its share* — generous, not a fifth of the way to adequate. Scoring
+ * than its share*, generous, not a fifth of the way to adequate. Scoring
  * against the full daily value instead marked down every single serving of
  * every real meal, because no one serving is ever a whole day of anything.
  */
@@ -223,8 +223,8 @@ export function healthScore(n: Nutrients, opts: ScoreOptions = {}): HealthScore 
 
   return {
     score,
-    /* "Great" has to be earned — at 6.5 a tray of sugar cookies cleared it,
-       which devalues the word everywhere else it appears — but "Low" should be
+    /* "Great" has to be earned, at 6.5 a tray of sugar cookies cleared it,
+       which devalues the word everywhere else it appears, but "Low" should be
        rare and mean something, so the floor sits well down the scale. Most
        real food is somewhere in the middle, and saying so is the honest
        outcome rather than a failure of the scale. */

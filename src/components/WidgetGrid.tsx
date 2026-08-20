@@ -21,14 +21,14 @@ import {
 /**
  * The arrangeable Home board.
  *
- * Four columns, rows as tall as `ROW_H`, and CSS grid doing the packing — a
+ * Four columns, rows as tall as `ROW_H`, and CSS grid doing the packing. A
  * widget declares how many columns and rows it spans and the browser closes up
  * behind it. That is the whole reason the model is an ordered list rather than
  * coordinates: there is no state in which two widgets overlap or a hole opens
  * up, because neither is expressible.
  *
  * Everything is pointer events rather than HTML5 drag-and-drop, which does not
- * fire on iOS Safari at all — and this is an iPhone app first. `setPointerCapture`
+ * fire on iOS Safari at all, and this is an iPhone app first. `setPointerCapture`
  * keeps the gesture attached to the finger that started it even when it leaves
  * the element.
  */
@@ -158,7 +158,7 @@ export function WidgetGrid({
                     className="widget__remove"
                     /* The press must not reach the widget behind it. That
                        pointerdown starts a drag and captures the pointer, and a
-                       captured pointer retargets the click that follows — so
+                       captured pointer retargets the click that follows, so
                        the button was visibly there and could not be tapped. */
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
@@ -211,10 +211,6 @@ export function WidgetGrid({
             <button className="btn btn--primary" onClick={() => onEditingChange(false)}>
               Done
             </button>
-          </div>
-          <div className="hint" style={{ paddingTop: 8 }}>
-            Drag a widget to move it, pull the corner to resize, or tap ✕ to take it off the board.
-            Widths snap to quarters of the screen.
           </div>
         </div>
       )}

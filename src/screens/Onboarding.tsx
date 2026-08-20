@@ -24,7 +24,7 @@ type Step = (typeof STEPS)[number]
 
 /**
  * First-run setup. Order matters: identity and measurements first (they're
- * quick and uncontroversial), then intent, then the plan — so the plan lands
+ * quick and uncontroversial), then intent, then the plan, so the plan lands
  * as a payoff rather than another form.
  */
 export function Onboarding() {
@@ -96,7 +96,7 @@ export function Onboarding() {
   const weeks = weeksToGoal(weightLb, goalLb, effectiveRate)
   const fastRec = recommendFast({ goalKind, rate: effectiveRate })
 
-  /* Deliberately spread to the extremes — a lean bulk and an aggressive cut
+  /* Deliberately spread to the extremes. A lean bulk and an aggressive cut
      are genuinely different plans, and collapsing them into one middle option
      serves neither. */
   const rateOptions =
@@ -107,7 +107,7 @@ export function Onboarding() {
       if (r <= 0.25)
         return { title: 'Lean gain', sub: 'Slowest, and the least fat gained alongside the muscle' }
       if (r <= 0.5)
-        return { title: 'Steady build', sub: 'The usual choice — noticeable in a couple of months' }
+        return { title: 'Steady build', sub: 'The usual choice, noticeable in a couple of months' }
       if (r <= 0.75)
         return { title: 'Fast build', sub: 'Quicker size, but you will put on more fat with it' }
       return { title: 'Hard bulk', sub: 'Maximum surplus. Expect real fat gain and a cut afterwards' }
@@ -120,7 +120,7 @@ export function Onboarding() {
       return { title: 'Aggressive', sub: 'Fast, hungry, and demanding. Protein is pushed high to protect muscle' }
     return {
       title: 'Very aggressive',
-      sub: 'The steepest this app will plan. Hard to sustain and easy to lose muscle on — best kept short',
+      sub: 'The steepest this app will plan. Hard to sustain and easy to lose muscle on, best kept short',
     }
   }
 
@@ -178,7 +178,7 @@ export function Onboarding() {
 
       <div className="scroll">
         {step === 'sex' && (
-          <Question title="Let's start with the basics" sub="This only affects the calorie estimate — the equation uses a different constant for each.">
+          <Question title="Let's start with the basics" sub="This only affects the calorie estimate. The equation uses a different constant for each.">
             <div className="card" style={{ margin: '0 0 12px' }}>
               <label className="field">
                 <span className="field__label">Name</span>
@@ -326,7 +326,7 @@ export function Onboarding() {
         {step === 'activity' && (
           <Question
             title="How active is your day?"
-            sub="Everyday movement only — workouts get logged separately and added back."
+            sub="Everyday movement only, workouts get logged separately and added back."
           >
             {(Object.keys(ACTIVITY_LABELS) as ActivityLevel[]).map((k) => (
               <Choice
@@ -436,7 +436,7 @@ export function Onboarding() {
                   return (
                     <Choice
                       key={r}
-                      label={`${c.title} — ${Math.abs(r)} ${wUnit} per week`}
+                      label={`${c.title}, ${Math.abs(r)} ${wUnit} per week`}
                       sub={c.sub}
                       active={rate === r}
                       onClick={() => setRate(r)}
@@ -450,7 +450,7 @@ export function Onboarding() {
               <div className="hint" style={{ padding: '0 0 12px' }}>
                 {goalKind === 'maintain'
                   ? "We'll target your maintenance calories and keep protein high enough to hold onto muscle."
-                  : "We'll sit slightly below maintenance with high protein — the weight moves slowly, the composition moves faster."}
+                  : "We'll sit slightly below maintenance with high protein. The weight moves slowly, the composition moves faster."}
               </div>
             )}
           </Question>

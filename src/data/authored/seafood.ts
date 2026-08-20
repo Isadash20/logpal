@@ -1,7 +1,7 @@
 import { r, type Authored } from './recipe'
 
 /**
- * Fish and shellfish, weighted towards cod — cheap, lean, and the white fish
+ * Fish and shellfish, weighted towards cod, cheap, lean, and the white fish
  * people actually search for. Every cooked fish here goes to the FSIS minimum
  * of 145°F, which for a fillet is the point where it flakes.
  */
@@ -24,7 +24,7 @@ export const SEAFOOD_RECIPES: Authored[] = [
       '1/2 teaspoon black pepper',
     ],
     steps: [
-      'Heat the oven to 400°F and pat the fillets dry — wet fish steams instead of roasting.',
+      'Heat the oven to 400°F and pat the fillets dry, wet fish steams instead of roasting.',
       'Lay them in an oiled dish, brush with the oil, and scatter the garlic, salt and pepper over.',
       'Top each fillet with lemon slices and bake 12 to 15 minutes, to 145°F internal, until the flesh parts when you press it.',
       'Finish with the parsley and dill and any juice from the dish.',
@@ -56,7 +56,7 @@ export const SEAFOOD_RECIPES: Authored[] = [
       'Heat the oven to 425°F. Cut four large squares of foil.',
       'Divide the asparagus between them, set a fillet on top, and add the oil, garlic, oregano, salt, pepper, a splash of wine and two lemon slices.',
       'Fold each parcel closed with room inside for steam, and seal the edges tightly.',
-      'Bake 16 to 18 minutes, to 145°F internal. Open one at the table — the steam is half the appeal.',
+      'Bake 16 to 18 minutes, to 145°F internal. Open one at the table. The steam is half the appeal.',
     ],
     n: { calories: 260, protein: 36, carbs: 8, fat: 9, satFat: 2, fiber: 3, sugar: 3, sodium: 450 },
     photo: 'cod asparagus',
@@ -142,7 +142,7 @@ export const SEAFOOD_RECIPES: Authored[] = [
     ],
     steps: [
       'Soften the onion and celery in the butter for 5 minutes.',
-      'Add the potatoes, stock and thyme and simmer 15 minutes, until the potatoes are soft enough to crush against the side of the pot. Crush about a third of them — that is the thickening.',
+      'Add the potatoes, stock and thyme and simmer 15 minutes, until the potatoes are soft enough to crush against the side of the pot. Crush about a third of them. That is the thickening.',
       'Add the corn and milk and bring back to a bare simmer.',
       'Slide the cod in, take the pot off the heat, and cover for 8 minutes. The residual heat cooks it through to 145°F without breaking the pieces up.',
     ],
@@ -204,7 +204,7 @@ export const SEAFOOD_RECIPES: Authored[] = [
     steps: [
       'Boil the sweet potato until a knife meets no resistance, about 15 minutes, then drain well and mash with the butter and half the salt.',
       'Heat the oven to 425°F. Rub the salmon with the oil, paprika, the rest of the salt and the pepper.',
-      'Roast 12 minutes, to 145°F internal — the centre should still be a shade darker than the edges.',
+      'Roast 12 minutes, to 145°F internal. The centre should still be a shade darker than the edges.',
       'Serve on the mash with the lemon zest and chives over the top.',
     ],
     n: { calories: 520, protein: 40, carbs: 38, fat: 24, satFat: 7, fiber: 6, sugar: 12, sodium: 560 },
@@ -293,7 +293,7 @@ export const SEAFOOD_RECIPES: Authored[] = [
     steps: [
       'Soak the sliced onion in cold water for 10 minutes to take the edge off, then drain.',
       'Whisk the oil, vinegar, lemon juice, salt and pepper.',
-      'Fold everything together with a light hand — the beans break up if you stir hard.',
+      'Fold everything together with a light hand. The beans break up if you stir hard.',
       'Leave it 20 minutes before eating.',
     ],
     n: { calories: 385, protein: 32, carbs: 34, fat: 14, satFat: 2.2, fiber: 10, sugar: 3, sodium: 620 },

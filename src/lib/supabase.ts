@@ -10,7 +10,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
  * Every caller has to handle `null`, and `cloudEnabled()` is the check.
  *
  * Vite only exposes variables prefixed `VITE_`, and it inlines them at BUILD
- * time — setting them in Vercel after a deploy does nothing until the next
+ * time, setting them in Vercel after a deploy does nothing until the next
  * build. Same trap as the sibling Daily Planner project.
  */
 const url = import.meta.env.VITE_SUPABASE_URL
@@ -24,7 +24,7 @@ export const supabase: SupabaseClient | null =
           autoRefreshToken: true,
           /* Off on purpose. Left on, the client reads the OAuth fragment during
              its own initialisation while `consumeAuthFragment` reads the same
-             fragment from the store — two owners of a one-shot value, and
+             fragment from the store. Two owners of a one-shot value, and
              whichever loses leaves the app signed out holding a spent token.
              That produced a fix that passed locally and failed on Vercel.
              One owner, below. */
@@ -39,12 +39,12 @@ export const supabase: SupabaseClient | null =
  * Two shapes exist. The implicit flow returns `#access_token=…&refresh_token=…`
  * in the fragment; the PKCE flow returns `?code=…` in the query, which has to be
  * exchanged. Google sign-in here was producing the first, and nothing in the app
- * read it — so the tokens were valid, the user was authenticated, and they
+ * read it, so the tokens were valid, the user was authenticated, and they
  * landed back on the sign-in screen looking rejected, with a bearer token
  * sitting in the address bar.
  *
  * This is now the only thing that touches the URL. `detectSessionInUrl` is off,
- * so there is no second reader competing for a one-shot value — that contest is
+ * so there is no second reader competing for a one-shot value. That contest is
  * what made the previous attempt pass locally and fail on Vercel.
  *
  * Returns true when a session was established.

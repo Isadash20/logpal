@@ -10,7 +10,7 @@ import { titleCase } from '../lib/format'
  * they work from the browser.
  *
  * The newer Search-a-licious service (search.openfoodfacts.org) is deliberately
- * NOT used — it serves no `Access-Control-Allow-Origin` header, so browser
+ * NOT used. It serves no `Access-Control-Allow-Origin` header, so browser
  * fetches fail with a bare "Failed to fetch". It works from curl, which is what
  * makes the difference easy to miss.
  *
@@ -34,7 +34,7 @@ const FIELDS = [
 ].join(',')
 
 /** Browsers set their own User-Agent and forbid overriding it, so identify via
- *  a query parameter instead — OFF accepts `app_name`/`app_uuid` for this. */
+ *  a query parameter instead, OFF accepts `app_name`/`app_uuid` for this. */
 const APP_PARAMS = 'app_name=LogPal&app_version=0.1'
 
 interface OFFNutriments {
@@ -151,7 +151,7 @@ function toFood(p: OFFProduct): Food | null {
 
 /**
  * Open Food Facts allows ~10 searches and ~15 product reads per minute per IP,
- * and punishes overuse by dropping CORS headers — which surfaces in the browser
+ * and punishes overuse by dropping CORS headers, which surfaces in the browser
  * as an opaque "Failed to fetch" rather than a 429. Typing a query one letter
  * at a time will blow through that budget in seconds, so requests are both
  * cached and rate-limited client-side.

@@ -3,7 +3,7 @@
  *
  * Neutrals are deliberately COOL (blue-biased): #F6F6F8, #EBEBF0, #6C6C70.
  * Warm-tinted greys (bone, ivory, greige) carry yellow and make the whole app
- * read cheap — every neutral here is sampled from the category leader.
+ * read cheap. Every neutral here is sampled from the category leader.
  */
 
 :root {
@@ -13,13 +13,13 @@
   --accent-soft: #e8f1fe;
   --accent-ring: rgba(0, 102, 238, 0.16);
 
-  /* Chrome — the near-black that carries the premium feel */
+  /* Chrome. The near-black that carries the premium feel */
   --ink: #151824;
   --ink-2: #262b3d;
   --on-ink: #ffffff;
   --on-ink-2: #9aa3b2;
 
-  /* Macros — two blues from the calorie accent's own family, separated by
+  /* Macros. Two blues from the calorie accent's own family, separated by
      lightness, plus one warm. Deriving all three from the accent looks tidier
      but then they differ by lightness alone, which is unreadable on an 8px
      bar. Blue-against-amber is also the one contrast that survives red-green
@@ -41,7 +41,7 @@
   --danger: #e02f45;
   --gold: #fdda1c;
 
-  /* Surfaces. The page is a soft blue-lavender wash, not flat grey — cards
+  /* Surfaces. The page is a soft blue-lavender wash, not flat grey, cards
      float on it rather than butting edge to edge. */
   --bg: #e7eaf3;
   --bg-top: #d9e4f5;
@@ -95,7 +95,7 @@
   --on-ink: #ffffff;
   --on-ink-2: #8b94a5;
 
-  /* Same trio, lifted for a dark background — the light-mode navy would
+  /* Same trio, lifted for a dark background. The light-mode navy would
      disappear against it, so fat moves up to a mid blue instead. */
   --carbs: #8fdcff;
   --fat: #4c6ef5;

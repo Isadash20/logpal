@@ -16,7 +16,7 @@ import {
 export function Sheet({
   title,
   onClose,
-  /** Extra class on the panel — e.g. "sheet--split" for a pinned footer. */
+  /** Extra class on the panel, e.g. "sheet--split" for a pinned footer. */
   className,
   children,
 }: {
@@ -38,7 +38,7 @@ export function Sheet({
    * breaks on iOS. Two things go wrong there, and both are fixed here.
    *
    * 1. The keyboard. iOS lays position:fixed out against the layout viewport,
-   *    which does NOT shrink when the keyboard appears — so `inset: 0` covers
+   *    which does NOT shrink when the keyboard appears, so `inset: 0` covers
    *    an area extending behind the keyboard, and a bottom-anchored sheet
    *    anchors itself off screen. Blurring first gets the keyboard out of the
    *    way before anything is measured.
@@ -194,7 +194,7 @@ export function Row({
 
   if (!onClick) return <div className={`row ${className}`}>{inner}</div>
 
-  /* A trailing action button can't live inside the row's own <button> — nested
+  /* A trailing action button can't live inside the row's own <button>, nested
      buttons are invalid HTML and swallow the inner click. When one is present
      the row body becomes the button and the action sits beside it. */
   if (right) {
@@ -239,7 +239,7 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 
 /**
  * A full-width tappable card that opens its own page. Used instead of long
- * inline setting lists — one decision per screen reads far better on a phone
+ * inline setting lists. One decision per screen reads far better on a phone
  * than forty controls stacked on top of each other.
  */
 export function Banner({
@@ -304,7 +304,7 @@ export function TopBar({
   left?: ReactNode
   right?: ReactNode
   onBack?(): void
-  /** Opaque with a hairline — for pushed screens that sit on white. */
+  /** Opaque with a hairline, for pushed screens that sit on white. */
   solid?: boolean
 }) {
   return (
@@ -741,7 +741,7 @@ export function OverflowButton({ onClick }: { onClick(): void }) {
  * A row with a three-way choice on the right.
  *
  * Used for the sharing levels, where a switch cannot say what needs saying:
- * "share my steps" means two different things — the percentage or the count —
+ * "share my steps" means two different things. The percentage or the count,
  * and both are reasonable. A segmented control puts the three answers side by
  * side so the middle one is visibly a middle, rather than hiding two of them
  * behind a menu.

@@ -3,14 +3,14 @@
  *
  * The first version of this derived its chips from the catalogue, by taking the
  * last word of every ingredient line and counting them. That is why it offered
- * "oil", "powder", "juice" and "sauce" — those really are the commonest final
+ * "oil", "powder", "juice" and "sauce". Those really are the commonest final
  * words, and every one of them is useless to tap. Nobody opens a recipe app
  * wondering what they can make with sauce.
  *
  * This is written instead, and grouped, so the picker reads like a shop rather
  * than a word-frequency table. Terms are matched as substrings against a
  * recipe's ingredient lines, so "chicken" catches "boneless skinless chicken
- * breasts" and the more specific "chicken breast" narrows it further — both are
+ * breasts" and the more specific "chicken breast" narrows it further. Both are
  * offered, because both are things people actually search for.
  */
 
@@ -94,7 +94,7 @@ export const INGREDIENT_GROUPS: IngredientGroup[] = [
   },
 ]
 
-/** Everything, flat — for matching and for counting how many there are. */
+/** Everything, flat, for matching and for counting how many there are. */
 export const ALL_INGREDIENTS: string[] = INGREDIENT_GROUPS.flatMap((g) => g.items)
 
 /**

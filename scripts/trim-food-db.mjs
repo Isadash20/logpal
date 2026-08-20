@@ -4,7 +4,7 @@
  *     node scripts/trim-food-db.mjs [--max 40000] [--in public/food-db.json]
  *
  * The builder writes everything it finds, which runs to six figures. That is a
- * ~20 MB download for a phone — worse than useless. Entries arrive in
+ * ~20 MB download for a phone, worse than useless. Entries arrive in
  * popularity order per search term, so keeping the earliest occurrences keeps
  * the products people actually scan and drops the long tail of regional SKUs.
  *
@@ -30,7 +30,7 @@ function cleanName(s) {
   return s
     .replace(/^[^\p{L}\p{N}]+/u, '')
     .replace(/\s{2,}/g, ' ')
-    .replace(/\s*[-–,;|]\s*$/, '')
+    .replace(/\s*[-,;|]\s*$/, '')
     .trim()
 }
 
@@ -46,7 +46,7 @@ for (const f of db.foods) {
   if (!/\p{L}{3}/u.test(n)) continue
 
   /* Reject records whose "name" is just the brand again. Open Food Facts is
-     full of these and they arrive as a wall of identical rows — eight entries
+     full of these and they arrive as a wall of identical rows, eight entries
      called "Chobani" tells you nothing about which yoghurt you're logging. */
   const nk = n.toLowerCase()
   const bk = b.toLowerCase()

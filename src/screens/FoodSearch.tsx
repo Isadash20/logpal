@@ -29,7 +29,7 @@ export function FoodSearch({ date }: { date: string }) {
   /* The bulk database is a separate static file; pull it down as soon as the
      search screen opens so results fill in without a visible wait. `searchLocal`
      reads it directly, so all this has to do is trigger the load and re-run the
-     search once it lands — the counter is what makes the memo notice. */
+     search once it lands. The counter is what makes the memo notice. */
   const [dbVersion, setDbVersion] = useState(0)
   useEffect(() => {
     let live = true
@@ -56,7 +56,7 @@ export function FoodSearch({ date }: { date: string }) {
   )
 
   /* Debounced network search. Open Food Facts allows only ~10 searches per
-     minute per IP, so the wait is deliberately long — a per-keystroke search
+     minute per IP, so the wait is deliberately long. A per-keystroke search
      exhausts the budget in seconds and the service then fails opaquely. The
      service layer additionally caches and throttles. */
   useEffect(() => {
@@ -87,7 +87,7 @@ export function FoodSearch({ date }: { date: string }) {
         setRemote([])
         if (err instanceof RateLimitedError) {
           setError(
-            `Open Food Facts limits how often it can be searched. Try again in about ${err.retryInSeconds}s — built-in results are still shown above.`
+            `Open Food Facts limits how often it can be searched. Try again in about ${err.retryInSeconds}s, built-in results are still shown above.`
           )
         } else if ((err as Error).message === 'offline') {
           setError('Could not reach Open Food Facts. Check your connection.')

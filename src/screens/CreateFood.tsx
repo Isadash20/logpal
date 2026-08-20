@@ -37,7 +37,7 @@ export function CreateFood({
     protein: num('protein'),
   })
   const statedCals = num('calories')
-  // Flag a mismatch the way a label sanity-check would — off by more than 10%.
+  // Flag a mismatch the way a label sanity-check would, off by more than 10%.
   const mismatch =
     statedCals > 0 && macroCals > 0 && Math.abs(macroCals - statedCals) / statedCals > 0.1
 
@@ -208,7 +208,7 @@ export function CreateFood({
                 style={{ color: 'var(--warning)', fontWeight: 600 }}
               >
                 Heads up: the macros add up to {cal(macroCals)} calories but you entered{' '}
-                {cal(statedCals)}. Labels round, so a small gap is normal — a large one
+                {cal(statedCals)}. Labels round, so a small gap is normal. A large one
                 usually means a typo.
               </div>
             )}

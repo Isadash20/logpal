@@ -5,7 +5,7 @@ import { r, type Authored } from './recipe'
  * tofu, tempeh, lentils, chickpeas, eggplant, mushrooms, cabbage.
  *
  * The shipped catalogue files these by food group, so they exist inside other
- * recipes and almost never as the subject of one — searching "eggplant"
+ * recipes and almost never as the subject of one, searching "eggplant"
  * returned eight results across twelve hundred recipes.
  */
 export const PLANT_RECIPES: Authored[] = [
@@ -13,7 +13,7 @@ export const PLANT_RECIPES: Authored[] = [
     id: 'crispy_tofu_broccoli',
     name: 'Crispy Tofu with Broccoli',
     description:
-      'Cornstarch and a hot pan. Press the tofu first — thirty minutes under something heavy is the difference between crisp and steamed.',
+      'Cornstarch and a hot pan. Press the tofu first, thirty minutes under something heavy is the difference between crisp and steamed.',
     servings: 4, prep: 20, cook: 20,
     tags: ['Dinner', 'Main dish', 'Asian', 'Vegan', 'Vegetarian', 'High Protein'],
     ingredients: [
@@ -105,7 +105,7 @@ export const PLANT_RECIPES: Authored[] = [
     id: 'red_lentil_dal',
     name: 'Red Lentil Dal',
     description:
-      'Twenty-five minutes, one pot, and the tempering poured over at the end is not optional — it is most of the flavour.',
+      'Twenty-five minutes, one pot, and the tempering poured over at the end is not optional. It is most of the flavour.',
     servings: 4, prep: 10, cook: 30,
     tags: ['Dinner', 'Lunch', 'Main dish', 'Soup', 'Indian', 'Vegan', 'Vegetarian', 'High Fiber'],
     ingredients: [
@@ -216,7 +216,7 @@ export const PLANT_RECIPES: Authored[] = [
       'Brown the mushrooms in the butter in two batches over high heat, 6 minutes each, salting only at the end.',
       'Cook the onion and garlic 5 minutes, stir in the flour and paprika, and cook 2 minutes.',
       'Add the stock and mustard and simmer 8 minutes until it thickens.',
-      'Cook the noodles. Take the sauce off the heat before stirring the sour cream in — boiled, it splits.',
+      'Cook the noodles. Take the sauce off the heat before stirring the sour cream in, boiled, it splits.',
       'Toss with the noodles and the parsley.',
     ],
     n: { calories: 520, protein: 19, carbs: 68, fat: 20, satFat: 10, fiber: 7, sugar: 9, sodium: 720 },

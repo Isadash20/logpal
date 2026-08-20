@@ -269,7 +269,7 @@ export function ExerciseDetail({
                     className="input"
                     type="number"
                     inputMode="decimal"
-                    placeholder="—"
+                    placeholder="-"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
                   />
@@ -314,7 +314,7 @@ export function ExerciseDetail({
         {kind === 'strength' && (
           <div className="hint">
             Strength entries are logged for the record and don&apos;t add calories back to
-            your budget — resistance training burn is already reflected in your activity
+            your budget, resistance training burn is already reflected in your activity
             level.
           </div>
         )}

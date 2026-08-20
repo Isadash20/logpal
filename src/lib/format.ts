@@ -5,7 +5,7 @@ export function round(n: number, places = 0): number {
   return Math.round(n * f) / f
 }
 
-/** Whole numbers for calories — no decimals anywhere in the UI. */
+/** Whole numbers for calories. No decimals anywhere in the UI. */
 export function cal(n: number): string {
   return Math.round(n).toLocaleString('en-US')
 }
@@ -36,7 +36,7 @@ export function weight(n: number, places = 1): string {
   })
 }
 
-/** 1.5 → "1.5", 2 → "2" — for serving counts. */
+/** 1.5 → "1.5", 2 → "2", for serving counts. */
 export function servingCount(n: number): string {
   return String(round(n, 2))
 }
@@ -57,14 +57,14 @@ export function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s
 }
 
-/** "7:42 am" — the trailing timestamp on a logged entry. */
+/** "7:42 am". The trailing timestamp on a logged entry. */
 export function timeOfDay(ts: number): string {
   return new Date(ts)
     .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     .toLowerCase()
 }
 
-/** "Chobani, 1 container (150 g)" — the subtitle under a diary food row. */
+/** "Chobani, 1 container (150 g)". The subtitle under a diary food row. */
 export function entrySubtitle(opts: {
   brand?: string
   servings: number

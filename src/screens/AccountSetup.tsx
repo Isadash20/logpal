@@ -10,7 +10,7 @@ import { displayNameFrom } from '../lib/storage'
  * Reached two ways and deliberately identical from here on: after Google hands
  * back a session, and straight after an email sign-up. Google gives an address
  * and nothing else, so without this an account created that way would have no
- * handle at all — and a handle is what other people will search for.
+ * handle at all, and a handle is what other people will search for.
  *
  * Two steps rather than one long form. The username step can fail on something
  * outside the user's control (taken), and putting it on its own page means that
@@ -33,7 +33,7 @@ export function usernameProblem(name: string): string | null {
 /**
  * True when the handle is already someone else's.
  *
- * Only an early warning — the database's case-insensitive unique index is what
+ * Only an early warning. The database's case-insensitive unique index is what
  * actually guarantees it, and two people racing for the same handle are settled
  * there, not here.
  */
@@ -181,7 +181,7 @@ export function AccountSetup() {
         )}
 
         {/* Signing out is the only way past this screen. Someone who reached it
-            by accident — wrong Google account, say — would otherwise be stuck. */}
+            by accident, wrong Google account, say, would otherwise be stuck. */}
         <button className="linkbtn linkbtn--quiet" onClick={() => void signOut()}>
           Sign out
         </button>

@@ -12,14 +12,14 @@ import { VEGETABLE_RECIPES } from './authored/vegetables'
  * Recipes written for LogPal.
  *
  * The USDA catalogue is public-domain, well-tested and free to ship, and its
- * ceiling is about 575 calories — it is a public-health library, so it does not
+ * ceiling is about 575 calories. It is a public-health library, so it does not
  * publish anything calorie-dense. That leaves everyone eating to gain with
  * nothing, and no amount of re-sorting fixes a gap in the source.
  *
  * So these are ours: substantial, protein-forward, and written to be worth
  * cooking rather than worth citing. Neither MyFitnessPal's library nor Samsung
- * Food's could be used here — the first is paywalled licensed content, the
- * second is user-uploaded with rights retained by the uploaders — which is the
+ * Food's could be used here. The first is paywalled licensed content, the
+ * second is user-uploaded with rights retained by the uploaders, which is the
  * whole reason this file exists.
  *
  * `nutritionPerServing` is stated rather than derived. The ingredient parser is
@@ -37,7 +37,7 @@ const ORIGINAL: Authored[] = [
     id: 'peanut_chicken_noodles',
     name: 'Peanut Satay Chicken Noodles',
     description:
-      'Deeply savoury, faintly sweet, and heavy enough to matter. The sauce is the whole trick — it thickens on the noodles rather than in the pan.',
+      'Deeply savoury, faintly sweet, and heavy enough to matter. The sauce is the whole trick. It thickens on the noodles rather than in the pan.',
     servings: 4, prep: 15, cook: 20,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Asian'],
     ingredients: [
@@ -58,7 +58,7 @@ const ORIGINAL: Authored[] = [
       'Whisk the peanut butter, soy sauce, honey, vinegar, garlic and ginger with 1/2 cup of hot water until it pours like cream. Set it aside.',
       'Cook the noodles, and keep a mugful of the water before you drain them.',
       'Get the sesame oil smoking in a wide pan and sear the chicken hard, in two batches so it browns instead of steaming. Around 6 minutes a batch.',
-      'Add the pepper and cook two minutes more — it should still have some bite.',
+      'Add the pepper and cook two minutes more. It should still have some bite.',
       'Return everything to the pan with the noodles and the sauce, and toss over low heat, loosening with the noodle water until it clings.',
       'Finish with the scallions and crushed peanuts.',
     ],
@@ -89,7 +89,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Stir the parsley, olive oil, vinegar, garlic and chili flakes together with half the salt. Leave it while you cook.',
-      'Season the steak generously and sear in a dry, very hot pan — 3 to 4 minutes a side for medium rare.',
+      'Season the steak generously and sear in a dry, very hot pan, 3 to 4 minutes a side for medium rare.',
       'Rest it a full ten minutes. This is not optional; slicing early costs you the juice.',
       'Slice against the grain and build the bowls over rice with the tomatoes and avocado.',
       'Spoon the chimichurri over everything while the steak is still warm.',
@@ -180,7 +180,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Simmer the oats in the milk with the salt for 6 minutes, stirring, until thick.',
-      'Off the heat, beat in the protein powder — off the heat matters, or it turns grainy.',
+      'Off the heat, beat in the protein powder, off the heat matters, or it turns grainy.',
       'Swirl through the peanut butter and honey without fully combining them.',
       'Top with the banana and chia seeds.',
     ],
@@ -226,7 +226,7 @@ const ORIGINAL: Authored[] = [
     id: 'halloumi_grain_bowl',
     name: 'Crispy Halloumi and Harissa Grain Bowl',
     description:
-      'Vegetarian and genuinely substantial. Fry the halloumi last and eat it immediately — it goes squeaky if it waits.',
+      'Vegetarian and genuinely substantial. Fry the halloumi last and eat it immediately. It goes squeaky if it waits.',
     servings: 4, prep: 15, cook: 20,
     tags: ['Dinner', 'Main dish', 'Vegetarian', 'High Protein', 'Mediterranean'],
     ingredients: [
@@ -257,7 +257,7 @@ const ORIGINAL: Authored[] = [
     id: 'tofu_black_pepper_stirfry',
     name: 'Black Pepper Tofu with Sesame Rice',
     description:
-      'Vegan, and enough of a meal that nobody asks where the meat is. Press the tofu properly — it is the difference between crisp and sad.',
+      'Vegan, and enough of a meal that nobody asks where the meat is. Press the tofu properly. It is the difference between crisp and sad.',
     servings: 4, prep: 20, cook: 15,
     tags: ['Dinner', 'Main dish', 'Vegan', 'Vegetarian', 'High Protein', 'Asian'],
     ingredients: [
@@ -276,7 +276,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Press the tofu between paper towels under something heavy for fifteen minutes, then toss the cubes in the cornstarch.',
-      'Fry in the vegetable oil, turning once, until every side is properly golden — about 10 minutes. Move it out of the pan.',
+      'Fry in the vegetable oil, turning once, until every side is properly golden, about 10 minutes. Move it out of the pan.',
       'Cook the broccoli two minutes, then the garlic, ginger and black pepper for one minute more.',
       'Return the tofu with the soy sauce and maple syrup and toss until it glazes.',
       'Fold the sesame oil and seeds through the rice and serve underneath.',
@@ -307,7 +307,7 @@ const ORIGINAL: Authored[] = [
       '4 slices crusty bread',
     ],
     steps: [
-      'Soften the onion and pepper in the oil for 10 minutes — longer than feels necessary, until they are sweet.',
+      'Soften the onion and pepper in the oil for 10 minutes, longer than feels necessary, until they are sweet.',
       'Add the garlic, cumin and paprika for a minute, then the tomatoes. Simmer 10 minutes until it stops being watery.',
       'Make six wells, crack an egg into each, crumble the feta between them, and cover.',
       'Cook 6 to 8 minutes, until the whites are set and the yolks are not.',
@@ -339,7 +339,7 @@ const ORIGINAL: Authored[] = [
       '1 teaspoon salt',
     ],
     steps: [
-      'Heat the oven to 200°C / 400°F. Mix the turkey, breadcrumbs, egg, parmesan, garlic, oregano and salt — briefly. Overworking it makes them bouncy.',
+      'Heat the oven to 200°C / 400°F. Mix the turkey, breadcrumbs, egg, parmesan, garlic, oregano and salt, briefly. Overworking it makes them bouncy.',
       'Roll twelve meatballs and bake 18 minutes.',
       'Warm the tomato sauce and slide the baked meatballs into it for five minutes.',
       'Fill the rolls, lay the provolone over the top, and grill until it blisters.',
@@ -354,7 +354,7 @@ const ORIGINAL: Authored[] = [
     id: 'coconut_dal',
     name: 'Coconut Red Lentil Dal',
     description:
-      'Vegan, cheap, and freezes perfectly. Bloom the spices in oil first — that step is the entire flavour.',
+      'Vegan, cheap, and freezes perfectly. Bloom the spices in oil first. That step is the entire flavour.',
     servings: 4, prep: 10, cook: 30,
     tags: ['Dinner', 'Main dish', 'Vegan', 'Vegetarian', 'High Fiber', 'Indian'],
     ingredients: [
@@ -373,7 +373,7 @@ const ORIGINAL: Authored[] = [
       '½ cup cilantro, chopped',
     ],
     steps: [
-      'Melt the coconut oil and cook the onion 8 minutes, then the garlic, ginger and all the spices for one minute — until the kitchen smells of it.',
+      'Melt the coconut oil and cook the onion 8 minutes, then the garlic, ginger and all the spices for one minute, until the kitchen smells of it.',
       'Add the lentils, coconut milk and broth. Simmer 25 minutes, stirring now and then, until it is thick and the lentils have collapsed.',
       'Wilt the spinach through at the end.',
       'Finish with lime juice and cilantro, and season harder than you think it needs.',
@@ -404,7 +404,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Heat the oven to 200°C / 400°F. Butterfly the breasts so they are an even thickness.',
-      'Mix the panko, parmesan, oregano, salt and oil until the crumbs look damp — that is what makes them brown.',
+      'Mix the panko, parmesan, oregano, salt and oil until the crumbs look damp. That is what makes them brown.',
       'Dip the chicken in egg, press it hard into the crumb, and set aside.',
       'Spread the sauce in the tray, sit the chicken on top so the crumb stays clear of it, and bake 25 minutes.',
       'Add the mozzarella and give it 5 minutes more, then scatter the basil.',
@@ -467,7 +467,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Cook the macaroni one minute short of the packet, adding the kale for the last two minutes. Drain.',
-      'Melt the butter, stir in the flour and cook it two minutes — it should smell biscuity, not raw.',
+      'Melt the butter, stir in the flour and cook it two minutes. It should smell biscuity, not raw.',
       'Add the milk a splash at a time, whisking, until it is a smooth sauce that coats a spoon.',
       'Off the heat, melt in the cheddar with the mustard and nutmeg. Off the heat, or it splits.',
       'Fold through the pasta and kale, top with parmesan and breadcrumbs, and grill until blistered.',
@@ -481,7 +481,7 @@ const ORIGINAL: Authored[] = [
     id: 'shrimp_coconut_curry',
     name: 'Coconut Lime Shrimp Curry',
     description:
-      'Twenty-five minutes start to finish. Add the shrimp at the very end — they need three minutes and not one more.',
+      'Twenty-five minutes start to finish. Add the shrimp at the very end. They need three minutes and not one more.',
     servings: 4, prep: 15, cook: 20,
     tags: ['Dinner', 'Main dish', 'Pescatarian', 'High Protein', 'Thai'],
     ingredients: [
@@ -500,7 +500,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Fry the curry paste in the coconut oil for two minutes until it darkens and separates.',
       'Add the coconut milk, fish sauce and sugar and simmer five minutes.',
-      'Add the pepper and beans and cook four minutes — they should stay bright.',
+      'Add the pepper and beans and cook four minutes. They should stay bright.',
       'Slide in the shrimp and cook three minutes, until just pink through.',
       'Finish with lime juice and cilantro, over the rice.',
     ],
@@ -531,7 +531,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Roast the potatoes in the oil at 220°C / 425°F for 25 minutes until crisp.',
       'Brown the sausage, breaking it up, then soften the pepper and onion in the fat.',
-      'Scramble the eggs slowly over low heat and pull them while still glossy — they cook again on reheating.',
+      'Scramble the eggs slowly over low heat and pull them while still glossy. They cook again on reheating.',
       'Build each tortilla with eggs, sausage, potato and cheese, fold the ends in, and roll tightly.',
       'Wrap individually in foil. They keep three months frozen; reheat 90 seconds from frozen, unwrapped.',
     ],
@@ -544,7 +544,7 @@ const ORIGINAL: Authored[] = [
     id: 'beef_stroganoff',
     name: 'Weeknight Beef Stroganoff',
     description:
-      'Thirty minutes. Sear the beef hard and take it out early — it finishes in the sauce, and overcooked strips are the usual way this goes wrong.',
+      'Thirty minutes. Sear the beef hard and take it out early. It finishes in the sauce, and overcooked strips are the usual way this goes wrong.',
     servings: 4, prep: 15, cook: 20,
     tags: ['Dinner', 'Main dish', 'High Protein'],
     ingredients: [
@@ -562,7 +562,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Sear the beef in the butter in a very hot pan, 90 seconds, and take it straight out.',
-      'Cook the mushrooms hard in the same pan until they brown properly — do not crowd them or they will steam.',
+      'Cook the mushrooms hard in the same pan until they brown properly, do not crowd them or they will steam.',
       'Add the onion and garlic for five minutes, then the flour for one.',
       'Pour in the broth and simmer until it thickens, then take it off the heat and stir in the sour cream and mustard.',
       'Return the beef and any juices, warm through without boiling, and serve over the noodles with parsley.',
@@ -596,7 +596,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Soften the onion in the oil for 8 minutes, then the garlic, ginger and chili for one.',
       'Add the sweet potato, tomatoes and broth and simmer 25 minutes until the potato gives.',
-      'Whisk the peanut butter with a ladle of the hot liquid until smooth, then stir it back in — doing this in the pot leaves lumps.',
+      'Whisk the peanut butter with a ladle of the hot liquid until smooth, then stir it back in, doing this in the pot leaves lumps.',
       'Add the kale and cook five minutes more.',
       'Finish with lime and crushed peanuts.',
     ],
@@ -626,7 +626,7 @@ const ORIGINAL: Authored[] = [
       '4 ounces feta cheese',
     ],
     steps: [
-      'Marinate the chicken in half the yogurt with the oil, oregano, garlic and the juice of one lemon — an hour at least, all day if you can.',
+      'Marinate the chicken in half the yogurt with the oil, oregano, garlic and the juice of one lemon. An hour at least, all day if you can.',
       'Roast at 220°C / 425°F for 25 minutes, until the edges char.',
       'Stir the rest of the yogurt with the remaining lemon and a little garlic for the sauce.',
       'Rest and slice the chicken, warm the pitas, and build with the salad, feta and sauce.',
@@ -654,7 +654,7 @@ const ORIGINAL: Authored[] = [
       '1 tablespoon chia seeds',
     ],
     steps: [
-      'Blend the oats alone for twenty seconds first, to a flour — it stops the shake being gritty.',
+      'Blend the oats alone for twenty seconds first, to a flour. It stops the shake being gritty.',
       'Add everything else and blend two minutes, longer than feels necessary, until it is completely smooth.',
       'Drink it cold. It thickens as it stands, so loosen with milk if it waits.',
     ],
@@ -685,7 +685,7 @@ const ORIGINAL: Authored[] = [
       '1 teaspoon honey',
     ],
     steps: [
-      'Put the milk in first — the blades catch the liquid and pull everything else down.',
+      'Put the milk in first. The blades catch the liquid and pull everything else down.',
       'Add the fruit, yogurt, protein and honey.',
       'Blend a full minute. Stop early and it is gritty rather than thick.',
     ],
@@ -698,7 +698,7 @@ const ORIGINAL: Authored[] = [
     id: 'green_mango_smoothie',
     name: 'Mango Spinach Green Smoothie',
     description:
-      'Tastes of mango, not of spinach. The trick is enough frozen mango to carry it — two big handfuls of greens disappear entirely.',
+      'Tastes of mango, not of spinach. The trick is enough frozen mango to carry it. Two big handfuls of greens disappear entirely.',
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free'],
     ingredients: [
@@ -712,7 +712,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Blend the spinach with the almond milk on its own until no flecks remain.',
       'Add the mango, banana, lime and flaxseed and blend until it pours thickly.',
-      'Taste for lime — it is what stops it tasting flat.',
+      'Taste for lime. It is what stops it tasting flat.',
     ],
     n: { calories: 214, protein: 5, carbs: 43, fat: 5, satFat: 1, fiber: 7, sugar: 30, sodium: 105 },
     photo: 'green smoothie glass',
@@ -723,7 +723,7 @@ const ORIGINAL: Authored[] = [
     id: 'blueberry_oat_smoothie',
     name: 'Blueberry Oat Breakfast Smoothie',
     description:
-      'Oats make it a breakfast rather than a drink — it holds you until lunch, which fruit alone will not.',
+      'Oats make it a breakfast rather than a drink. It holds you until lunch, which fruit alone will not.',
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'Vegetarian', 'High Fiber'],
     ingredients: [
@@ -737,7 +737,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Blend the oats dry to a rough flour first.',
       'Add everything else and blend until smooth, about a minute.',
-      'It thickens as it sits — loosen with a splash of milk if you are not drinking it straight away.',
+      'It thickens as it sits, loosen with a splash of milk if you are not drinking it straight away.',
     ],
     n: { calories: 318, protein: 20, carbs: 48, fat: 6, satFat: 3, fiber: 7, sugar: 29, sodium: 130 },
     photo: 'blueberry smoothie',
@@ -784,7 +784,7 @@ const ORIGINAL: Authored[] = [
       'Ice',
     ],
     steps: [
-      'Shake or blend the protein powder and cocoa with the milk until there are no lumps — do this before the coffee goes near it.',
+      'Shake or blend the protein powder and cocoa with the milk until there are no lumps, do this before the coffee goes near it.',
       'Pour over a tall glass of ice.',
       'Top with the cold coffee and stir once, so it stays layered for a moment.',
     ],
@@ -797,7 +797,7 @@ const ORIGINAL: Authored[] = [
     id: 'vanilla_cold_brew',
     name: 'Vanilla Cream Cold Brew',
     description:
-      'Cold brew is patience, not technique — twelve hours in the fridge and it is smoother and far less bitter than anything hot-brewed and cooled.',
+      'Cold brew is patience, not technique, twelve hours in the fridge and it is smoother and far less bitter than anything hot-brewed and cooled.',
     servings: 4, prep: 10, cook: 0,
     tags: ['Beverage', 'Vegetarian', 'American'],
     ingredients: [
@@ -821,7 +821,7 @@ const ORIGINAL: Authored[] = [
     id: 'masala_chai',
     name: 'Masala Chai',
     description:
-      'Boiled, not steeped — the spices need the heat and the milk needs the time. Crushing the pods matters more than the quantity.',
+      'Boiled, not steeped. The spices need the heat and the milk needs the time. Crushing the pods matters more than the quantity.',
     servings: 4, prep: 5, cook: 15,
     tags: ['Beverage', 'Vegetarian', 'Indian'],
     ingredients: [
@@ -837,7 +837,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Bring the water to the boil with the cardamom, ginger, cinnamon and cloves, and let it go five minutes.',
       'Add the tea and boil two minutes more.',
-      'Pour in the milk and the sugar and bring it back up, watching it — it climbs the pan fast.',
+      'Pour in the milk and the sugar and bring it back up, watching it. It climbs the pan fast.',
       'Let it rise and fall twice, then strain into cups.',
     ],
     n: { calories: 132, protein: 4, carbs: 20, fat: 4, satFat: 2, fiber: 0, sugar: 19, sodium: 60 },
@@ -861,7 +861,7 @@ const ORIGINAL: Authored[] = [
       'Ice',
     ],
     steps: [
-      'Boil the water and let it stand three minutes before the tea goes in — this is the whole difference between fresh and bitter.',
+      'Boil the water and let it stand three minutes before the tea goes in. This is the whole difference between fresh and bitter.',
       'Steep three minutes and lift the bags out. Squeezing them adds only tannin.',
       'Stir the honey into the warm tea, add half the peaches, and chill for an hour.',
       'Serve over ice with the rest of the peaches and the lemon.',
@@ -875,7 +875,7 @@ const ORIGINAL: Authored[] = [
     id: 'watermelon_agua_fresca',
     name: 'Watermelon Lime Agua Fresca',
     description:
-      'Barely a recipe and better than anything bottled. Ripe watermelon needs almost no sugar — taste before you add any.',
+      'Barely a recipe and better than anything bottled. Ripe watermelon needs almost no sugar, taste before you add any.',
     servings: 4, prep: 10, cook: 0,
     tags: ['Beverage', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Mexican'],
     ingredients: [
@@ -888,7 +888,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Blend the watermelon with the water until liquid.',
-      'Strain through a sieve if you want it clear — press the pulp to get everything out.',
+      'Strain through a sieve if you want it clear, press the pulp to get everything out.',
       'Stir in the lime, taste, and only then decide about the sugar.',
       'Serve very cold over ice with the mint.',
     ],
@@ -915,7 +915,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Heat the sugar with the ¾ cup of water until it is completely clear, then take it off and let it cool.',
       'Combine the syrup with the lemon juice and the cold water.',
-      'Chill properly — an hour at least. Lemonade over ice straight away is just diluted.',
+      'Chill properly. An hour at least. Lemonade over ice straight away is just diluted.',
       'Serve with the lemon slices.',
     ],
     n: { calories: 108, protein: 0, carbs: 28, fat: 0, satFat: 0, fiber: 0, sugar: 26, sodium: 5 },
@@ -976,7 +976,7 @@ const ORIGINAL: Authored[] = [
     id: 'mango_lassi',
     name: 'Mango Lassi',
     description:
-      'Thick, cold and faintly salty — the pinch of salt is not optional, it is what makes it taste like a lassi instead of a milkshake.',
+      'Thick, cold and faintly salty. The pinch of salt is not optional, it is what makes it taste like a lassi instead of a milkshake.',
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Snack', 'Vegetarian', 'Gluten Free', 'Indian'],
     ingredients: [
@@ -989,7 +989,7 @@ const ORIGINAL: Authored[] = [
     ],
     steps: [
       'Blend everything until completely smooth, about a minute.',
-      'Check the sweetness — it depends entirely on the mango.',
+      'Check the sweetness. It depends entirely on the mango.',
       'Serve very cold, with a little more cardamom on top.',
     ],
     n: { calories: 246, protein: 9, carbs: 41, fat: 6, satFat: 4, fiber: 2, sugar: 38, sodium: 130 },
@@ -1001,7 +1001,7 @@ const ORIGINAL: Authored[] = [
     id: 'horchata',
     name: 'Horchata',
     description:
-      'Rice and cinnamon, soaked overnight and blended. The soak is the recipe — there is no shortcut that tastes the same.',
+      'Rice and cinnamon, soaked overnight and blended. The soak is the recipe. There is no shortcut that tastes the same.',
     servings: 6, prep: 15, cook: 0,
     tags: ['Beverage', 'Vegetarian', 'Gluten Free', 'Mexican'],
     ingredients: [
@@ -1016,7 +1016,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Soak the rice and cinnamon sticks in the warm water overnight, or at least four hours.',
       'Blend the whole lot, water included, until the rice is completely broken down.',
-      'Strain twice through a fine sieve lined with muslin — grit is the one thing that ruins it.',
+      'Strain twice through a fine sieve lined with muslin, grit is the one thing that ruins it.',
       'Stir in the milk, sugar and vanilla, and serve over plenty of ice.',
     ],
     n: { calories: 168, protein: 3, carbs: 36, fat: 2, satFat: 1, fiber: 0, sugar: 20, sodium: 25 },
@@ -1040,7 +1040,7 @@ const ORIGINAL: Authored[] = [
       '1 tablespoon maple syrup',
     ],
     steps: [
-      'Warm the milk with all the spices over a low heat, whisking, until it steams — do not let it boil.',
+      'Warm the milk with all the spices over a low heat, whisking, until it steams, do not let it boil.',
       'Whisk hard for thirty seconds to foam it.',
       'Sweeten and pour through a small sieve.',
     ],
@@ -1089,7 +1089,7 @@ const ORIGINAL: Authored[] = [
       '3 tablespoons sugar',
     ],
     steps: [
-      'Rinse the tea with a little boiling water and pour that first water away — it takes the bitterness with it.',
+      'Rinse the tea with a little boiling water and pour that first water away. It takes the bitterness with it.',
       'Add the rest of the water and steep three minutes.',
       'Push in the mint and the sugar and leave it another three.',
       'Pour into glasses from as high as you can manage, then pour it back and do it once more.',
@@ -1116,7 +1116,7 @@ const ORIGINAL: Authored[] = [
     steps: [
       'Blend everything except the chia until smooth.',
       'Stir the chia in by hand and leave it five minutes to swell.',
-      'Drink it cold — it separates if it stands much longer than that.',
+      'Drink it cold. It separates if it stands much longer than that.',
     ],
     n: { calories: 208, protein: 12, carbs: 33, fat: 5, satFat: 2, fiber: 8, sugar: 24, sodium: 115 },
     photo: 'raspberry smoothie',
@@ -1134,7 +1134,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 15, cook: 0,
     tags: ['Appetizer', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Middle Eastern'],
     ingredients: ['2 cans chickpeas, drained and warmed', '⅔ cup tahini', '¼ cup ice water', '¼ cup lemon juice', '2 cloves garlic', '1 teaspoon ground cumin', '¼ cup olive oil', '1/4 teaspoon salt'],
-    steps: ['Blend the tahini, lemon and garlic with the ice water for a full minute — it will seize, then go pale and thick. That is the step people skip.', 'Add the warm chickpeas and cumin and blend three minutes, longer than seems reasonable.', 'Season, spread in a shallow bowl, and pool olive oil in the middle.'],
+    steps: ['Blend the tahini, lemon and garlic with the ice water for a full minute. It will seize, then go pale and thick. That is the step people skip.', 'Add the warm chickpeas and cumin and blend three minutes, longer than seems reasonable.', 'Season, spread in a shallow bowl, and pool olive oil in the middle.'],
     n: { calories: 268, protein: 9, carbs: 22, fat: 17, satFat: 2, fiber: 7, sugar: 3, sodium: 320 },
     photo: 'hummus',
     imageUrl: "https://images.pexels.com/photos/6327663/pexels-photo-6327663.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1146,7 +1146,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 15, cook: 5,
     tags: ['Appetizer', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Italian'],
     ingredients: ['6 ripe tomatoes, diced', '1 teaspoon salt', '1 baguette, sliced thick', '3 cloves garlic, halved', '¼ cup olive oil', 'A large handful of basil, torn', '1 tablespoon balsamic vinegar'],
-    steps: ['Salt the tomatoes and leave them in a sieve for twenty minutes.', 'Toast the bread until it is properly crisp on both sides.', 'Rub each slice with a cut garlic clove while still hot — the surface acts like a grater.', 'Toss the drained tomatoes with the oil, vinegar and basil, and spoon on just before serving.'],
+    steps: ['Salt the tomatoes and leave them in a sieve for twenty minutes.', 'Toast the bread until it is properly crisp on both sides.', 'Rub each slice with a cut garlic clove while still hot. The surface acts like a grater.', 'Toss the drained tomatoes with the oil, vinegar and basil, and spoon on just before serving.'],
     n: { calories: 214, protein: 5, carbs: 29, fat: 9, satFat: 1, fiber: 3, sugar: 5, sodium: 480 },
     photo: 'bruschetta',
     imageUrl: "https://images.pexels.com/photos/2532006/pexels-photo-2532006.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1170,7 +1170,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 10, cook: 0,
     tags: ['Appetizer', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Mexican', 'Keto'],
     ingredients: ['4 ripe avocados', '¼ cup lime juice', '½ red onion, finely diced', '1 jalapeño, minced', 'A handful of coriander, chopped', '1 tomato, seeded and diced', '1/4 teaspoon salt'],
-    steps: ['Mash two avocados smooth and chop the other two, so it has texture.', 'Fold in the lime, onion, jalapeño and coriander.', 'Add the tomato last and barely stir — it waters the whole thing down if you work it.', 'Salt heavily and taste again; avocado takes far more than you expect.'],
+    steps: ['Mash two avocados smooth and chop the other two, so it has texture.', 'Fold in the lime, onion, jalapeño and coriander.', 'Add the tomato last and barely stir. It waters the whole thing down if you work it.', 'Salt heavily and taste again; avocado takes far more than you expect.'],
     n: { calories: 216, protein: 3, carbs: 13, fat: 19, satFat: 3, fiber: 9, sugar: 2, sodium: 210 },
     photo: 'guacamole',
     imageUrl: "https://images.pexels.com/photos/4968297/pexels-photo-4968297.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1194,7 +1194,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 30, cook: 15,
     tags: ['Appetizer', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Asian'],
     ingredients: ['20 spring roll wrappers', '3 cups cabbage, shredded', '2 carrots, julienned', '4 ounces glass noodles, soaked', '3 spring onions, sliced', '2 tablespoons soy sauce', '1 tablespoon sesame oil', '1 tablespoon cornflour mixed with water', 'Oil for frying'],
-    steps: ['Stir-fry the cabbage and carrot two minutes only — they must stay firm or the filling steams the wrapper.', 'Toss with the noodles, spring onions, soy and sesame oil, then cool completely.', 'Roll tightly, sealing the edge with the cornflour paste.', 'Fry at 350°F for three to four minutes until deep gold, in batches.'],
+    steps: ['Stir-fry the cabbage and carrot two minutes only. They must stay firm or the filling steams the wrapper.', 'Toss with the noodles, spring onions, soy and sesame oil, then cool completely.', 'Roll tightly, sealing the edge with the cornflour paste.', 'Fry at 350°F for three to four minutes until deep gold, in batches.'],
     n: { calories: 232, protein: 5, carbs: 34, fat: 9, satFat: 1, fiber: 3, sugar: 4, sodium: 480 },
     photo: 'spring rolls',
     imageUrl: "https://images.pexels.com/photos/35407775/pexels-photo-35407775.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1218,7 +1218,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 10,
     tags: ['Appetizer', 'Snack', 'Vegetarian', 'Gluten Free', 'Mediterranean', 'High Protein'],
     ingredients: ['1 pound halloumi, cut into batons', '3 tablespoons cornflour', '1 teaspoon smoked paprika', 'Oil for shallow frying', '2 tablespoons honey', '1 red chilli, sliced', '1 lime'],
-    steps: ['Pat the halloumi very dry and toss in the cornflour and paprika.', 'Shallow-fry in hot oil, turning, until each side is deep gold — about four minutes total.', 'Drain briefly, then pile up and drizzle with honey.', 'Scatter the chilli over and squeeze the lime on at the table.'],
+    steps: ['Pat the halloumi very dry and toss in the cornflour and paprika.', 'Shallow-fry in hot oil, turning, until each side is deep gold, about four minutes total.', 'Drain briefly, then pile up and drizzle with honey.', 'Scatter the chilli over and squeeze the lime on at the table.'],
     n: { calories: 412, protein: 24, carbs: 16, fat: 28, satFat: 17, fiber: 0, sugar: 9, sodium: 1240 },
     photo: 'halloumi fries',
     imageUrl: "https://images.pexels.com/photos/20329664/pexels-photo-20329664.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1232,7 +1232,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 15, cook: 12,
     tags: ['Lunch', 'Main dish', 'High Protein', 'American'],
     ingredients: ['1 pound chicken breast', '4 large tortillas', '1 romaine lettuce, shredded', '½ cup Caesar dressing', '½ cup grated parmesan', '1 teaspoon olive oil', 'Black pepper'],
-    steps: ['Season and pan-fry the chicken 6 minutes a side, then rest it and slice.', 'Toss the lettuce with the dressing and parmesan — dress the leaves, never the tortilla.', 'Lay the chicken along the middle, pile the salad on, and roll tightly, folding the ends in.', 'Cut on the diagonal.'],
+    steps: ['Season and pan-fry the chicken 6 minutes a side, then rest it and slice.', 'Toss the lettuce with the dressing and parmesan, dress the leaves, never the tortilla.', 'Lay the chicken along the middle, pile the salad on, and roll tightly, folding the ends in.', 'Cut on the diagonal.'],
     n: { calories: 512, protein: 42, carbs: 34, fat: 24, satFat: 7, fiber: 3, sugar: 3, sodium: 890 },
     photo: 'chicken wrap',
     imageUrl: "https://images.pexels.com/photos/2015191/pexels-photo-2015191.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1240,11 +1240,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'falafel_pita', name: 'Crispy Falafel Pitas',
-    description: 'Dried chickpeas soaked overnight, never tinned — tinned falafel falls apart in the pan every time.',
+    description: 'Dried chickpeas soaked overnight, never tinned, tinned falafel falls apart in the pan every time.',
     servings: 4, prep: 25, cook: 15,
     tags: ['Lunch', 'Main dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Middle Eastern', 'High Fiber'],
     ingredients: ['1 ½ cups dried chickpeas, soaked overnight', '1 onion, quartered', '4 cloves garlic', 'A large bunch of parsley', '1 tablespoon cumin', '1 teaspoon baking powder', '4 pitas', 'Tahini sauce, to serve', 'Oil for frying'],
-    steps: ['Blitz the drained soaked chickpeas with the onion, garlic, parsley and cumin to a coarse paste — not a purée.', 'Stir in the baking powder and chill thirty minutes.', 'Shape into balls and fry at 350°F for four minutes until dark gold.', 'Stuff into warm pitas with salad and plenty of tahini sauce.'],
+    steps: ['Blitz the drained soaked chickpeas with the onion, garlic, parsley and cumin to a coarse paste, not a purée.', 'Stir in the baking powder and chill thirty minutes.', 'Shape into balls and fry at 350°F for four minutes until dark gold.', 'Stuff into warm pitas with salad and plenty of tahini sauce.'],
     n: { calories: 486, protein: 19, carbs: 62, fat: 18, satFat: 2, fiber: 14, sugar: 6, sodium: 620 },
     photo: 'falafel wrap',
     imageUrl: "https://images.pexels.com/photos/29850814/pexels-photo-29850814.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1264,7 +1264,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'soba_noodle_salad', name: 'Sesame Soba Noodle Salad',
-    description: 'Rinse the noodles cold the moment they are done — soba turns to paste if it sits in its own heat.',
+    description: 'Rinse the noodles cold the moment they are done, soba turns to paste if it sits in its own heat.',
     servings: 4, prep: 20, cook: 8,
     tags: ['Lunch', 'Salad', 'Vegan', 'Vegetarian', 'Dairy Free', 'Asian'],
     ingredients: ['10 ounces soba noodles', '3 tablespoons soy sauce', '2 tablespoons sesame oil', '2 tablespoons rice vinegar', '1 tablespoon maple syrup', '1 cucumber, ribboned', '2 carrots, julienned', '4 spring onions, sliced', '2 tablespoons sesame seeds'],
@@ -1276,7 +1276,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'tuna_nicoise', name: 'Tuna Niçoise Salad',
-    description: 'A composed salad, not a tossed one — everything laid out in its own section so each forkful is different.',
+    description: 'A composed salad, not a tossed one. Everything laid out in its own section so each forkful is different.',
     servings: 4, prep: 25, cook: 15,
     tags: ['Lunch', 'Salad', 'Pescatarian', 'High Protein', 'Gluten Free', 'French', 'Mediterranean'],
     ingredients: ['12 ounces tuna steak, or 2 tins good tuna', '1 pound new potatoes', '8 ounces green beans', '4 eggs', '½ cup black olives', '2 cups cherry tomatoes', '¼ cup olive oil', '2 tablespoons red wine vinegar', '1 teaspoon Dijon mustard'],
@@ -1306,7 +1306,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 15,
     tags: ['Brunch', 'Breakfast', 'Dessert', 'Vegetarian', 'American'],
     ingredients: ['8 thick slices day-old brioche', '4 eggs', '1 cup milk', '2 tablespoons sugar', '1 teaspoon vanilla', '1 teaspoon cinnamon', '3 tablespoons butter', 'Maple syrup, to serve'],
-    steps: ['Whisk the eggs, milk, sugar, vanilla and cinnamon in a wide dish.', 'Soak each slice a full thirty seconds a side — it should be heavy when you lift it.', 'Fry in butter over medium heat, four minutes a side, so the custard sets before the outside burns.', 'Serve with syrup.'],
+    steps: ['Whisk the eggs, milk, sugar, vanilla and cinnamon in a wide dish.', 'Soak each slice a full thirty seconds a side. It should be heavy when you lift it.', 'Fry in butter over medium heat, four minutes a side, so the custard sets before the outside burns.', 'Serve with syrup.'],
     n: { calories: 486, protein: 15, carbs: 58, fat: 21, satFat: 11, fiber: 2, sugar: 24, sodium: 480 },
     photo: 'french toast',
     imageUrl: "https://images.pexels.com/photos/12091684/pexels-photo-12091684.png?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1314,7 +1314,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'huevos_rancheros', name: 'Huevos Rancheros',
-    description: 'Fry the tortilla properly — it is the plate, and a soft one turns the whole thing into soup.',
+    description: 'Fry the tortilla properly. It is the plate, and a soft one turns the whole thing into soup.',
     servings: 4, prep: 15, cook: 20,
     tags: ['Brunch', 'Breakfast', 'Vegetarian', 'Gluten Free', 'Mexican', 'High Protein'],
     ingredients: ['4 corn tortillas', '4 eggs', '1 can black beans, warmed', '1 ½ cups tomato salsa', '½ cup crumbled feta', '1 avocado, sliced', 'A handful of coriander', '2 tablespoons oil'],
@@ -1352,7 +1352,7 @@ const ORIGINAL: Authored[] = [
   /* ---------------------------------------------------------------- soups -- */
   r({
     id: 'chicken_noodle_soup', name: 'Proper Chicken Noodle Soup',
-    description: 'Poach the chicken in the broth rather than adding it cooked — it is the difference between soup and hot water.',
+    description: 'Poach the chicken in the broth rather than adding it cooked. It is the difference between soup and hot water.',
     servings: 6, prep: 15, cook: 45,
     tags: ['Soup', 'Main dish', 'High Protein', 'American'],
     ingredients: ['2 pounds chicken thighs, bone in', '10 cups chicken stock', '3 carrots, sliced', '3 celery sticks, sliced', '1 onion, diced', '8 ounces egg noodles', '2 bay leaves', 'A handful of parsley', '1/4 teaspoon salt and 1/4 teaspoon black pepper'],
@@ -1392,7 +1392,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 15, cook: 35,
     tags: ['Soup', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'High Fiber', 'Mexican'],
     ingredients: ['3 cans black beans, drained', '1 onion, diced', '1 red pepper, diced', '4 cloves garlic, minced', '2 teaspoons smoked paprika', '1 teaspoon cumin', '5 cups vegetable stock', '2 tablespoons lime juice', '2 tablespoons olive oil'],
-    steps: ['Soften the onion and pepper in the oil for eight minutes, then add the garlic and spices for one more.', 'Add the beans and stock and simmer 25 minutes.', 'Blend half the pot and stir it back in.', 'Finish with lime — without it the whole thing tastes flat.'],
+    steps: ['Soften the onion and pepper in the oil for eight minutes, then add the garlic and spices for one more.', 'Add the beans and stock and simmer 25 minutes.', 'Blend half the pot and stir it back in.', 'Finish with lime, without it the whole thing tastes flat.'],
     n: { calories: 286, protein: 15, carbs: 44, fat: 6, satFat: 1, fiber: 15, sugar: 5, sodium: 720 },
     photo: 'black bean soup',
     imageUrl: "https://images.pexels.com/photos/28902908/pexels-photo-28902908.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1406,7 +1406,7 @@ const ORIGINAL: Authored[] = [
     servings: 10, prep: 20, cook: 60,
     tags: ['Bread', 'Dessert', 'Snack', 'Vegetarian', 'American'],
     ingredients: ['4 very ripe bananas, mashed', '½ cup butter', '¾ cup brown sugar', '2 eggs', '1 ¾ cups plain flour', '1 teaspoon bicarbonate of soda', '1 teaspoon cinnamon', '1 teaspoon vanilla', '½ teaspoon salt'],
-    steps: ['Melt the butter and keep cooking until it smells nutty and the solids go brown. Cool it slightly.', 'Beat in the sugar, then the eggs and vanilla, then the bananas.', 'Fold in the dry ingredients until barely combined — over-mixing makes it tough.', 'Bake at 350°F for 55–60 minutes until a skewer comes out clean.'],
+    steps: ['Melt the butter and keep cooking until it smells nutty and the solids go brown. Cool it slightly.', 'Beat in the sugar, then the eggs and vanilla, then the bananas.', 'Fold in the dry ingredients until barely combined, over-mixing makes it tough.', 'Bake at 350°F for 55-60 minutes until a skewer comes out clean.'],
     n: { calories: 312, protein: 5, carbs: 46, fat: 12, satFat: 7, fiber: 2, sugar: 24, sodium: 280 },
     photo: 'banana bread',
     imageUrl: "https://images.pexels.com/photos/5441027/pexels-photo-5441027.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1418,7 +1418,7 @@ const ORIGINAL: Authored[] = [
     servings: 8, prep: 10, cook: 25,
     tags: ['Bread', 'Side dish', 'Vegetarian', 'American'],
     ingredients: ['1 ½ cups cornmeal', '1 cup plain flour', '2 tablespoons sugar', '1 tablespoon baking powder', '1 teaspoon salt', '1 ¼ cups buttermilk', '2 eggs', '⅓ cup melted butter', '2 tablespoons butter for the pan'],
-    steps: ['Put a cast-iron pan in the oven and heat to 425°F.', 'Whisk the dry ingredients, then the wet, and combine quickly.', 'Drop the 2 tablespoons of butter into the hot pan, swirl, and pour the batter straight in — it should hiss.', 'Bake 22–25 minutes until the top is golden and the edge has pulled away.'],
+    steps: ['Put a cast-iron pan in the oven and heat to 425°F.', 'Whisk the dry ingredients, then the wet, and combine quickly.', 'Drop the 2 tablespoons of butter into the hot pan, swirl, and pour the batter straight in. It should hiss.', 'Bake 22-25 minutes until the top is golden and the edge has pulled away.'],
     n: { calories: 286, protein: 7, carbs: 38, fat: 12, satFat: 7, fiber: 2, sugar: 6, sodium: 620 },
     photo: 'cornbread',
     imageUrl: "https://images.pexels.com/photos/7442460/pexels-photo-7442460.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1450,7 +1450,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'soda_bread', name: 'Irish Soda Bread',
-    description: 'No yeast and no waiting — in the oven within ten minutes of starting. Handle it as little as you can bear.',
+    description: 'No yeast and no waiting, in the oven within ten minutes of starting. Handle it as little as you can bear.',
     servings: 10, prep: 10, cook: 45,
     tags: ['Bread', 'Vegetarian'],
     ingredients: ['4 cups plain flour', '1 teaspoon bicarbonate of soda', '1 teaspoon salt', '1 ¾ cups buttermilk', '2 tablespoons butter, melted'],
@@ -1468,7 +1468,7 @@ const ORIGINAL: Authored[] = [
     servings: 12, prep: 15, cook: 25,
     tags: ['Dessert', 'Snack', 'Vegetarian', 'American'],
     ingredients: ['¾ cup butter', '1 ½ cups sugar', '¾ cup cocoa powder', '3 eggs', '1 teaspoon vanilla', '¾ cup plain flour', '½ teaspoon salt', '½ cup dark chocolate chunks'],
-    steps: ['Melt the butter and beat in the sugar and cocoa while still warm.', 'Add the eggs one at a time, then the vanilla, and beat two minutes until it thickens and gloss appears.', 'Fold in the flour, salt and chocolate — barely.', 'Bake at 350°F for 22–25 minutes. The centre should still wobble.'],
+    steps: ['Melt the butter and beat in the sugar and cocoa while still warm.', 'Add the eggs one at a time, then the vanilla, and beat two minutes until it thickens and gloss appears.', 'Fold in the flour, salt and chocolate, barely.', 'Bake at 350°F for 22-25 minutes. The centre should still wobble.'],
     n: { calories: 296, protein: 4, carbs: 36, fat: 16, satFat: 10, fiber: 3, sugar: 27, sodium: 160 },
     photo: 'brownies',
     imageUrl: "https://images.pexels.com/photos/9170501/pexels-photo-9170501.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1492,7 +1492,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 15, cook: 5,
     tags: ['Dessert', 'Vegetarian', 'Gluten Free', 'French'],
     ingredients: ['7 ounces dark chocolate, 70%', '¾ cup water', '1 tablespoon sugar, optional'],
-    steps: ['Melt the chocolate with the water and sugar until completely smooth.', 'Set the bowl over a larger bowl of ice.', 'Whisk steadily — it will thicken suddenly, like whipping cream. Stop the moment it holds a peak.', 'If it goes grainy, warm it and whisk again; it forgives you.'],
+    steps: ['Melt the chocolate with the water and sugar until completely smooth.', 'Set the bowl over a larger bowl of ice.', 'Whisk steadily. It will thicken suddenly, like whipping cream. Stop the moment it holds a peak.', 'If it goes grainy, warm it and whisk again; it forgives you.'],
     n: { calories: 268, protein: 3, carbs: 24, fat: 18, satFat: 11, fiber: 4, sugar: 18, sodium: 10 },
     photo: 'chocolate mousse',
     imageUrl: "https://images.pexels.com/photos/31372536/pexels-photo-31372536.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1554,7 +1554,7 @@ const ORIGINAL: Authored[] = [
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Snack', 'Vegetarian', 'Gluten Free', 'Low Carb'],
     ingredients: ['1 ripe avocado', '1 ½ cups milk', '2 tablespoons lime juice', '2 tablespoons honey', '1 cup ice', 'A pinch of salt'],
-    steps: ['Blend everything until completely smooth, about ninety seconds.', 'Taste for lime and salt — both are what stop it tasting like a vegetable.', 'Serve immediately; it browns if it stands.'],
+    steps: ['Blend everything until completely smooth, about ninety seconds.', 'Taste for lime and salt. Both are what stop it tasting like a vegetable.', 'Serve immediately; it browns if it stands.'],
     n: { calories: 296, protein: 8, carbs: 32, fat: 17, satFat: 4, fiber: 7, sugar: 24, sodium: 160 },
     photo: 'avocado smoothie',
     imageUrl: "https://images.pexels.com/photos/674557/pexels-photo-674557.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1566,7 +1566,7 @@ const ORIGINAL: Authored[] = [
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free'],
     ingredients: ['4 cups frozen watermelon chunks', '2 tablespoons lime juice', 'A handful of mint', '1 tablespoon honey, optional'],
-    steps: ['Blend the frozen watermelon with the lime and mint, pushing it down until it catches.', 'Add nothing liquid unless it refuses to move — a splash of water at most.', 'Serve at once, as a slush.'],
+    steps: ['Blend the frozen watermelon with the lime and mint, pushing it down until it catches.', 'Add nothing liquid unless it refuses to move. A splash of water at most.', 'Serve at once, as a slush.'],
     n: { calories: 108, protein: 2, carbs: 27, fat: 0, satFat: 0, fiber: 2, sugar: 22, sodium: 5 },
     photo: 'watermelon smoothie',
     imageUrl: "https://images.pexels.com/photos/4113138/pexels-photo-4113138.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1604,7 +1604,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 20, cook: 25,
     tags: ['Dinner', 'Main dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'High Protein', 'Asian'],
     ingredients: ['1 ½ pounds firm tofu, cubed', '⅓ cup cornflour', '3 tablespoons soy sauce', '2 tablespoons maple syrup', '1 tablespoon rice vinegar', '2 cloves garlic, minced', '1 tablespoon ginger, grated', '3 cups cooked rice', '2 cups broccoli, steamed', '3 tablespoons oil'],
-    steps: ['Press and cube the tofu, then toss in cornflour until chalky.', 'Fry in a hot pan without moving it for three minutes a side, until each face is hard and gold.', 'Whisk the soy, maple, vinegar, garlic and ginger and pour it in off the heat — it will thicken on the tofu.', 'Serve over rice with the broccoli.'],
+    steps: ['Press and cube the tofu, then toss in cornflour until chalky.', 'Fry in a hot pan without moving it for three minutes a side, until each face is hard and gold.', 'Whisk the soy, maple, vinegar, garlic and ginger and pour it in off the heat. It will thicken on the tofu.', 'Serve over rice with the broccoli.'],
     n: { calories: 486, protein: 26, carbs: 58, fat: 18, satFat: 3, fiber: 5, sugar: 10, sodium: 880 },
     photo: 'crispy tofu',
     imageUrl: "https://images.pexels.com/photos/11783323/pexels-photo-11783323.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1630,7 +1630,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 20, cook: 10,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Asian'],
     ingredients: ['1 ½ pounds sirloin, sliced paper thin', '1 pear, grated', '⅓ cup soy sauce', '2 tablespoons sesame oil', '2 tablespoons brown sugar', '4 cloves garlic, minced', '3 spring onions, sliced', '1 tablespoon sesame seeds'],
-    steps: ['Freeze the beef twenty minutes to slice it thinly.', 'Mix the pear, soy, sesame oil, sugar and garlic and marinate the beef at least an hour.', 'Cook in a screaming-hot pan in batches, two minutes each — crowding it stews the meat.', 'Finish with spring onions and sesame seeds.'],
+    steps: ['Freeze the beef twenty minutes to slice it thinly.', 'Mix the pear, soy, sesame oil, sugar and garlic and marinate the beef at least an hour.', 'Cook in a screaming-hot pan in batches, two minutes each, crowding it stews the meat.', 'Finish with spring onions and sesame seeds.'],
     n: { calories: 468, protein: 42, carbs: 18, fat: 25, satFat: 8, fiber: 1, sugar: 14, sodium: 1240 },
     photo: 'bulgogi',
     imageUrl: "https://images.pexels.com/photos/24738513/pexels-photo-24738513.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1654,7 +1654,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 25, cook: 35,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Gluten Free', 'Indian'],
     ingredients: ['1 ½ pounds chicken thighs, cubed', '1 cup plain yogurt', '2 tablespoons garam masala', '1 tablespoon ginger, grated', '4 cloves garlic, minced', '1 can chopped tomatoes', '1 cup double cream', '4 tablespoons butter', '1 teaspoon chilli powder', '1 teaspoon sugar'],
-    steps: ['Marinate the chicken in the yogurt, half the spices, ginger and garlic — overnight if possible.', 'Grill or fry the chicken hard until charred at the edges, then set aside.', 'Cook the tomatoes with the rest of the spices for fifteen minutes and blend smooth.', 'Return the chicken, add the cream, and stir the butter in off the heat.'],
+    steps: ['Marinate the chicken in the yogurt, half the spices, ginger and garlic, overnight if possible.', 'Grill or fry the chicken hard until charred at the edges, then set aside.', 'Cook the tomatoes with the rest of the spices for fifteen minutes and blend smooth.', 'Return the chicken, add the cream, and stir the butter in off the heat.'],
     n: { calories: 642, protein: 42, carbs: 14, fat: 47, satFat: 25, fiber: 2, sugar: 9, sodium: 720 },
     photo: 'butter chicken',
     imageUrl: "https://images.pexels.com/photos/9738981/pexels-photo-9738981.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1674,7 +1674,7 @@ const ORIGINAL: Authored[] = [
   }),
 
   /* ------------------------------------------------- gelatin & set puddings --
-   * Protein-set jellies and chilled puddings — sweet courses that are mostly
+   * Protein-set jellies and chilled puddings, sweet courses that are mostly
    * fruit and protein rather than sugar and cream.
    */
   r({
@@ -1683,7 +1683,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 15, cook: 5,
     tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free', 'Low Carb'],
     ingredients: ['3 tablespoons powdered gelatin', '½ cup cold water', '2 cups mixed berries', '2 cups boiling water', '2 scoops vanilla protein powder', '2 tablespoons honey', '1 tablespoon lemon juice'],
-    steps: ['Sprinkle the gelatin over the cold water and leave it to swell for five minutes — tipping it in dry gives you lumps you never lose.', 'Pour the boiling water over and stir until completely clear.', 'Whisk the protein powder into a little of the warm liquid first, then combine with the rest and the honey and lemon.', 'Divide the berries between cups, pour over, and chill three hours.'],
+    steps: ['Sprinkle the gelatin over the cold water and leave it to swell for five minutes, tipping it in dry gives you lumps you never lose.', 'Pour the boiling water over and stir until completely clear.', 'Whisk the protein powder into a little of the warm liquid first, then combine with the rest and the honey and lemon.', 'Divide the berries between cups, pour over, and chill three hours.'],
     n: { calories: 148, protein: 22, carbs: 14, fat: 1, satFat: 0, fiber: 3, sugar: 11, sodium: 65 },
     photo: 'berry jelly dessert',
     imageUrl: "https://images.pexels.com/photos/36281752/pexels-photo-36281752.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1695,7 +1695,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 15, cook: 5,
     tags: ['Dessert', 'Snack', 'Gluten Free', 'Dairy Free', 'Low Carb'],
     ingredients: ['3 cups fresh orange juice', '3 tablespoons powdered gelatin', '2 tablespoons honey', '1 teaspoon orange zest', '1 cup mandarin segments'],
-    steps: ['Bloom the gelatin in ½ cup of the cold juice for five minutes.', 'Warm the rest of the juice with the honey until steaming, not boiling — boiling dulls fresh juice.', 'Stir the bloomed gelatin in until clear, then add the zest.', 'Drop the segments into cups, pour over, and chill four hours.'],
+    steps: ['Bloom the gelatin in ½ cup of the cold juice for five minutes.', 'Warm the rest of the juice with the honey until steaming, not boiling, boiling dulls fresh juice.', 'Stir the bloomed gelatin in until clear, then add the zest.', 'Drop the segments into cups, pour over, and chill four hours.'],
     n: { calories: 118, protein: 6, carbs: 24, fat: 0, satFat: 0, fiber: 1, sugar: 21, sodium: 10 },
     photo: 'orange jelly dessert',
     imageUrl: "https://images.pexels.com/photos/6550725/pexels-photo-6550725.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1707,7 +1707,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 15, cook: 5,
     tags: ['Dessert', 'High Protein', 'Gluten Free', 'Vegetarian', 'Low Carb', 'Italian'],
     ingredients: ['2 teaspoons powdered gelatin', '2 tablespoons cold water', '1 cup milk', '1 ½ cups Greek yogurt', '⅓ cup strong espresso', '3 tablespoons honey', '1 teaspoon vanilla'],
-    steps: ['Bloom the gelatin in the cold water for five minutes.', 'Warm the milk with the honey and espresso until steaming, then stir the gelatin in until clear.', 'Cool it to lukewarm before whisking into the yogurt — hot liquid splits yogurt.', 'Pour into glasses and chill at least four hours.'],
+    steps: ['Bloom the gelatin in the cold water for five minutes.', 'Warm the milk with the honey and espresso until steaming, then stir the gelatin in until clear.', 'Cool it to lukewarm before whisking into the yogurt, hot liquid splits yogurt.', 'Pour into glasses and chill at least four hours.'],
     n: { calories: 168, protein: 14, carbs: 19, fat: 4, satFat: 2, fiber: 0, sugar: 17, sodium: 75 },
     photo: 'panna cotta dessert',
     imageUrl: "https://images.pexels.com/photos/5640039/pexels-photo-5640039.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1733,7 +1733,7 @@ const ORIGINAL: Authored[] = [
     servings: 1, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'Snack', 'High Protein', 'Vegetarian', 'Gluten Free'],
     ingredients: ['1 ¼ cups milk', '1 scoop vanilla protein powder', '1 frozen banana', '1 tablespoon Greek yogurt', 'Ice'],
-    steps: ['Milk first, then the powder — the other way round cements it to the base.', 'Add the banana, yogurt and ice.', 'Blend a full minute.'],
+    steps: ['Milk first, then the powder. The other way round cements it to the base.', 'Add the banana, yogurt and ice.', 'Blend a full minute.'],
     n: { calories: 318, protein: 34, carbs: 38, fat: 5, satFat: 2, fiber: 3, sugar: 28, sodium: 200 },
     photo: 'vanilla protein shake',
     imageUrl: "https://images.pexels.com/photos/18142623/pexels-photo-18142623.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1745,7 +1745,7 @@ const ORIGINAL: Authored[] = [
     servings: 1, prep: 5, cook: 0,
     tags: ['Beverage', 'Snack', 'Dessert', 'High Protein', 'Vegetarian'],
     ingredients: ['1 ¼ cups milk', '1 scoop vanilla protein powder', '2 chocolate biscuits', '½ frozen banana', '1 tablespoon cocoa powder', 'Ice'],
-    steps: ['Blend the milk, protein, cocoa and banana until smooth.', 'Break in the biscuits and pulse three times only — the flecks are the point.', 'Pour and drink before they soften.'],
+    steps: ['Blend the milk, protein, cocoa and banana until smooth.', 'Break in the biscuits and pulse three times only. The flecks are the point.', 'Pour and drink before they soften.'],
     n: { calories: 396, protein: 33, carbs: 44, fat: 10, satFat: 4, fiber: 4, sugar: 30, sodium: 320 },
     photo: 'milkshake chocolate glass',
     imageUrl: "https://images.pexels.com/photos/38178695/pexels-photo-38178695.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1757,7 +1757,7 @@ const ORIGINAL: Authored[] = [
     servings: 1, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'High Protein', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free'],
     ingredients: ['1 ¼ cups almond milk', '1 scoop vanilla protein powder', '2 handfuls spinach', '¾ cup frozen pineapple', '1 tablespoon almond butter', '1 tablespoon lime juice'],
-    steps: ['Blend the spinach with the almond milk alone until no green flecks remain.', 'Add everything else and blend again.', 'Lime last — it lifts the whole thing.'],
+    steps: ['Blend the spinach with the almond milk alone until no green flecks remain.', 'Add everything else and blend again.', 'Lime last. It lifts the whole thing.'],
     n: { calories: 302, protein: 28, carbs: 27, fat: 11, satFat: 1, fiber: 6, sugar: 16, sodium: 240 },
     photo: 'green juice',
     imageUrl: "https://images.pexels.com/photos/4443434/pexels-photo-4443434.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1803,7 +1803,7 @@ const ORIGINAL: Authored[] = [
   /* ----------------------------------------------------------- smoothies -- */
   r({
     id: 'beet_berry_smoothie', name: 'Beetroot Berry Smoothie',
-    description: 'Cooked beetroot, not raw — raw is earthy in a way no amount of fruit hides.',
+    description: 'Cooked beetroot, not raw, raw is earthy in a way no amount of fruit hides.',
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'High Fiber'],
     ingredients: ['1 cup cooked beetroot, cubed', '1 ½ cups frozen berries', '1 banana', '1 ¼ cups oat milk', '1 tablespoon lemon juice', '1 teaspoon grated ginger'],
@@ -1843,7 +1843,7 @@ const ORIGINAL: Authored[] = [
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Breakfast', 'Vegetarian', 'High Fiber'],
     ingredients: ['2 apples, cored and chopped', '½ cup rolled oats', '1 ¼ cups milk', '½ cup Greek yogurt', '1 teaspoon cinnamon', '1 tablespoon maple syrup', 'Ice'],
-    steps: ['Blend the oats dry to a flour.', 'Add everything else and blend two minutes — apple skin needs the time.', 'Serve with more cinnamon.'],
+    steps: ['Blend the oats dry to a flour.', 'Add everything else and blend two minutes, apple skin needs the time.', 'Serve with more cinnamon.'],
     n: { calories: 268, protein: 12, carbs: 48, fat: 4, satFat: 2, fiber: 7, sugar: 30, sodium: 105 },
     photo: 'apple smoothie',
     imageUrl: "https://images.pexels.com/photos/8169572/pexels-photo-8169572.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1851,11 +1851,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'cherry_almond_smoothie', name: 'Cherry Almond Smoothie',
-    description: 'Almond extract, not almond butter — a quarter teaspoon changes the whole glass.',
+    description: 'Almond extract, not almond butter. A quarter teaspoon changes the whole glass.',
     servings: 2, prep: 5, cook: 0,
     tags: ['Beverage', 'Snack', 'Vegetarian', 'Gluten Free'],
     ingredients: ['2 cups frozen cherries', '1 ¼ cups almond milk', '½ cup Greek yogurt', '¼ teaspoon almond extract', '1 tablespoon honey', '1 tablespoon ground flaxseed'],
-    steps: ['Blend everything until completely smooth.', 'Add the extract last and taste — it is easy to overdo.', 'Serve cold.'],
+    steps: ['Blend everything until completely smooth.', 'Add the extract last and taste. It is easy to overdo.', 'Serve cold.'],
     n: { calories: 218, protein: 10, carbs: 36, fat: 5, satFat: 1, fiber: 5, sugar: 28, sodium: 95 },
     photo: 'cherry smoothie',
     imageUrl: "https://images.pexels.com/photos/17582267/pexels-photo-17582267.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1865,11 +1865,11 @@ const ORIGINAL: Authored[] = [
   /* ------------------------------------------------ frozen & ice creams -- */
   r({
     id: 'banana_nice_cream', name: 'Two-Ingredient Banana Nice Cream',
-    description: 'Frozen banana blended until it turns. It goes through a gritty stage and then suddenly becomes ice cream — keep going.',
+    description: 'Frozen banana blended until it turns. It goes through a gritty stage and then suddenly becomes ice cream, keep going.',
     servings: 2, prep: 10, cook: 0,
     tags: ['Dessert', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free'],
     ingredients: ['4 bananas, sliced and frozen solid', '2 tablespoons almond milk', '½ teaspoon vanilla, optional'],
-    steps: ['Blend the frozen banana with the almond milk, scraping down often.', 'It will look wrong — crumbly, then gluey. Keep going for three or four minutes.', 'Serve straight away as soft-serve, or freeze an hour to scoop.'],
+    steps: ['Blend the frozen banana with the almond milk, scraping down often.', 'It will look wrong, crumbly, then gluey. Keep going for three or four minutes.', 'Serve straight away as soft-serve, or freeze an hour to scoop.'],
     n: { calories: 216, protein: 3, carbs: 54, fat: 1, satFat: 0, fiber: 6, sugar: 29, sodium: 5 },
     photo: 'banana ice cream',
     imageUrl: "https://images.pexels.com/photos/47062/bananas-dessert-ice-cream-fruit-47062.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1881,7 +1881,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 0,
     tags: ['Dessert', 'Snack', 'High Protein', 'Vegetarian', 'Gluten Free', 'Low Carb'],
     ingredients: ['2 cups full-fat cottage cheese', '¼ cup honey', '1 scoop vanilla protein powder', '1 teaspoon vanilla', 'A pinch of salt'],
-    steps: ['Blend everything for three or four minutes until there is not a single lump — that is the whole recipe.', 'Pour into a tub and freeze four hours.', 'Take it out fifteen minutes before scooping.'],
+    steps: ['Blend everything for three or four minutes until there is not a single lump. That is the whole recipe.', 'Pour into a tub and freeze four hours.', 'Take it out fifteen minutes before scooping.'],
     n: { calories: 208, protein: 24, carbs: 22, fat: 4, satFat: 2, fiber: 0, sugar: 21, sodium: 420 },
     photo: 'vanilla ice cream',
     imageUrl: "https://images.pexels.com/photos/9227978/pexels-photo-9227978.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1929,7 +1929,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 0,
     tags: ['Dessert', 'Snack', 'High Protein', 'Vegetarian', 'Gluten Free'],
     ingredients: ['4 cups frozen strawberries', '1 cup Greek yogurt', '3 tablespoons honey', '1 tablespoon lemon juice'],
-    steps: ['Blend the frozen strawberries with the honey and lemon until they break down.', 'Add the yogurt and blend just until smooth — overworking melts it.', 'Serve at once, or firm up in the freezer for an hour.'],
+    steps: ['Blend the frozen strawberries with the honey and lemon until they break down.', 'Add the yogurt and blend just until smooth, overworking melts it.', 'Serve at once, or firm up in the freezer for an hour.'],
     n: { calories: 148, protein: 7, carbs: 30, fat: 1, satFat: 0, fiber: 4, sugar: 25, sodium: 30 },
     photo: 'strawberry frozen yogurt',
     imageUrl: "https://images.pexels.com/photos/1591242/pexels-photo-1591242.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1943,7 +1943,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 12,
     tags: ['Side dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Low Carb', 'Keto'],
     ingredients: ['1 large head broccoli, in florets', '2 tablespoons olive oil', '3 cloves garlic, minced', '1 teaspoon smoked paprika', '½ teaspoon salt', '1 lemon'],
-    steps: ['Dry the florets thoroughly and toss with the oil, garlic, paprika and salt.', 'Air fry at 400°F for 10–12 minutes, shaking halfway.', 'The tips should be nearly black — that is the flavour, not a mistake.', 'Squeeze the lemon over as it comes out.'],
+    steps: ['Dry the florets thoroughly and toss with the oil, garlic, paprika and salt.', 'Air fry at 400°F for 10-12 minutes, shaking halfway.', 'The tips should be nearly black. That is the flavour, not a mistake.', 'Squeeze the lemon over as it comes out.'],
     n: { calories: 118, protein: 4, carbs: 10, fat: 8, satFat: 1, fiber: 4, sugar: 3, sodium: 320 },
     photo: 'roasted broccoli',
     imageUrl: "https://images.pexels.com/photos/11385547/pexels-photo-11385547.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1967,7 +1967,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 15, cook: 50,
     tags: ['Side dish', 'Main dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Low Carb', 'Indian'],
     ingredients: ['1 whole cauliflower', '3 tablespoons olive oil', '2 teaspoons cumin', '2 teaspoons smoked paprika', '1 teaspoon turmeric', '1 teaspoon salt', '1 lemon'],
-    steps: ['Steam the whole cauliflower for 12 minutes until a knife goes into the stem with slight resistance.', 'Rub all over with the oil and spices, getting into the gaps.', 'Roast at 425°F for 35–40 minutes until deeply coloured.', 'Squeeze the lemon over and cut into wedges.'],
+    steps: ['Steam the whole cauliflower for 12 minutes until a knife goes into the stem with slight resistance.', 'Rub all over with the oil and spices, getting into the gaps.', 'Roast at 425°F for 35-40 minutes until deeply coloured.', 'Squeeze the lemon over and cut into wedges.'],
     n: { calories: 148, protein: 5, carbs: 13, fat: 11, satFat: 1, fiber: 5, sugar: 5, sodium: 620 },
     photo: 'roasted cauliflower',
     imageUrl: "https://images.pexels.com/photos/4960143/pexels-photo-4960143.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -1991,7 +1991,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 5, cook: 5,
     tags: ['Side dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Low Carb', 'Keto', 'Mediterranean'],
     ingredients: ['1 ½ pounds spinach', '3 tablespoons olive oil', '4 cloves garlic, sliced', 'A pinch of nutmeg', '1 tablespoon lemon juice', '1/4 teaspoon salt'],
-    steps: ['Warm the garlic gently in the oil until it just turns pale gold — browned garlic goes bitter.', 'Add the spinach in handfuls, letting each wilt before the next goes in.', 'Nutmeg, lemon and salt off the heat, and tip away any water.'],
+    steps: ['Warm the garlic gently in the oil until it just turns pale gold, browned garlic goes bitter.', 'Add the spinach in handfuls, letting each wilt before the next goes in.', 'Nutmeg, lemon and salt off the heat, and tip away any water.'],
     n: { calories: 128, protein: 5, carbs: 7, fat: 11, satFat: 2, fiber: 4, sugar: 1, sodium: 240 },
     photo: 'sauteed spinach',
     imageUrl: "https://images.pexels.com/photos/19653600/pexels-photo-19653600.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2003,7 +2003,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 20, cook: 15,
     tags: ['Side dish', 'Snack', 'Vegetarian', 'Low Carb'],
     ingredients: ['3 courgettes, sliced into rounds', '1 teaspoon salt', '½ cup grated parmesan', '½ cup breadcrumbs', '1 teaspoon garlic powder', '2 eggs, beaten'],
-    steps: ['Salt the rounds and leave them in a colander twenty minutes, then press dry.', 'Mix the parmesan, breadcrumbs and garlic powder.', 'Dip each round in egg then the crumb.', 'Air fry at 400°F for 12–15 minutes, turning once, until gold.'],
+    steps: ['Salt the rounds and leave them in a colander twenty minutes, then press dry.', 'Mix the parmesan, breadcrumbs and garlic powder.', 'Dip each round in egg then the crumb.', 'Air fry at 400°F for 12-15 minutes, turning once, until gold.'],
     n: { calories: 168, protein: 11, carbs: 15, fat: 8, satFat: 3, fiber: 2, sugar: 4, sodium: 780 },
     photo: 'zucchini slices',
     imageUrl: "https://images.pexels.com/photos/8511800/pexels-photo-8511800.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2027,7 +2027,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 35,
     tags: ['Snack', 'Side dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'High Fiber'],
     ingredients: ['2 cans chickpeas, drained', '2 tablespoons olive oil', '1 teaspoon smoked paprika', '1 teaspoon cumin', '½ teaspoon garlic powder', '½ teaspoon salt'],
-    steps: ['Dry the chickpeas on a towel, rubbing the loose skins off as you go.', 'Toss with the oil only and roast at 400°F for 30 minutes, shaking twice.', 'Add the spices for the last five minutes — earlier and they burn.', 'Cool on the tray; they crisp further as they sit.'],
+    steps: ['Dry the chickpeas on a towel, rubbing the loose skins off as you go.', 'Toss with the oil only and roast at 400°F for 30 minutes, shaking twice.', 'Add the spices for the last five minutes, earlier and they burn.', 'Cool on the tray; they crisp further as they sit.'],
     n: { calories: 198, protein: 8, carbs: 24, fat: 8, satFat: 1, fiber: 7, sugar: 4, sodium: 480 },
     photo: 'chickpeas bowl',
     imageUrl: "https://images.pexels.com/photos/35369047/pexels-photo-35369047.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2053,7 +2053,7 @@ const ORIGINAL: Authored[] = [
     servings: 12, prep: 20, cook: 25,
     tags: ['Dessert', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'High Fiber'],
     ingredients: ['2 cups pitted dates, soaked in hot water', '1 cup almond flour', '½ cup cocoa powder', '⅓ cup almond butter', '2 tablespoons ground flaxseed', '½ cup water', '1 teaspoon vanilla', '½ teaspoon salt'],
-    steps: ['Blend the drained dates with the water to a thick paste.', 'Beat in the almond butter and vanilla, then fold in the dry ingredients.', 'Press into a lined tin — it is a stiff batter, not pourable.', 'Bake at 350°F for 25 minutes and cool fully before cutting.'],
+    steps: ['Blend the drained dates with the water to a thick paste.', 'Beat in the almond butter and vanilla, then fold in the dry ingredients.', 'Press into a lined tin. It is a stiff batter, not pourable.', 'Bake at 350°F for 25 minutes and cool fully before cutting.'],
     n: { calories: 218, protein: 5, carbs: 32, fat: 10, satFat: 1, fiber: 6, sugar: 22, sodium: 105 },
     photo: 'brownies dessert',
     imageUrl: "https://images.pexels.com/photos/7021888/pexels-photo-7021888.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2077,7 +2077,7 @@ const ORIGINAL: Authored[] = [
     servings: 12, prep: 10, cook: 15,
     tags: ['Dessert', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'High Fiber'],
     ingredients: ['3 very ripe bananas, mashed', '2 cups rolled oats', '⅓ cup dark chocolate chips', '1 teaspoon cinnamon', '2 tablespoons almond butter'],
-    steps: ['Mash the bananas properly — lumps stay lumps.', 'Stir everything together and leave it five minutes for the oats to take up the moisture.', 'Spoon onto a lined tray and flatten slightly.', 'Bake at 350°F for 15 minutes.'],
+    steps: ['Mash the bananas properly, lumps stay lumps.', 'Stir everything together and leave it five minutes for the oats to take up the moisture.', 'Spoon onto a lined tray and flatten slightly.', 'Bake at 350°F for 15 minutes.'],
     n: { calories: 138, protein: 3, carbs: 24, fat: 4, satFat: 1, fiber: 3, sugar: 8, sodium: 5 },
     photo: 'oat cookies',
     imageUrl: "https://images.pexels.com/photos/10688029/pexels-photo-10688029.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2085,11 +2085,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'dark_chocolate_bark', name: 'Dark Chocolate and Almond Bark',
-    description: 'Melt two thirds, then stir in the rest off the heat — that is tempering enough to make it snap.',
+    description: 'Melt two thirds, then stir in the rest off the heat. That is tempering enough to make it snap.',
     servings: 10, prep: 15, cook: 5,
     tags: ['Dessert', 'Snack', 'Vegan', 'Vegetarian', 'Dairy Free', 'Gluten Free', 'Low Carb'],
     ingredients: ['9 ounces dark chocolate, 70%, chopped', '⅓ cup toasted almonds, chopped', '¼ cup dried cranberries', '2 tablespoons pumpkin seeds', '1/2 teaspoon flaky sea salt'],
-    steps: ['Melt two thirds of the chocolate over barely simmering water.', 'Take it off and stir the remaining third in until it is all smooth — it will cool and thicken slightly.', 'Spread thin on a lined tray and scatter everything over.', 'Set at room temperature, not the fridge, then snap.'],
+    steps: ['Melt two thirds of the chocolate over barely simmering water.', 'Take it off and stir the remaining third in until it is all smooth. It will cool and thicken slightly.', 'Spread thin on a lined tray and scatter everything over.', 'Set at room temperature, not the fridge, then snap.'],
     n: { calories: 178, protein: 3, carbs: 16, fat: 12, satFat: 6, fiber: 3, sugar: 11, sodium: 30 },
     photo: 'chocolate bark',
     imageUrl: "https://images.pexels.com/photos/15940399/pexels-photo-15940399.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2099,11 +2099,11 @@ const ORIGINAL: Authored[] = [
   /* ------------------------------------------------- tea gelatin & sweets -- */
   r({
     id: 'tea_honey_gelatin', name: 'Green Tea and Honey Gelatin',
-    description: 'Brew the tea short and cool — long steeping turns it bitter, and a bitter jelly has nowhere to hide.',
+    description: 'Brew the tea short and cool, long steeping turns it bitter, and a bitter jelly has nowhere to hide.',
     servings: 4, prep: 15, cook: 5,
     tags: ['Dessert', 'Snack', 'Gluten Free', 'Dairy Free', 'Vegetarian'],
     ingredients: ['3 cups water', '4 green tea bags', '3 tablespoons powdered gelatin', '¼ cup honey', '1 tablespoon lemon juice', '1 teaspoon grated ginger, optional'],
-    steps: ['Boil the water, then let it stand three minutes before the tea goes in — green tea above about 80°C goes bitter.', 'Steep exactly three minutes and lift the bags out without squeezing them.', 'Bloom the gelatin in ½ cup of the cooled tea for five minutes, then stir it into the rest while still warm until completely clear.', 'Stir in the honey, lemon and ginger, pour into cups, and chill four hours.'],
+    steps: ['Boil the water, then let it stand three minutes before the tea goes in, green tea above about 80°C goes bitter.', 'Steep exactly three minutes and lift the bags out without squeezing them.', 'Bloom the gelatin in ½ cup of the cooled tea for five minutes, then stir it into the rest while still warm until completely clear.', 'Stir in the honey, lemon and ginger, pour into cups, and chill four hours.'],
     n: { calories: 92, protein: 6, carbs: 18, fat: 0, satFat: 0, fiber: 0, sugar: 17, sodium: 10 },
     photo: 'green tea jelly',
     imageUrl: "https://images.pexels.com/photos/10110912/pexels-photo-10110912.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2129,7 +2129,7 @@ const ORIGINAL: Authored[] = [
     servings: 10, prep: 25, cook: 50,
     tags: ['Dessert', 'High Protein', 'Vegetarian'],
     ingredients: ['2 cups cottage cheese', '8 ounces light cream cheese', '¾ cup Greek yogurt', '2 scoops vanilla protein powder', '⅔ cup sugar', '4 eggs', '2 tablespoons cornflour', '1 tablespoon vanilla', '1 ½ cups digestive biscuit crumbs', '4 tablespoons melted butter'],
-    steps: ['Mix the crumbs and butter and press hard into a lined tin. Bake at 350°F for 10 minutes.', 'Blend the cottage cheese completely smooth on its own first — three minutes, no lumps at all. This is the step that decides the texture.', 'Beat in the cream cheese, yogurt, sugar, protein and cornflour, then the eggs one at a time on low.', 'Bake at 325°F for 45–50 minutes until the edge is set and the centre still wobbles. Cool in the switched-off oven with the door ajar.'],
+    steps: ['Mix the crumbs and butter and press hard into a lined tin. Bake at 350°F for 10 minutes.', 'Blend the cottage cheese completely smooth on its own first. Three minutes, no lumps at all. This is the step that decides the texture.', 'Beat in the cream cheese, yogurt, sugar, protein and cornflour, then the eggs one at a time on low.', 'Bake at 325°F for 45-50 minutes until the edge is set and the centre still wobbles. Cool in the switched-off oven with the door ajar.'],
     n: { calories: 312, protein: 21, carbs: 28, fat: 13, satFat: 7, fiber: 1, sugar: 18, sodium: 480 },
     photo: 'cheesecake slice',
     imageUrl: "https://images.pexels.com/photos/15030594/pexels-photo-15030594.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2141,7 +2141,7 @@ const ORIGINAL: Authored[] = [
     servings: 10, prep: 30, cook: 10,
     tags: ['Dessert', 'Vegetarian', 'High Protein'],
     ingredients: ['2 teaspoons powdered gelatin', '3 tablespoons cold water', '16 ounces cream cheese', '1 cup Greek yogurt', '½ cup sugar', '1 tablespoon lemon juice', '1 teaspoon vanilla', '1 ½ cups biscuit crumbs', '4 tablespoons melted butter', '2 cups mixed berries'],
-    steps: ['Press the buttered crumbs into a tin and chill while you work.', 'Bloom the gelatin in the cold water five minutes, then melt it over a low heat until clear and let it cool to lukewarm.', 'Beat the cream cheese, yogurt, sugar, lemon and vanilla smooth, then beat the gelatin in quickly — hot gelatin into cold cheese sets in strings.', 'Spread over the base, chill six hours, and top with berries just before serving.'],
+    steps: ['Press the buttered crumbs into a tin and chill while you work.', 'Bloom the gelatin in the cold water five minutes, then melt it over a low heat until clear and let it cool to lukewarm.', 'Beat the cream cheese, yogurt, sugar, lemon and vanilla smooth, then beat the gelatin in quickly, hot gelatin into cold cheese sets in strings.', 'Spread over the base, chill six hours, and top with berries just before serving.'],
     n: { calories: 386, protein: 9, carbs: 32, fat: 25, satFat: 15, fiber: 2, sugar: 22, sodium: 380 },
     photo: 'berry cheesecake',
     imageUrl: "https://images.pexels.com/photos/1126359/pexels-photo-1126359.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2153,7 +2153,7 @@ const ORIGINAL: Authored[] = [
     servings: 10, prep: 15, cook: 50,
     tags: ['Dessert', 'Vegetarian', 'Gluten Free', 'Mediterranean'],
     ingredients: ['24 ounces cream cheese, room temperature', '1 ¼ cups sugar', '5 eggs', '2 cups double cream', '⅓ cup plain flour', '1 teaspoon vanilla', 'A pinch of salt'],
-    steps: ['Line a tin with baking paper, crumpled first so it sits in folds — the ragged edge is the look.', 'Beat the cream cheese and sugar smooth, then the eggs one at a time, then the cream, flour, vanilla and salt.', 'Bake at 425°F for 45–50 minutes until the top is genuinely dark brown and the middle still moves like a jelly.', 'Cool completely in the tin; it sinks and sets as it goes.'],
+    steps: ['Line a tin with baking paper, crumpled first so it sits in folds. The ragged edge is the look.', 'Beat the cream cheese and sugar smooth, then the eggs one at a time, then the cream, flour, vanilla and salt.', 'Bake at 425°F for 45-50 minutes until the top is genuinely dark brown and the middle still moves like a jelly.', 'Cool completely in the tin; it sinks and sets as it goes.'],
     n: { calories: 512, protein: 9, carbs: 34, fat: 38, satFat: 23, fiber: 0, sugar: 28, sodium: 320 },
     photo: 'basque cheesecake',
     imageUrl: "https://images.pexels.com/photos/38648017/pexels-photo-38648017.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2165,7 +2165,7 @@ const ORIGINAL: Authored[] = [
     servings: 10, prep: 20, cook: 55,
     tags: ['Dessert', 'Vegetarian', 'High Protein', 'Italian'],
     ingredients: ['2 pounds ricotta, drained overnight', '¾ cup sugar', '4 eggs', '¼ cup plain flour', '3 tablespoons lemon juice', '2 tablespoons lemon zest', '1 teaspoon vanilla', 'Icing sugar to finish'],
-    steps: ['Drain the ricotta in a sieve overnight — wet ricotta makes a wet cheesecake and nothing later fixes it.', 'Beat it with the sugar until as smooth as it will go, then the eggs one at a time.', 'Fold in the flour, lemon and vanilla.', 'Bake at 325°F for 50–55 minutes until just set, then cool fully and dust with icing sugar.'],
+    steps: ['Drain the ricotta in a sieve overnight, wet ricotta makes a wet cheesecake and nothing later fixes it.', 'Beat it with the sugar until as smooth as it will go, then the eggs one at a time.', 'Fold in the flour, lemon and vanilla.', 'Bake at 325°F for 50-55 minutes until just set, then cool fully and dust with icing sugar.'],
     n: { calories: 328, protein: 18, carbs: 26, fat: 17, satFat: 10, fiber: 0, sugar: 20, sodium: 190 },
     photo: 'ricotta cheesecake',
     imageUrl: "https://images.pexels.com/photos/17243896/pexels-photo-17243896.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2179,7 +2179,7 @@ const ORIGINAL: Authored[] = [
     servings: 1, prep: 5, cook: 2,
     tags: ['Dessert', 'Snack', 'High Protein', 'Vegetarian'],
     ingredients: ['1 scoop chocolate protein powder', '2 tablespoons oat flour', '1 tablespoon cocoa powder', '½ teaspoon baking powder', '1 egg', '3 tablespoons milk', '1 teaspoon honey'],
-    steps: ['Stir everything together in the mug until there are no dry pockets.', 'Microwave 70–90 seconds. Stop when the top is just set and the middle looks underdone.', 'Leave it a minute before eating; it firms as it stands.'],
+    steps: ['Stir everything together in the mug until there are no dry pockets.', 'Microwave 70-90 seconds. Stop when the top is just set and the middle looks underdone.', 'Leave it a minute before eating; it firms as it stands.'],
     n: { calories: 288, protein: 34, carbs: 24, fat: 8, satFat: 3, fiber: 4, sugar: 10, sodium: 340 },
     photo: 'chocolate mug cake',
     imageUrl: "https://images.pexels.com/photos/36837402/pexels-photo-36837402.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2187,7 +2187,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'protein_cookie_dough', name: 'Edible Protein Cookie Dough',
-    description: 'Heat-treat the flour first — raw flour, not raw egg, is the actual risk in cookie dough.',
+    description: 'Heat-treat the flour first, raw flour, not raw egg, is the actual risk in cookie dough.',
     servings: 4, prep: 15, cook: 5,
     tags: ['Dessert', 'Snack', 'High Protein', 'Vegetarian'],
     ingredients: ['½ cup oat flour', '2 scoops vanilla protein powder', '⅓ cup almond butter', '3 tablespoons maple syrup', '3 tablespoons milk', '¼ cup dark chocolate chips', 'A pinch of salt'],
@@ -2199,11 +2199,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'greek_yogurt_mousse', name: 'Whipped Greek Yogurt Berry Mousse',
-    description: 'Whipped cream folded through strained yogurt — half the fat of a mousse and it still holds a peak.',
+    description: 'Whipped cream folded through strained yogurt. Half the fat of a mousse and it still holds a peak.',
     servings: 4, prep: 15, cook: 0,
     tags: ['Dessert', 'High Protein', 'Vegetarian', 'Gluten Free'],
     ingredients: ['2 cups Greek yogurt', '½ cup double cream', '3 tablespoons honey', '1 teaspoon vanilla', '1 ½ cups raspberries', '1 tablespoon lemon juice'],
-    steps: ['Whip the cream to soft peaks — stop before it stiffens or the mousse goes grainy.', 'Fold it into the yogurt with the honey and vanilla, in three additions.', 'Crush half the raspberries with the lemon and ripple them through.', 'Chill an hour and top with the rest.'],
+    steps: ['Whip the cream to soft peaks, stop before it stiffens or the mousse goes grainy.', 'Fold it into the yogurt with the honey and vanilla, in three additions.', 'Crush half the raspberries with the lemon and ripple them through.', 'Chill an hour and top with the rest.'],
     n: { calories: 228, protein: 14, carbs: 20, fat: 11, satFat: 7, fiber: 3, sugar: 17, sodium: 60 },
     photo: 'yogurt mousse dessert',
     imageUrl: "https://images.pexels.com/photos/4664306/pexels-photo-4664306.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2215,7 +2215,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 25, cook: 0,
     tags: ['Dessert', 'High Protein', 'Vegetarian', 'Italian'],
     ingredients: ['1 cup mascarpone', '1 ½ cups Greek yogurt', '2 scoops vanilla protein powder', '3 tablespoons honey', '1 ¼ cups strong coffee, cooled', '18 sponge fingers', '2 tablespoons cocoa powder'],
-    steps: ['Beat the mascarpone, yogurt, protein and honey until smooth and thick.', 'Dip each sponge finger in the coffee for one second only — any longer and it collapses.', 'Layer biscuits and cream twice in each pot.', 'Chill four hours and dust heavily with cocoa just before serving.'],
+    steps: ['Beat the mascarpone, yogurt, protein and honey until smooth and thick.', 'Dip each sponge finger in the coffee for one second only, any longer and it collapses.', 'Layer biscuits and cream twice in each pot.', 'Chill four hours and dust heavily with cocoa just before serving.'],
     n: { calories: 342, protein: 20, carbs: 32, fat: 15, satFat: 9, fiber: 1, sugar: 18, sodium: 130 },
     photo: 'tiramisu',
     imageUrl: "https://images.pexels.com/photos/19119979/pexels-photo-19119979.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2244,7 +2244,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 20, cook: 15,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Greek', 'Mediterranean', 'Gluten Free'],
     ingredients: ['1 ½ pounds chicken thighs, cubed', '⅓ cup olive oil', '¼ cup lemon juice', '2 tablespoons dried oregano', '4 cloves garlic, minced', '1 cup Greek yogurt', '1 cucumber, grated and squeezed', '1 tablespoon dill', 'Pitas to serve'],
-    steps: ['Marinate the chicken in the oil, lemon, oregano and half the garlic for at least four hours.', 'Make tzatziki with the yogurt, squeezed cucumber, remaining garlic and dill.', 'Thread onto skewers and grill hot, 6–7 minutes a side, until charred at the edges.', 'Serve in warm pitas with the tzatziki.'],
+    steps: ['Marinate the chicken in the oil, lemon, oregano and half the garlic for at least four hours.', 'Make tzatziki with the yogurt, squeezed cucumber, remaining garlic and dill.', 'Thread onto skewers and grill hot, 6-7 minutes a side, until charred at the edges.', 'Serve in warm pitas with the tzatziki.'],
     n: { calories: 528, protein: 42, carbs: 32, fat: 26, satFat: 6, fiber: 2, sugar: 5, sodium: 620 },
     photo: 'greek chicken skewers',
     imageUrl: "https://images.pexels.com/photos/37667711/pexels-photo-37667711.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2300,7 +2300,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'beef_pho', name: 'Beef Pho',
-    description: 'Char the onion and ginger before they go in — that black is where the broth gets its depth.',
+    description: 'Char the onion and ginger before they go in. That black is where the broth gets its depth.',
     servings: 6, prep: 25, cook: 180,
     tags: ['Soup', 'Main dish', 'High Protein', 'Asian', 'Dairy Free'],
     ingredients: ['3 pounds beef bones', '1 pound beef brisket', '1 onion, halved', '4 inches ginger, halved', '4 star anise', '1 cinnamon stick', '6 cloves', '3 tablespoons fish sauce', '1 pound rice noodles', 'Basil, coriander, lime, chilli to serve'],
@@ -2312,7 +2312,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'seafood_paella', name: 'Seafood Paella',
-    description: 'Do not stir it once the stock is in. The socarrat — the crust on the base — is the point of the dish.',
+    description: 'Do not stir it once the stock is in. The socarrat. The crust on the base, is the point of the dish.',
     servings: 6, prep: 25, cook: 40,
     tags: ['Dinner', 'Main dish', 'Pescatarian', 'High Protein', 'Gluten Free', 'Mediterranean'],
     ingredients: ['2 cups paella rice', '5 cups fish stock', 'A large pinch of saffron', '1 pound mussels, cleaned', '12 ounces prawns', '1 onion, diced', '1 red pepper, sliced', '3 cloves garlic', '2 tablespoons smoked paprika', '⅓ cup olive oil', '1 lemon'],
@@ -2328,7 +2328,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 10, cook: 45,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Asian', 'Dairy Free', 'Gluten Free'],
     ingredients: ['8 chicken thighs', '½ cup soy sauce', '½ cup cane vinegar', '8 cloves garlic, crushed', '3 bay leaves', '1 tablespoon black peppercorns', '1 tablespoon brown sugar', 'Rice to serve'],
-    steps: ['Marinate the chicken in the soy, garlic and pepper for an hour.', 'Bring it all to the boil with the vinegar and bay and let it bubble five minutes without stirring — that boils the raw edge off the vinegar.', 'Simmer covered 30 minutes, then uncovered until the sauce coats the chicken.', 'Serve over rice with plenty of the sauce.'],
+    steps: ['Marinate the chicken in the soy, garlic and pepper for an hour.', 'Bring it all to the boil with the vinegar and bay and let it bubble five minutes without stirring. That boils the raw edge off the vinegar.', 'Simmer covered 30 minutes, then uncovered until the sauce coats the chicken.', 'Serve over rice with plenty of the sauce.'],
     n: { calories: 468, protein: 38, carbs: 12, fat: 29, satFat: 8, fiber: 0, sugar: 5, sodium: 1620 },
     photo: 'chicken adobo',
     imageUrl: "https://images.pexels.com/photos/6525933/pexels-photo-6525933.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2336,7 +2336,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'moussaka', name: 'Aubergine Moussaka',
-    description: 'Roast the aubergine rather than frying it — it takes up a third of the oil and the layers hold better.',
+    description: 'Roast the aubergine rather than frying it. It takes up a third of the oil and the layers hold better.',
     servings: 8, prep: 40, cook: 60,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Greek', 'Mediterranean'],
     ingredients: ['3 aubergines, sliced', '1 ½ pounds lamb mince', '1 onion, diced', '1 can chopped tomatoes', '1 teaspoon cinnamon', '3 tablespoons butter', '3 tablespoons flour', '2 ½ cups milk', '1 cup grated cheese', '2 egg yolks', '3 tablespoons olive oil'],
@@ -2352,7 +2352,7 @@ const ORIGINAL: Authored[] = [
     servings: 4, prep: 25, cook: 0,
     tags: ['Appetizer', 'Lunch', 'Pescatarian', 'High Protein', 'Gluten Free', 'Dairy Free', 'Low Carb', 'Mexican'],
     ingredients: ['1 pound raw prawns, chopped', '¾ cup lime juice', '1 red onion, finely sliced', '2 tomatoes, diced', '1 cucumber, diced', '1 jalapeño, minced', 'A handful of coriander', '1 avocado, cubed', '1/4 teaspoon salt'],
-    steps: ['Cover the prawns completely in the lime juice and refrigerate exactly twenty minutes — they turn opaque and firm.', 'Drain off most of the juice.', 'Fold in the onion, tomato, cucumber, jalapeño and coriander.', 'Add the avocado last, salt generously, and serve cold.'],
+    steps: ['Cover the prawns completely in the lime juice and refrigerate exactly twenty minutes. They turn opaque and firm.', 'Drain off most of the juice.', 'Fold in the onion, tomato, cucumber, jalapeño and coriander.', 'Add the avocado last, salt generously, and serve cold.'],
     n: { calories: 228, protein: 26, carbs: 14, fat: 9, satFat: 1, fiber: 5, sugar: 5, sodium: 420 },
     photo: 'ceviche',
     imageUrl: "https://images.pexels.com/photos/3975044/pexels-photo-3975044.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2364,7 +2364,7 @@ const ORIGINAL: Authored[] = [
     servings: 6, prep: 25, cook: 0,
     tags: ['Salad', 'Side dish', 'Vegan', 'Vegetarian', 'Dairy Free', 'Middle Eastern', 'Mediterranean', 'High Fiber'],
     ingredients: ['4 large bunches flat parsley, very finely chopped', '⅓ cup fine bulgur', '3 tomatoes, finely diced', '4 spring onions, sliced', '½ cup mint, chopped', '⅓ cup lemon juice', '⅓ cup olive oil', '1/4 teaspoon salt'],
-    steps: ['Soak the bulgur in the lemon juice for fifteen minutes — it softens in the acid, not in water.', 'Chop the parsley as finely as you can manage; it should look like a green fluff.', 'Fold everything together with the oil and salt.', 'Leave thirty minutes before serving.'],
+    steps: ['Soak the bulgur in the lemon juice for fifteen minutes. It softens in the acid, not in water.', 'Chop the parsley as finely as you can manage; it should look like a green fluff.', 'Fold everything together with the oil and salt.', 'Leave thirty minutes before serving.'],
     n: { calories: 186, protein: 4, carbs: 16, fat: 13, satFat: 2, fiber: 4, sugar: 3, sodium: 220 },
     photo: 'tabbouleh',
     imageUrl: "https://images.pexels.com/photos/15832880/pexels-photo-15832880.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2400,7 +2400,7 @@ const ORIGINAL: Authored[] = [
     servings: 12, prep: 40, cook: 25,
     tags: ['Appetizer', 'Snack', 'Lunch', 'High Protein', 'Caribbean'],
     ingredients: ['12 empanada discs', '1 pound beef mince', '1 onion, finely diced', '2 cloves garlic', '2 teaspoons cumin', '1 teaspoon smoked paprika', '½ cup green olives, chopped', '2 hard-boiled eggs, chopped', '1 egg, beaten', '2 tablespoons oil'],
-    steps: ['Brown the beef with the onion, garlic and spices, then cool it completely — an hour in the fridge.', 'Stir in the olives and chopped egg.', 'Fill each disc, fold, and crimp the edge firmly with a fork.', 'Brush with beaten egg and bake at 400°F for 22–25 minutes until deep gold.'],
+    steps: ['Brown the beef with the onion, garlic and spices, then cool it completely. An hour in the fridge.', 'Stir in the olives and chopped egg.', 'Fill each disc, fold, and crimp the edge firmly with a fork.', 'Brush with beaten egg and bake at 400°F for 22-25 minutes until deep gold.'],
     n: { calories: 286, protein: 14, carbs: 24, fat: 15, satFat: 5, fiber: 1, sugar: 1, sodium: 480 },
     photo: 'empanadas',
     imageUrl: "https://images.pexels.com/photos/36905236/pexels-photo-36905236.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2410,11 +2410,11 @@ const ORIGINAL: Authored[] = [
   /* --------------------------------------------------------- dish types -- */
   r({
     id: 'ricotta_gnocchi', name: 'Ricotta Gnocchi with Sage Butter',
-    description: 'Ricotta instead of potato — lighter, and it comes together in twenty minutes with no ricer.',
+    description: 'Ricotta instead of potato, lighter, and it comes together in twenty minutes with no ricer.',
     servings: 4, prep: 25, cook: 10,
     tags: ['Dinner', 'Main dish', 'Vegetarian', 'Italian'],
     ingredients: ['2 cups ricotta, drained overnight', '1 cup plain flour, plus more', '1 cup grated parmesan', '1 egg', '4 tablespoons butter', '12 sage leaves', 'Salt and nutmeg'],
-    steps: ['Mix the ricotta, egg, parmesan and flour to a soft dough. Add flour only until it stops sticking — more flour means heavier gnocchi.', 'Roll into ropes and cut into pieces.', 'Simmer in salted water until they float, about two minutes.', 'Brown the butter with the sage and toss the drained gnocchi through it.'],
+    steps: ['Mix the ricotta, egg, parmesan and flour to a soft dough. Add flour only until it stops sticking, more flour means heavier gnocchi.', 'Roll into ropes and cut into pieces.', 'Simmer in salted water until they float, about two minutes.', 'Brown the butter with the sage and toss the drained gnocchi through it.'],
     n: { calories: 512, protein: 24, carbs: 34, fat: 31, satFat: 18, fiber: 1, sugar: 3, sodium: 680 },
     photo: 'gnocchi',
     imageUrl: "https://images.pexels.com/photos/9807605/pexels-photo-9807605.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2422,11 +2422,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'lamb_kebabs', name: 'Spiced Lamb Kebabs',
-    description: 'Grate the onion and squeeze it dry — the juice tenderises, the pulp makes them fall apart.',
+    description: 'Grate the onion and squeeze it dry. The juice tenderises, the pulp makes them fall apart.',
     servings: 4, prep: 25, cook: 12,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Middle Eastern', 'Gluten Free', 'Dairy Free'],
     ingredients: ['1 ½ pounds lamb mince', '1 onion, grated and squeezed dry', '3 cloves garlic, minced', '2 teaspoons cumin', '2 teaspoons coriander', '1 teaspoon cinnamon', '¼ cup parsley, chopped', '1 teaspoon salt'],
-    steps: ['Knead everything together for a full three minutes — it should feel sticky, which is what holds it on the skewer.', 'Chill thirty minutes, then shape around flat skewers.', 'Grill hot, 5–6 minutes a side, turning once only.', 'Rest five minutes before serving.'],
+    steps: ['Knead everything together for a full three minutes. It should feel sticky, which is what holds it on the skewer.', 'Chill thirty minutes, then shape around flat skewers.', 'Grill hot, 5-6 minutes a side, turning once only.', 'Rest five minutes before serving.'],
     n: { calories: 428, protein: 32, carbs: 6, fat: 30, satFat: 13, fiber: 1, sugar: 2, sodium: 680 },
     photo: 'lamb kebab',
     imageUrl: "https://images.pexels.com/photos/29358857/pexels-photo-29358857.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2438,7 +2438,7 @@ const ORIGINAL: Authored[] = [
     servings: 8, prep: 30, cook: 40,
     tags: ['Appetizer', 'Lunch', 'Main dish', 'Vegetarian', 'Greek', 'Mediterranean'],
     ingredients: ['12 sheets filo pastry', '1 ½ pounds spinach, wilted and squeezed dry', '10 ounces feta, crumbled', '1 onion, diced', '3 eggs', '½ cup melted butter', '2 tablespoons dill', 'Nutmeg'],
-    steps: ['Squeeze the spinach until no more water comes out — this decides whether the base is crisp or soggy.', 'Mix it with the feta, softened onion, eggs, dill and nutmeg.', 'Layer six buttered filo sheets, add the filling, then six more on top.', 'Score the top into portions and bake at 375°F for 40 minutes until deep gold.'],
+    steps: ['Squeeze the spinach until no more water comes out. This decides whether the base is crisp or soggy.', 'Mix it with the feta, softened onion, eggs, dill and nutmeg.', 'Layer six buttered filo sheets, add the filling, then six more on top.', 'Score the top into portions and bake at 375°F for 40 minutes until deep gold.'],
     n: { calories: 386, protein: 15, carbs: 26, fat: 25, satFat: 14, fiber: 3, sugar: 3, sodium: 780 },
     photo: 'spanakopita',
     imageUrl: "https://images.pexels.com/photos/18884737/pexels-photo-18884737.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2458,7 +2458,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'tandoori_chicken', name: 'Tandoori Chicken',
-    description: 'Two marinades, not one — the first is acid to open the meat, the second is spice and yogurt.',
+    description: 'Two marinades, not one. The first is acid to open the meat, the second is spice and yogurt.',
     servings: 4, prep: 30, cook: 35,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Indian', 'Gluten Free'],
     ingredients: ['8 chicken thighs, skinned and scored', '3 tablespoons lemon juice', '1 teaspoon salt', '1 cup Greek yogurt', '2 tablespoons ginger garlic paste', '2 teaspoons garam masala', '2 teaspoons paprika', '1 teaspoon turmeric', '1 teaspoon chilli powder', '2 tablespoons oil'],
@@ -2482,7 +2482,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'pork_dumplings', name: 'Pork and Chive Dumplings',
-    description: 'Fried, steamed, then fried again — the potsticker method, and the only way to get a crisp base and a cooked top.',
+    description: 'Fried, steamed, then fried again. The potsticker method, and the only way to get a crisp base and a cooked top.',
     servings: 6, prep: 45, cook: 15,
     tags: ['Appetizer', 'Dinner', 'Main dish', 'High Protein', 'Asian'],
     ingredients: ['40 dumpling wrappers', '1 pound pork mince', '1 cup chives, chopped', '2 tablespoons soy sauce', '1 tablespoon sesame oil', '1 tablespoon ginger, grated', '2 cloves garlic', '1 teaspoon sugar', '3 tablespoons oil'],
@@ -2506,11 +2506,11 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'margherita_pizza', name: 'Margherita Pizza',
-    description: 'A cold overnight rise and the hottest oven you own. Wet mozzarella is why home pizza goes soggy — drain it.',
+    description: 'A cold overnight rise and the hottest oven you own. Wet mozzarella is why home pizza goes soggy, drain it.',
     servings: 4, prep: 30, cook: 12,
     tags: ['Dinner', 'Main dish', 'Vegetarian', 'Italian'],
     ingredients: ['3 ½ cups strong flour', '1 teaspoon instant yeast', '2 teaspoons salt', '1 ⅓ cups water', '1 can San Marzano tomatoes, crushed', '12 ounces mozzarella, drained and torn', 'Basil', 'Olive oil'],
-    steps: ['Mix the dough, knead five minutes, and refrigerate overnight.', 'Heat the oven as high as it goes with a tray or stone inside, at least 45 minutes.', 'Stretch by hand, never with a rolling pin — the rim needs its air.', 'Top sparingly and bake 8–12 minutes until blistered. Basil goes on after.'],
+    steps: ['Mix the dough, knead five minutes, and refrigerate overnight.', 'Heat the oven as high as it goes with a tray or stone inside, at least 45 minutes.', 'Stretch by hand, never with a rolling pin. The rim needs its air.', 'Top sparingly and bake 8-12 minutes until blistered. Basil goes on after.'],
     n: { calories: 612, protein: 28, carbs: 82, fat: 20, satFat: 11, fiber: 4, sugar: 5, sodium: 1180 },
     photo: 'margherita pizza',
     imageUrl: "https://images.pexels.com/photos/31596394/pexels-photo-31596394.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
@@ -2518,7 +2518,7 @@ const ORIGINAL: Authored[] = [
   }),
   r({
     id: 'chicken_quesadilla', name: 'Crispy Chicken Quesadillas',
-    description: 'Cheese against both tortillas, filling in the middle — it glues shut instead of spilling.',
+    description: 'Cheese against both tortillas, filling in the middle. It glues shut instead of spilling.',
     servings: 4, prep: 15, cook: 15,
     tags: ['Lunch', 'Dinner', 'Main dish', 'High Protein', 'Mexican'],
     ingredients: ['8 tortillas', '2 cups cooked chicken, shredded', '3 cups grated cheese', '1 red pepper, diced', '1 onion, diced', '2 teaspoons cumin', '1 teaspoon smoked paprika', '2 tablespoons oil'],
@@ -2555,7 +2555,7 @@ const ORIGINAL: Authored[] = [
 ]
 
 /* Themed batches, added as the library grew past what one file should hold.
-   Everything here is ours, written to fill gaps the shipped catalogue leaves —
+   Everything here is ours, written to fill gaps the shipped catalogue leaves,
    see each file's header for which gap and why. */
 export const AUTHORED_RECIPES: Authored[] = [
   ...ORIGINAL,

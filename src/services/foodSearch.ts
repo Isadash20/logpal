@@ -103,7 +103,7 @@ function score(
     total += best
   }
 
-  // Prefer concise names — "Apple" over "Apple Juice" for the query "apple".
+  // Prefer concise names, "Apple" over "Apple Juice" for the query "apple".
   total -= len * 0.2
   return total + bonus
 }
@@ -156,13 +156,13 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
   const pool = [...SEED_FOODS, ...extra]
   if (!raw.length) return pool.slice(0, limit)
 
-  /* Ranked but unsliced — the alias promotion below has to see the whole list,
+  /* Ranked but unsliced. The alias promotion below has to see the whole list,
      or a caller asking for one result never gets the promotion applied.
 
      Two pools are scored against the same scale: the in-memory `Food` objects
      (seed, custom, previously scanned) and the packed bulk database, which is
      left packed. Only the rows that survive into the returned slice are turned
-     into `Food` objects — materialising all of them costs about 100 MB of heap
+     into `Food` objects, materialising all of them costs about 100 MB of heap
      to build nutrient and serving objects for rows nobody looks at.
 
      Written as explicit loops rather than map/filter/sort because this runs on
@@ -211,7 +211,7 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
 
   /* Every word must match, which is right for "chicken breast" but wrong for
      "salmon fillet" when the database only knows "Salmon". Fall back to single
-     words, in the order given — the head noun is nearly always first. */
+     words, in the order given. The head noun is nearly always first. */
   if (hits.length === 0 && raw.length > 1) {
     for (const w of raw) {
       hits = run([w])
@@ -222,7 +222,7 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
     }
   }
 
-  /* A bare everyday word should land on the obvious food, not an oddity —
+  /* A bare everyday word should land on the obvious food, not an oddity,
      "egg" means a whole egg, not the yolk. Keyed on whatever actually matched,
      so the single-word fallback gets the promotion too. */
   const alias = COMMON_ALIASES[matchedWords.join(' ')]
@@ -237,7 +237,7 @@ export function searchLocal(query: string, extra: Food[] = [], limit = 60): Food
   return hits.slice(0, limit).map((h) => h.f ?? unpackRow(h.row as PackedFood))
 }
 
-/** A barcode is 8–14 digits; used to route a typed query straight to lookup. */
+/** A barcode is 8-14 digits; used to route a typed query straight to lookup. */
 export function looksLikeBarcode(query: string): boolean {
   return /^\d{8,14}$/.test(query.trim())
 }

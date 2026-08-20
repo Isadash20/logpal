@@ -11,67 +11,67 @@ npm run dev
 
 ## What's here
 
-**Today** — calorie ring (`Goal − Food + Exercise`), macro bars, per-meal
+**Today**: Calorie ring (`Goal − Food + Exercise`), macro bars, per-meal
 summary, water, weight trend, exercise.
 
-**Diary** — the core screen. Date navigator with a calendar that dots logged
+**Diary**: The core screen. Date navigator with a calendar that dots logged
 days. The `Goal − Food + Exercise = Remaining` equation rendered literally.
 Four meals, each with entries, per-meal totals, and an overflow menu (Add Food,
 Quick Add, Copy to Date, Save as Meal). Exercise split into Cardio and Strength.
-Water, notes, and **Complete This Entry** — which produces the five-week
+Water, notes, and **Complete This Entry**, which produces the five-week
 projection ("if every day were like today, you'd weigh…").
 
-**Nutrition** — three tabs. *Calories* (donut by meal), *Nutrients* (full
+**Nutrition**: Three tabs. *Calories* (donut by meal), *Nutrients* (full
 Total / Goal / Left table across 17 nutrients), *Macros* (donut by macro,
 grams vs goal, per-meal breakdown).
 
-**Food search** — tabs for All / My Meals / My Recipes / My Foods. Recents and
+**Food search**: Tabs for All / My Meals / My Recipes / My Foods. Recents and
 favorites when idle. Searches the built-in database and Open Food Facts
 simultaneously. Every row has a one-tap quick-add.
 
-**Food detail** — serving picker, serving count, meal picker, macro donut, and
+**Food detail**: Serving picker, serving count, meal picker, macro donut, and
 a full FDA-style Nutrition Facts panel that recalculates live.
 
-**Four ways to log** — from the `+` button:
+**Four ways to log**: From the `+` button:
 
-- **Barcode scan** — live camera decode via ZXing, then an Open Food Facts
+- **Barcode scan**. Live camera decode via ZXing, then an Open Food Facts
   lookup. Not `BarcodeDetector`: that API only exists in Chromium, so on Safari
   and Firefox the camera opens and silently never decodes. Unknown barcodes
   route to Create Food with the number pre-filled.
-- **Voice log** — Web Speech API. "two eggs and a cup of oatmeal" is parsed into
+- **Voice log**. Web Speech API. "two eggs and a cup of oatmeal" is parsed into
   quantity + food pairs, matched against the database, and shown for review
   before anything is logged. Typed fallback where speech isn't available.
-- **Meal scan** — photograph the plate, describe it, get an estimate. The
+- **Meal scan**, photograph the plate, describe it, get an estimate. The
   estimate comes from the description, not the image: there is no vision model
   connected, and the screen says so. Size words (*large*, *small*) scale
   portions.
-- **Quick add** — calories, optionally with macros.
+- **Quick add**, calories, optionally with macros.
 
 Camera features need a secure context (https, or localhost in dev) and report
 the actual reason on failure rather than sitting there looking broken.
 
-**Create food** — two-step wizard (identity + serving, then the nutrition
+**Create food**: Two-step wizard (identity + serving, then the nutrition
 panel), with a sanity check when the macros don't add up to the stated calories.
 
-**Meals & recipes** — bundle foods into a named meal; build a recipe from
+**Meals & recipes**, bundle foods into a named meal; build a recipe from
 ingredients, set servings made, log it per serving.
 
-**Exercise** — 70+ cardio activities with MET values (calories derived from
+**Exercise**, 70+ cardio activities with MET values (calories derived from
 MET × body weight × duration, so estimates track your current weight) and 60+
 strength movements with sets/reps/weight.
 
-**Progress** — weight chart over 30/90/180/365 days with a goal line,
+**Progress**, weight chart over 30/90/180/365 days with a goal line,
 current/change/to-goal metrics, BMI, six body measurements each with their own
 history and chart, plus a calories tab with a 14-day bar chart and averages.
 
-**Goals** — calorie goal, macro split (enforced to total 100%), weight goals,
-weekly rate, activity level, fitness goals — and a panel showing the actual
+**Goals**: Calorie goal, macro split (enforced to total 100%), weight goals,
+weekly rate, activity level, fitness goals, and a panel showing the actual
 arithmetic behind the calorie target rather than hiding it.
 
-**Settings** — profile, units (lb/kg, ft-in/cm, cups/fl oz/ml), meal renaming,
+**Settings**, profile, units (lb/kg, ft-in/cm, cups/fl oz/ml), meal renaming,
 whether exercise adds calories back, theme, data export, reset.
 
-**Onboarding** — six-step first-run flow ending in the computed plan.
+**Onboarding**, six-step first-run flow ending in the computed plan.
 
 ## How the numbers work
 
@@ -83,7 +83,7 @@ women: 10·kg + 6.25·cm − 5·age − 161
 ```
 
 BMR × an activity factor (1.2 / 1.375 / 1.55 / 1.725) gives maintenance. The
-activity factor covers **everyday movement only** — workouts are logged
+activity factor covers **everyday movement only**, workouts are logged
 separately and added back to the day's budget, which is why the factors are
 lower than an all-in TDEE multiplier. The weekly goal is then applied at
 3,500 kcal per pound, floored at 1,500 (men) / 1,200 (women).
@@ -96,16 +96,16 @@ None of this is medical advice.
 
 Three layers behind one search:
 
-- **Built-in** — 324 curated foods in `src/data/seedFoods.ts`, a pipe-delimited
+- **Built-in**, 324 curated foods in `src/data/seedFoods.ts`, a pipe-delimited
   table. Whole foods from USDA FoodData Central, branded and restaurant items
   from published panels. The parser asserts the column count, so a stray pipe
   fails loudly instead of silently shifting every value in a row. These rank
   first, because they're the only ones anybody checked by hand.
-- **Bulk database** — 25,000 products in `public/food-db.json`, generated from
+- **Bulk database**, 25,000 products in `public/food-db.json`, generated from
   Open Food Facts. Shipped as a static file, not a bundled module, so nothing
   downloads it until the first search (~0.9 MB gzipped, ~76 ms to parse). Rows
   are stored positionally; object keys would be most of the file at this size.
-- **Open Food Facts live** — search and barcode lookup for anything the offline
+- **Open Food Facts live**, search and barcode lookup for anything the offline
   layers miss. A successful scan is saved to the device and becomes searchable
   offline from then on.
 
@@ -118,21 +118,21 @@ node scripts/trim-food-db.mjs --max 25000       # filter + dedupe down to ship s
 
 The builder uses `search.openfoodfacts.org` (Search-a-licious). The legacy
 `world.openfoodfacts.org/cgi/search.pl` returns 503s on roughly a third of
-requests under load — ten terms in twenty-five minutes versus the whole run in
+requests under load, ten terms in twenty-five minutes versus the whole run in
 fifteen. Search-a-licious sends no CORS headers, so it is usable **only** from
 Node; the browser code paths still use the legacy host. Sorting by
 `-unique_scans_n` is what makes the result a database of things people eat
 rather than obscure regional SKUs.
 
 The trim step is not optional. The raw pull is 16 MB, and it is full of records
-whose "name" is just the brand repeated — eight rows called *Chobani* tell you
+whose "name" is just the brand repeated, eight rows called *Chobani* tell you
 nothing about which yoghurt you're logging. Trimming drops those, plus entries
 whose macros can't account for their calories, then de-duplicates on name+brand
 keeping the most-scanned.
 
 Rate limits: the live API allows roughly 10 searches and 15 barcode lookups per
 minute per IP, and punishes overuse by dropping CORS headers rather than
-returning 429 — which surfaces in the browser as an indistinguishable "Failed to
+returning 429, which surfaces in the browser as an indistinguishable "Failed to
 fetch". `src/services/openFoodFacts.ts` therefore caches per query and enforces
 a client-side token budget.
 
@@ -156,14 +156,14 @@ src/
 ```
 
 Nutrition is stored **per serving as logged** on each diary entry, never
-recomputed from the food record — so editing or deleting a food never rewrites
+recomputed from the food record, so editing or deleting a food never rewrites
 history.
 
 ## Persistence
 
 Everything is in `localStorage` under `logpal.v1`, behind the
 `PersistenceAdapter` interface in `src/lib/storage.ts`. Moving to Supabase means
-making `load`/`save` async, adding a `user_id`, and awaiting them in the store —
+making `load`/`save` async, adding a `user_id`, and awaiting them in the store,
 no screen changes. A `migrate()` step fills in fields added after a user's data
 was first written.
 

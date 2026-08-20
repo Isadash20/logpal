@@ -1,7 +1,7 @@
 /**
  * Builds an offline food database from Open Food Facts.
  *
- * NOTE: this is no longer what produces the shipped `public/food-db.json` —
+ * NOTE: this is no longer what produces the shipped `public/food-db.json`,
  * `build-usda-db.mjs` is. USDA FoodData Central has generic foods, US brand
  * coverage and real household serving sizes, none of which Open Food Facts
  * offers in useful quantity. This is kept for the cases FDC does not cover:
@@ -20,7 +20,7 @@
  * of things people actually eat and a database of obscure regional SKUs.
  *
  * OFF rate-limits search to roughly 10 requests per minute per IP, so requests
- * are spaced deliberately. A full run takes a while — that is the price of not
+ * are spaced deliberately. A full run takes a while. That is the price of not
  * getting throttled into opaque failures halfway through.
  */
 
@@ -115,7 +115,7 @@ function titleCase(s) {
   )
 }
 
-/** Same normalisation the runtime adapter uses — kept in sync deliberately. */
+/** Same normalisation the runtime adapter uses, kept in sync deliberately. */
 function toFood(p) {
   if (!p.code || !p.product_name || !p.nutriments) return null
   const nut = p.nutriments
@@ -181,7 +181,7 @@ function toFood(p) {
 /**
  * OFF's search endpoint throws intermittent 503s under load and 429s when
  * you're too eager. Both are transient, so back off and retry rather than
- * dropping the term — losing a term costs ~100 foods.
+ * dropping the term, losing a term costs ~100 foods.
  */
 async function fetchPage(term, page, attempt = 1) {
   const MAX_ATTEMPTS = 4
@@ -246,7 +246,7 @@ async function main() {
     }
   }
 
-  /* Insertion order is popularity order — results arrive sorted by
+  /* Insertion order is popularity order, results arrive sorted by
      `unique_scans_n` per term. It MUST survive to `trim-food-db.mjs`, whose
      whole selection strategy is "keep the first N".
 

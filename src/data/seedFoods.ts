@@ -4,7 +4,7 @@ import { emptyNutrients } from '../lib/nutrition'
 /**
  * Built-in food database.
  *
- * Stored as a pipe-delimited table rather than object literals — it keeps the
+ * Stored as a pipe-delimited table rather than object literals. It keeps the
  * source readable and roughly a third of the size, and it parses once at
  * module load. Values are per the stated serving, sourced from USDA FoodData
  * Central for whole foods and from published nutrition panels for branded and
@@ -367,7 +367,7 @@ function parse(): SeedFood[] {
     const fields = line.split('|')
     if (fields.length !== COLUMNS) {
       throw new Error(
-        `seedFoods: row ${i + 1} has ${fields.length} fields, expected ${COLUMNS} — "${line}"`
+        `seedFoods: row ${i + 1} has ${fields.length} fields, expected ${COLUMNS}, "${line}"`
       )
     }
 

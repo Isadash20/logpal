@@ -18,7 +18,7 @@ import { defaultData } from '../lib/storage'
  * ## Why this is a differ and not thirty mutation methods
  *
  * The store holds one `AppData` object and every mutation is "clone it, change
- * it, set it" — thirty of them, several of which touch many rows at once
+ * it, set it", thirty of them, several of which touch many rows at once
  * (`copyDay` rewrites a whole day, `logItems` inserts a meal's worth of
  * entries). Wiring each mutation to its own insert/update/delete would mean
  * thirty chances to forget a call, and screens would have to start awaiting
@@ -31,7 +31,7 @@ import { defaultData } from '../lib/storage'
  *
  * ## What is not synced
  *
- * `foodCache` and `scannedBarcodes` are — history logged on a phone would
+ * `foodCache` and `scannedBarcodes` are, history logged on a phone would
  * otherwise show up nameless on a laptop. The bulk food database is not: it is
  * a static asset, identical for everyone, and re-downloadable.
  */
@@ -53,7 +53,7 @@ async function upsert(table: string, rows: Record<string, unknown>[]) {
  * Deletes by primary key.
  *
  * Single-column keys go through `.in()`, which batches the whole set into one
- * request and — importantly — lets the client escape the values. Building a
+ * request and, importantly, lets the client escape the values. Building a
  * PostgREST `or=(...)` filter by hand would be faster for composite keys but
  * puts raw values into filter syntax, where a comma, dot or parenthesis in a
  * value silently changes what gets matched. Measurement keys can be custom
@@ -101,7 +101,7 @@ export interface Collection<T> {
   items(data: AppData): T[]
 }
 
-/** Stable identity for change detection — cheap, and exact enough. */
+/** Stable identity for change detection, cheap, and exact enough. */
 function fingerprint(row: Record<string, unknown>): string {
   return JSON.stringify(row)
 }
@@ -121,7 +121,7 @@ export interface CollectionDiff {
 /**
  * Pure: works out what changed between two snapshots of one collection.
  *
- * Separated from the writing so it can be tested without a database — this is
+ * Separated from the writing so it can be tested without a database. This is
  * the part where a mistake quietly loses or duplicates a user's diary.
  */
 export function diffCollection<T>(
@@ -519,8 +519,8 @@ export async function deleteAll(): Promise<void> {
  * The signed-in user's handle, or null if they have not claimed one.
  *
  * The filter is not optional. Unlike every other table here, this one is
- * world-readable by design — a friend search has to be able to see other
- * people's handles — so an unfiltered select returns the whole table and
+ * world-readable by design. A friend search has to be able to see other
+ * people's handles, so an unfiltered select returns the whole table and
  * `maybeSingle()` then fails on "more than one row". The symptom is the
  * sign-up gate reappearing for an account that already has a handle.
  */

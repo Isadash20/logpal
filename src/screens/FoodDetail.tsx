@@ -83,7 +83,7 @@ export function FoodDetail({
       <div className="scroll">
         {isFavorite && (
           <div className="hint" style={{ color: 'var(--text-2)', paddingBottom: 0 }}>
-            Starred — find it under My Favourites when you search for a food.
+            Starred, find it under My Favourites when you search for a food.
           </div>
         )}
         <div style={{ padding: '18px 16px 12px', background: 'var(--surface)' }}>

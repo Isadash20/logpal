@@ -10,7 +10,7 @@ export const PORK_RECIPES: Authored[] = [
     id: 'pork_chops_apple',
     name: 'Pan-Seared Pork Chops with Apples',
     description:
-      'Thick chops, a hot pan, and apples cooked in what the pork leaves behind. Take them off at 145°F and rest them — the carryover does the rest.',
+      'Thick chops, a hot pan, and apples cooked in what the pork leaves behind. Take them off at 145°F and rest them. The carryover does the rest.',
     servings: 4, prep: 10, cook: 20,
     tags: ['Dinner', 'Main dish', 'American', 'High Protein'],
     ingredients: [
@@ -70,7 +70,7 @@ export const PORK_RECIPES: Authored[] = [
     id: 'grilled_pork_chops_peach',
     name: 'Grilled Pork Chops with Peach Salsa',
     description:
-      'Salsa made while the grill heats. Ripe peaches only — firm ones stay crunchy and taste of nothing.',
+      'Salsa made while the grill heats. Ripe peaches only, firm ones stay crunchy and taste of nothing.',
     servings: 4, prep: 15, cook: 12,
     tags: ['Dinner', 'Main dish', 'High Protein', 'Gluten Free'],
     ingredients: [
@@ -205,7 +205,7 @@ export const PORK_RECIPES: Authored[] = [
       'Heat the oven to 400°F. Season the tenderloin and sear it in the oil on all sides, about 6 minutes total.',
       'Mix the mustard, garlic and rosemary and paint it over the meat.',
       'Roast 15 to 18 minutes, to 145°F internal.',
-      'Rest 5 minutes before slicing — this cut loses its juice faster than any other.',
+      'Rest 5 minutes before slicing. This cut loses its juice faster than any other.',
     ],
     n: { calories: 300, protein: 40, carbs: 5, fat: 13, satFat: 3.2, fiber: 1, sugar: 1, sodium: 700 },
     photo: 'pork tenderloin sliced',

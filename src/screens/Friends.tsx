@@ -30,7 +30,7 @@ import {
 } from '../services/social'
 
 /**
- * Friends — finding people, following them, and what they see of you.
+ * Friends, finding people, following them, and what they see of you.
  *
  * ## Following, not friendship
  *
@@ -57,11 +57,11 @@ function initialOf(p: Person): string {
 /** The one-line summary under a name: whatever they publish, in a fixed order. */
 function describe(p: Person): string {
   const bits: string[] = []
-  // Only when the name is the title — otherwise the handle is already shown.
+  // Only when the name is the title, otherwise the handle is already shown.
   if (p.name) bits.push(`@${p.username}`)
   if (p.streak) bits.push(`${p.streak} day streak`)
   /* Whatever they chose to publish, at the level they chose. An account on
-     percentages has no figures here to show — they were never written. */
+     percentages has no figures here to show. They were never written. */
   if (p.calories !== null && p.calorieGoal) bits.push(`${p.calories} / ${p.calorieGoal} cal`)
   else if (p.caloriePct !== null) bits.push(`${p.caloriePct}% calories`)
   if (p.steps !== null) bits.push(`${p.steps.toLocaleString()} steps`)
@@ -98,7 +98,7 @@ const WORKOUT_LEVELS: { value: ShareLevel; label: string }[] = [
  *
  * Following is the moment sharing starts to mean something, and it is the only
  * moment where the question is obviously relevant rather than an interruption.
- * The defaults are the percentages — enough for a friend to cheer you on —
+ * The defaults are the percentages, enough for a friend to cheer you on,
  * with workouts off, since that one carries what you did and when.
  */
 function SharingPrompt({ onClose }: { onClose(): void }) {
@@ -111,11 +111,6 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
 
   return (
     <Sheet title="What can they see?" onClose={onClose}>
-      <div className="hint" style={{ padding: '0 4px 10px' }}>
-        Each of these has three settings: nothing, how far through the goal you are, or
-        the figure itself. Your diary, weight and everything else stay private whatever
-        you pick.
-      </div>
       <div className="card" style={{ margin: 0 }}>
         <SegmentedField<ShareLevel>
           label="Calories"
@@ -138,10 +133,6 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
           options={WORKOUT_LEVELS}
           onChange={setWorkouts}
         />
-      </div>
-      <div className="hint" style={{ padding: '10px 4px 0' }}>
-        This applies to everyone who follows you, and you can change it any time under
-        Friends → What you share.
       </div>
       <div style={{ padding: '14px 4px 6px' }}>
         <button
@@ -176,7 +167,7 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
  * whether to cheer someone on, and it never says what they ate, drank or weigh.
  */
 function GoalBars({ person }: { person: Person }) {
-  /* The bar is always the percentage — that is what a bar is for — and the
+  /* The bar is always the percentage. That is what a bar is for, and the
      figure appears beside it only when they chose to publish one. An account
      sharing exact numbers publishes the percentage too, so the row never has
      to be drawn twice. */
@@ -271,13 +262,13 @@ function GoalBars({ person }: { person: Person }) {
 /**
  * Five emoji and a tap.
  *
- * Which one leads depends on how their day is going — a clap for someone
+ * Which one leads depends on how their day is going. A clap for someone
  * already past their goals reads as congratulations, and the same clap for
- * someone at 20% reads as sarcasm — so the list is ordered by where they are
+ * someone at 20% reads as sarcasm, so the list is ordered by where they are
  * rather than fixed.
  */
 function NudgeBar({ person, onSend }: { person: Person; onSend(emoji: string): void }) {
-  const [sent, setSent] = useState<string | null>(null)
+  const [count, setCount] = useState(0)
   const done = (person.caloriePct ?? 0) >= 90 || (person.stepPct ?? 0) >= 100
   const order = done ? NUDGES : [...NUDGES].reverse()
 
@@ -289,20 +280,23 @@ function NudgeBar({ person, onSend }: { person: Person; onSend(emoji: string): v
           {order.map((n) => (
             <button
               key={n.emoji}
-              className={`fpill ${sent === n.emoji ? 'fpill--on' : ''}`}
+              className="fpill"
               style={{ fontSize: 15 }}
+              /* Every tap sends one. Nothing stays selected: these are
+                 messages, not a setting, so there is no state for a pressed
+                 one to be in. */
               onClick={() => {
                 onSend(n.emoji)
-                setSent(n.emoji)
+                setCount((c) => c + 1)
               }}
             >
               <span style={{ fontSize: 17 }}>{n.emoji}</span> {n.label}
             </button>
           ))}
         </div>
-        {sent && (
+        {count > 0 && (
           <div className="hint" style={{ padding: '10px 4px 0' }}>
-            Sent. They will see it the next time they open LogPal.
+            {count === 1 ? 'Sent' : `Sent ${count}`}
           </div>
         )}
       </div>
@@ -313,7 +307,7 @@ function NudgeBar({ person, onSend }: { person: Person; onSend(emoji: string): v
 /**
  * What arrived while you were away.
  *
- * Marked seen once it has actually been on screen, not when it was fetched —
+ * Marked seen once it has actually been on screen, not when it was fetched,
  * the two differ by exactly the case that matters, which is opening the app and
  * closing it again.
  */
@@ -396,7 +390,7 @@ function PersonRow({
  *
  * Accent-filled only when there is something to do. Once connected it drops to
  * the neutral chip, because "Following" is a state being reported, not a button
- * anyone should be nudged toward pressing — pressing it unfollows.
+ * anyone should be nudged toward pressing, pressing it unfollows.
  */
 function FollowButton({
   state,
@@ -458,7 +452,7 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
   }, [refresh])
 
   /* Debounced, though this is our own database rather than a rate-limited third
-     party — a query per keystroke would still be a round trip per keystroke. */
+     party. A query per keystroke would still be a round trip per keystroke. */
   useEffect(() => {
     if (!me) return
     const q = query.trim()
@@ -483,7 +477,7 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
   }, [query, me])
 
   /* Follow state comes from the connection lists already loaded rather than a
-     query per result row — the answer is a set membership test against data
+     query per result row. The answer is a set membership test against data
      that is on screen anyway. */
   const stateOf = useCallback(
     (id: string): FollowState => {
@@ -522,7 +516,7 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
     if (!conn) return []
     return [
       ...conn.following.map((p) => ({ person: p, sub: undefined as string | undefined })),
-      ...conn.sent.map((p) => ({ person: p, sub: 'Requested — waiting for them to accept' })),
+      ...conn.sent.map((p) => ({ person: p, sub: 'Requested, waiting for them to accept' })),
     ]
   }, [conn])
 
@@ -556,7 +550,7 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
     <>
       <TopBar
         title="Friends"
-        /* No back arrow when this *is* the tab — there is nothing behind it. */
+        /* No back arrow when this *is* the tab. There is nothing behind it. */
         onBack={asTab ? undefined : pop}
         solid
         right={
@@ -611,7 +605,7 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
           </div>
         )}
 
-        {/* What came in while you were away, before the lists — it is the one
+        {/* What came in while you were away, before the lists. It is the one
             thing on this screen that is addressed to you. */}
         {me && !query.trim() && tab === 'following' && <NudgeInbox me={me} />}
 
@@ -763,7 +757,7 @@ function SearchResults({
     return (
       <Empty title="Nobody found">
         <div style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 8px' }}>
-          No username starts with “{query.trim()}”. Handles are exact — check the
+          No username starts with “{query.trim()}”. Handles are exact, check the
           spelling with them.
         </div>
       </Empty>
@@ -797,7 +791,7 @@ function SearchResults({
  * Someone else's profile.
  *
  * The handle is passed in from whichever list was tapped so the header can
- * render immediately — the fetch behind it only fills in what they publish, and
+ * render immediately. The fetch behind it only fills in what they publish, and
  * for a private account it will fill in nothing.
  */
 export function FriendProfile({ userId, username }: { userId: string; username: string }) {
@@ -912,10 +906,6 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
                 }
               />
             </div>
-            <div className="hint">
-              What each account shows is theirs to choose, under Friends → What you
-              share.
-            </div>
           </>
         ) : (
           <>
@@ -939,7 +929,7 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
 
             <div className="card">
               {/* A streak of zero is left out rather than shown as "0 days",
-                  the same rule Home uses for its own badge — it is not a
+                  the same rule Home uses for its own badge. It is not a
                   statistic anyone wants reported back at them. */}
               {!!shown.streak && (
                 <Row
@@ -959,10 +949,6 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
               <NudgeBar person={shown} onSend={(emoji) => void sendNudge(userId, emoji)} />
             )}
 
-            <div className="hint">
-              Percentages only — how far {shown.name ?? `@${username}`} is through their
-              own goals. What they ate, drank and weigh is not published to anyone.
-            </div>
           </>
         )}
 
@@ -1038,14 +1024,6 @@ export function FriendsSharing() {
     shareWorkouts !== settings.shareWorkouts ||
     (priv !== null && priv !== savedPriv)
 
-  const sharesNothing =
-    !shareName &&
-    !shareStreak &&
-    shareCalories === 'off' &&
-    shareWater === 'off' &&
-    shareSteps === 'off' &&
-    shareMacros === 'off' &&
-    shareWorkouts === 'off'
 
   return (
     <>
@@ -1059,11 +1037,6 @@ export function FriendsSharing() {
             checked={priv ?? false}
             onChange={setPriv}
           />
-        </div>
-        <div className="hint">
-          {priv
-            ? 'New follow requests wait on the Requests tab until you accept them.'
-            : 'Anyone signed in who knows your username can follow you and see what you share below.'}
         </div>
 
         <div className="section-label">What followers see</div>
@@ -1081,7 +1054,7 @@ export function FriendsSharing() {
             onChange={setShareStreak}
           />
           {/* Three rungs each, not a switch. "Share my steps" means either the
-              percentage or the count, and both are things people want — so both
+              percentage or the count, and both are things people want, so both
               are offered, and neither is implied by the other. */}
           <SegmentedField<ShareLevel>
             label="Calorie progress"
@@ -1118,12 +1091,6 @@ export function FriendsSharing() {
             options={WORKOUT_LEVELS}
             onChange={setShareWorkouts}
           />
-        </div>
-
-        <div className="hint">
-          {sharesNothing
-            ? 'Sharing nothing means followers see only your username. Turning one of these off removes it from the server on the next save — it is not just hidden.'
-            : 'Your diary, weight, measurements, goals and everything else stay private no matter what is switched on here. Only the lines above ever leave your account.'}
         </div>
 
         {error && (

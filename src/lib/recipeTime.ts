@@ -1,13 +1,13 @@
 import type { Recipe } from '../types'
 
 /**
- * Time a recipe needs *before* you can start it — dough rising, meat
+ * Time a recipe needs *before* you can start it, dough rising, meat
  * marinating, a mousse setting, anything frozen overnight.
  *
  * It is not in the data. USDA publishes prep and cook minutes and nothing
  * else, so a pizza whose dough proves for four hours reports "42 minutes" and
- * reads like a weeknight dinner. That figure is not wrong — it is the time
- * you spend working — but on its own it misleads, which is why this is shown
+ * reads like a weeknight dinner. That figure is not wrong. It is the time
+ * you spend working, but on its own it misleads, which is why this is shown
  * beside it rather than added to it.
  *
  * Derived from the method text, because the alternative is hand-annotating
@@ -53,7 +53,7 @@ function amountsIn(text: string): number[] {
     out.push(parseFloat(m[1]) * UNIT_MIN[m[2]])
   }
 
-  /* "Chill overnight", "leave it overnight in the fridge" — no number at all,
+  /* "Chill overnight", "leave it overnight in the fridge". No number at all,
      and the most common way a recipe asks for the longest wait it has. */
   const nightly = new RegExp(`${WAIT}\\b[^.]{0,50}?overnight|overnight[^.]{0,30}?${WAIT}\\b`, 'g')
   for (const _ of lower.matchAll(nightly)) out.push(OVERNIGHT)
@@ -65,9 +65,9 @@ function amountsIn(text: string): number[] {
  * The longest single wait, in minutes, or null when there is none worth
  * planning around.
  *
- * The longest rather than the sum: waits usually nest — a dough that proves
+ * The longest rather than the sum: waits usually nest. A dough that proves
  * for four hours and then rests twenty minutes is a four-hour job, not a
- * four-hour-twenty one — and overcounting here would push recipes out of
+ * four-hour-twenty one, and overcounting here would push recipes out of
  * "under 30 minutes" for no reason.
  */
 export function restMinutes(recipe: Recipe): number | null {
@@ -81,7 +81,7 @@ export function restMinutes(recipe: Recipe): number | null {
   return longest || null
 }
 
-/** "4h", "overnight", "1h 30m" — how the wait is written on the card. */
+/** "4h", "overnight", "1h 30m", how the wait is written on the card. */
 export function formatRest(mins: number): string {
   if (mins >= 20 * 60) return `${Math.round(mins / 1440)}d`
   if (mins >= 60) {
@@ -97,8 +97,8 @@ export function formatRest(mins: number): string {
 /**
  * How long a recipe takes, when it does not say.
  *
- * Every one of the 1,054 USDA recipes ships without prep or cook minutes —
- * MyPlate publishes the method and nothing else — so the whole catalogue showed
+ * Every one of the 1,054 USDA recipes ships without prep or cook minutes,
+ * MyPlate publishes the method and nothing else, so the whole catalogue showed
  * a dash where the time goes, and every cook-time filter dropped all of it.
  * The method does contain the numbers, just in prose: "Bake until tender (about
  * 45 minutes)".
@@ -116,7 +116,7 @@ const COOK_UNIT: Record<string, number> = {
 /** Work that happens while something else cooks, and should not be added on. */
 const PER_STEP = 3
 
-/** Anything longer is a wait, not work — `restMinutes` reports it separately. */
+/** Anything longer is a wait, not work, `restMinutes` reports it separately. */
 const LONG = 120
 
 /* Read off the method text on every call otherwise, and lists ask for it once

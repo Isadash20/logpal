@@ -4,7 +4,7 @@ import { r, type Authored } from './recipe'
  * Sweet things, weighted towards meringue and the high-protein end.
  *
  * Written because the USDA library has almost no desserts and no meringue at
- * all — searching for it returned nothing, which for a cheap, fat-free,
+ * all, searching for it returned nothing, which for a cheap, fat-free,
  * mostly-protein sweet is the wrong answer. Egg whites are always cooked or
  * dried here; nothing in this file asks anyone to eat them raw.
  */
@@ -26,7 +26,7 @@ export const DESSERT_RECIPES: Authored[] = [
     steps: [
       'Heat the oven to 225°F and line two sheets with parchment.',
       'Whip the whites with the cream of tartar and salt on medium until they hold soft peaks, about 3 minutes.',
-      'Add the sugar a tablespoon at a time with the mixer running. Taking it slowly is the whole recipe — dumped in at once it weeps syrup later.',
+      'Add the sugar a tablespoon at a time with the mixer running. Taking it slowly is the whole recipe, dumped in at once it weeps syrup later.',
       'Whip on high until the meringue is glossy and stiff and feels smooth rather than grainy between two fingers, 5 to 7 minutes. Beat in the vanilla.',
       'Pipe or spoon into 30 mounds about 1 1/2 inches across.',
       'Dry for 90 minutes, then turn the oven off and leave them inside with the door shut for another hour. They should lift off the paper cleanly.',
@@ -53,7 +53,7 @@ export const DESSERT_RECIPES: Authored[] = [
     steps: [
       'Heat the oven to 225°F and line two sheets with parchment.',
       'Whip the whites with the cream of tartar and salt to soft peaks, then add the sugar a tablespoon at a time and whip to stiff, glossy peaks.',
-      'Sift the cocoa over the bowl and fold twice — no more. You want streaks.',
+      'Sift the cocoa over the bowl and fold twice. No more. You want streaks.',
       'Spoon into 30 mounds and dry for 90 minutes, then leave them in the switched-off oven for an hour.',
     ],
     n: { calories: 152, protein: 3, carbs: 35, fat: 0.7, satFat: 0.4, fiber: 1, sugar: 32, sodium: 42 },
@@ -80,7 +80,7 @@ export const DESSERT_RECIPES: Authored[] = [
     ],
     steps: [
       'Heat the oven to 250°F. Draw an 8-inch circle on parchment and turn it pencil-side down.',
-      'Whip the whites to soft peaks, add the sugar slowly, and whip to stiff and glossy. Fold in the cornstarch and vinegar — they are what keep the centre soft.',
+      'Whip the whites to soft peaks, add the sugar slowly, and whip to stiff and glossy. Fold in the cornstarch and vinegar. They are what keep the centre soft.',
       'Spread the meringue inside the circle, building the sides higher than the middle so there is a well for the topping.',
       'Bake 75 minutes, then cool completely in the switched-off oven. Cracks are expected and get covered.',
       'Stir the honey through the yogurt, spoon it into the well, and pile the fruit on. Assemble within the hour or the base softens.',
@@ -110,7 +110,7 @@ export const DESSERT_RECIPES: Authored[] = [
       'Stir the yogurt with the lemon curd, juice and zest, and divide between four broiler-safe ramekins.',
       'Whip the whites with the cream of tartar to soft peaks, then add the sugar slowly and whip until stiff and glossy.',
       'Pile the meringue over the yogurt, taking it right to the edges so it seals.',
-      'Broil 4 inches from the element for 60 to 90 seconds, until the peaks are browned. Do not walk away — it goes from pale to burnt in about ten seconds.',
+      'Broil 4 inches from the element for 60 to 90 seconds, until the peaks are browned. Do not walk away. It goes from pale to burnt in about ten seconds.',
     ],
     n: { calories: 210, protein: 12, carbs: 33, fat: 3, satFat: 1.5, fiber: 0, sugar: 28, sodium: 85 },
     photo: 'lemon meringue dessert',
@@ -173,7 +173,7 @@ export const DESSERT_RECIPES: Authored[] = [
     id: 'cottage_cheesecake_cups',
     name: 'Cottage Cheese Cheesecake Cups',
     description:
-      'Blended cottage cheese sets like a baked cheesecake filling and carries twice the protein. The blender is not optional — the curds have to disappear.',
+      'Blended cottage cheese sets like a baked cheesecake filling and carries twice the protein. The blender is not optional. The curds have to disappear.',
     servings: 4, prep: 10, cook: 30,
     tags: ['Dessert', 'Snack', 'High Protein'],
     ingredients: [
@@ -215,7 +215,7 @@ export const DESSERT_RECIPES: Authored[] = [
       'Stir the honey and vanilla through the yogurt.',
       'Spread it 1/4 inch thick on a parchment-lined sheet.',
       'Scatter the fruit and almonds over and press them in lightly so they freeze into the surface.',
-      'Freeze 4 hours, then break into shards. Keep it frozen — it softens fast.',
+      'Freeze 4 hours, then break into shards. Keep it frozen. It softens fast.',
     ],
     n: { calories: 150, protein: 11, carbs: 18, fat: 4, satFat: 2, fiber: 2, sugar: 14, sodium: 45 },
     photo: 'yogurt bark berries',
@@ -277,7 +277,7 @@ export const DESSERT_RECIPES: Authored[] = [
     id: 'pb_protein_bites',
     name: 'Peanut Butter Protein Bites',
     description:
-      'No baking, no equipment. The mix should feel like firm dough — add oats a spoonful at a time if it slumps.',
+      'No baking, no equipment. The mix should feel like firm dough, add oats a spoonful at a time if it slumps.',
     servings: 8, prep: 15, cook: 0,
     tags: ['Snack', 'High Protein'],
     ingredients: [
@@ -291,7 +291,7 @@ export const DESSERT_RECIPES: Authored[] = [
     ],
     steps: [
       'Mix everything in a bowl until it clumps together.',
-      'Chill 20 minutes — warm dough sticks to your hands and will not hold a ball.',
+      'Chill 20 minutes, warm dough sticks to your hands and will not hold a ball.',
       'Roll into 16 bites. Keep them in the fridge, where they last a week.',
     ],
     n: { calories: 195, protein: 9, carbs: 18, fat: 11, satFat: 2.5, fiber: 3, sugar: 8, sodium: 95 },

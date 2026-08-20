@@ -4,7 +4,7 @@ import { requireClient } from '../lib/supabase'
  * Nudges: one emoji, from one person to another.
  *
  * The smallest thing that still counts as encouragement. There is no message
- * body on purpose — a text field is a moderation problem and an inbox to
+ * body on purpose. A text field is a moderation problem and an inbox to
  * manage, while a clap is unambiguous, takes one tap and cannot be argued
  * with.
  *
