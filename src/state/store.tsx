@@ -11,6 +11,7 @@ import {
 import type {
   AppData,
   DayLog,
+  ShareLevel,
   ExerciseEntry,
   Food,
   FoodEntry,
@@ -668,14 +669,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
    */
   const published = useMemo<PublishedProfile>(() => {
     const s = data.settings
+    const shares = (l: string) => l !== 'off'
     const sharesSomething =
       s.shareName ||
       s.shareStreak ||
-      s.shareCaloriePct ||
-      s.shareWaterPct ||
-      s.shareStepPct ||
-      s.shareMacroPct ||
-      s.shareExercise
+      shares(s.shareCalories) ||
+      shares(s.shareWater) ||
+      shares(s.shareSteps) ||
+      shares(s.shareMacros) ||
+      shares(s.shareWorkouts)
     if (!sharesSomething) return NOTHING_PUBLISHED
 
     const d = today()
@@ -683,27 +685,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const day = data.days[d]
     const n = totals.nutrients
 
-    /* Percentages, computed here and rounded before they leave the device.
-       The raw figures are never written, so there is no version of this table
-       that holds what someone ate — only how far along they are. */
-    const pct = (value: number, goal: number) =>
-      goal > 0 ? Math.max(0, Math.round((value / goal) * 100)) : null
+    /* A level is a ceiling, and each rung writes only its own fields. An
+       account on `percent` publishes no absolute figure at all — there is
+       nothing on the server to be exposed later by a policy that slips. */
+    const pct = (value: number, goal: number, level: ShareLevel) =>
+      level === 'off' || goal <= 0 ? null : Math.max(0, Math.round((value / goal) * 100))
+    const exact = (value: number, level: ShareLevel) =>
+      level === 'exact' ? Math.round(value) : null
 
-    const workout = data.exerciseEntries
-      .filter((e) => e.date === d)
-      .map((e) => (e.minutes ? `${e.name}, ${e.minutes} min` : e.name))
+    const workouts = data.exerciseEntries.filter((e) => e.date === d)
+    const burned = workouts.reduce((sum, e) => sum + (e.caloriesBurned ?? 0), 0)
+    const named = workouts.map((e) => (e.minutes ? `${e.name}, ${e.minutes} min` : e.name))
 
     return {
       display_name: s.shareName ? data.profile.name || null : null,
       streak: s.shareStreak ? logStreak : null,
       last_logged: s.shareStreak ? lastLogged : null,
-      calorie_pct: s.shareCaloriePct ? pct(n.calories, totals.goal) : null,
-      water_pct: s.shareWaterPct ? pct(day?.water ?? 0, waterTarget) : null,
-      step_pct: s.shareStepPct ? pct(day?.steps ?? 0, data.profile.stepGoal) : null,
-      protein_pct: s.shareMacroPct ? pct(n.protein, macroTargets.protein) : null,
-      carbs_pct: s.shareMacroPct ? pct(n.carbs, macroTargets.carbs) : null,
-      fat_pct: s.shareMacroPct ? pct(n.fat, macroTargets.fat) : null,
-      exercise: s.shareExercise && workout.length ? workout.join(' · ').slice(0, 120) : null,
+
+      calorie_pct: pct(n.calories, totals.goal, s.shareCalories),
+      calories: exact(n.calories, s.shareCalories),
+      calorie_goal: exact(totals.goal, s.shareCalories),
+
+      water_pct: pct(day?.water ?? 0, waterTarget, s.shareWater),
+      water_ml: exact(day?.water ?? 0, s.shareWater),
+      water_goal_ml: exact(waterTarget, s.shareWater),
+
+      step_pct: pct(day?.steps ?? 0, data.profile.stepGoal, s.shareSteps),
+      steps: exact(day?.steps ?? 0, s.shareSteps),
+      step_goal: exact(data.profile.stepGoal, s.shareSteps),
+
+      protein_pct: pct(n.protein, macroTargets.protein, s.shareMacros),
+      carbs_pct: pct(n.carbs, macroTargets.carbs, s.shareMacros),
+      fat_pct: pct(n.fat, macroTargets.fat, s.shareMacros),
+      protein_g: exact(n.protein, s.shareMacros),
+      carbs_g: exact(n.carbs, s.shareMacros),
+      fat_g: exact(n.fat, s.shareMacros),
+
+      exercise:
+        s.shareWorkouts !== 'off' && named.length ? named.join(' · ').slice(0, 120) : null,
+      exercise_calories: s.shareWorkouts === 'exact' && burned > 0 ? Math.round(burned) : null,
     }
   }, [
     data.settings,

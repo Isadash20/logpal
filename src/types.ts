@@ -370,6 +370,14 @@ export interface Profile {
   onboarded: boolean
 }
 
+/**
+ * How much of one figure an account shares.
+ *
+ * `off` publishes nothing, `percent` publishes progress against the goal, and
+ * `exact` publishes the figure itself. Ordered, and read as a ceiling.
+ */
+export type ShareLevel = 'off' | 'percent' | 'exact'
+
 export interface Settings {
   weightUnit: 'lb' | 'kg'
   heightUnit: 'in' | 'cm'
@@ -397,18 +405,29 @@ export interface Settings {
   shareName: boolean
   shareStreak: boolean
   /**
-   * Progress against a goal, as a percentage and nothing else.
+   * How much of each figure followers see.
    *
-   * Followers see "68% of calories", never 1,300 of 1,900 — the figure that
-   * lets someone cheer you on without handing them your intake. The absolute
-   * numbers are not published at all, so there is nothing to leak later.
+   * Three settings rather than a switch, because "share my calories" has two
+   * quite different meanings: a percentage says how the day is going and hands
+   * over nothing, while the number itself is the diary. Both are reasonable
+   * things to want, and which one you want differs per figure — plenty of
+   * people will show an exact step count and never their intake.
+   *
+   * Nothing above the chosen level is published at all, so an account on
+   * `percent` has no absolute figure sitting on the server to be exposed by a
+   * future policy mistake.
    */
-  shareCaloriePct: boolean
-  shareWaterPct: boolean
-  shareStepPct: boolean
-  shareMacroPct: boolean
-  /** The name and length of today's workouts. Off until it is asked for. */
-  shareExercise: boolean
+  shareCalories: ShareLevel
+  shareWater: ShareLevel
+  shareSteps: ShareLevel
+  shareMacros: ShareLevel
+  /**
+   * Workouts, which have no percentage to show.
+   *
+   * `percent` is the middle rung here too, and means the names alone — "Running,
+   * 35 min" — while `exact` adds what it burned.
+   */
+  shareWorkouts: ShareLevel
   /**
    * Whether this account has been asked what its friends may see.
    *
@@ -417,8 +436,6 @@ export interface Settings {
    * privacy screen about a feature they have not used.
    */
   sharingAsked: boolean
-  /** @deprecated Replaced by `shareCaloriePct`; kept so old saves migrate. */
-  shareCalories?: boolean
 }
 
 /* ---------------------------------------------------- intermittent fasting -- */

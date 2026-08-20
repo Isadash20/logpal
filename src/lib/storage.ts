@@ -1,4 +1,4 @@
-import type { AppData, Profile, Settings } from '../types'
+import type { AppData, Profile, Settings, ShareLevel } from '../types'
 import { DEFAULT_MACRO_SPLIT } from './nutrition'
 import { defaultFastingSettings } from './fasting'
 
@@ -78,16 +78,35 @@ const LEGACY_PERIOD: Record<string, string> = {
  */
 function migrateSettings(base: Settings, saved?: Partial<Settings>): Settings {
   const merged = { ...base, ...saved }
-  const isOldSave = saved != null && saved.shareCaloriePct === undefined
-  if (!isOldSave) return merged
+  if (!saved) return merged
+
+  /* Two migrations, in order.
+   *
+   * The first sharing model was one boolean, `shareCalories`. The second was
+   * five booleans, one per figure. This is the third: a level per figure. A
+   * save can be at any of them, and a `true` from either earlier model means
+   * "share this", which is now `percent` — never `exact`, because nobody who
+   * ticked a box was agreeing to publish the number itself. */
+  const legacy = saved as Record<string, unknown>
+  const fromBool = (v: unknown): ShareLevel | null =>
+    typeof v === 'boolean' ? (v ? 'percent' : 'off') : null
+
+  const level = (current: unknown, ...older: unknown[]): ShareLevel => {
+    if (current === 'off' || current === 'percent' || current === 'exact') return current
+    for (const o of older) {
+      const converted = fromBool(o)
+      if (converted) return converted
+    }
+    return 'off'
+  }
+
   return {
     ...merged,
-    shareCaloriePct: saved.shareCalories ?? false,
-    shareWaterPct: false,
-    shareStepPct: false,
-    shareMacroPct: false,
-    shareExercise: false,
-    sharingAsked: false,
+    shareCalories: level(legacy.shareCalories, legacy.shareCaloriePct, legacy.shareCalories),
+    shareWater: level(legacy.shareWater, legacy.shareWaterPct),
+    shareSteps: level(legacy.shareSteps, legacy.shareStepPct),
+    shareMacros: level(legacy.shareMacros, legacy.shareMacroPct),
+    shareWorkouts: level(legacy.shareWorkouts, legacy.shareExercise),
   }
 }
 
@@ -192,14 +211,15 @@ export function defaultSettings(): Settings {
        settings, so accounts written before this get the same. */
     shareName: true,
     shareStreak: true,
-    /* Percentages are the whole point of the friends screen, so they are on
-       for a new account. Exercise is not: it carries what you did and when,
-       which is a different kind of detail, and it is asked for by name. */
-    shareCaloriePct: true,
-    shareWaterPct: true,
-    shareStepPct: true,
-    shareMacroPct: true,
-    shareExercise: false,
+    /* Percentages are the whole point of the friends screen, so they are the
+       starting position for a new account. Workouts are not: they carry what
+       you did and when, which is a different kind of detail, and it is asked
+       for by name. */
+    shareCalories: 'percent',
+    shareWater: 'percent',
+    shareSteps: 'percent',
+    shareMacros: 'percent',
+    shareWorkouts: 'off',
     sharingAsked: false,
   }
 }

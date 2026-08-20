@@ -482,3 +482,16 @@ alter table logpal_social_profile add column if not exists protein_pct integer;
 alter table logpal_social_profile add column if not exists carbs_pct integer;
 alter table logpal_social_profile add column if not exists fat_pct integer;
 alter table logpal_social_profile add column if not exists exercise text;
+
+-- Sharing became a level per figure rather than a switch: off, the percentage,
+-- or the figure itself. The percentage columns above cover the middle rung;
+-- these hold the top one. Nothing is written unless that level is chosen, so a
+-- percentage-only account has nulls here rather than hidden values.
+alter table logpal_social_profile add column if not exists water_ml integer;
+alter table logpal_social_profile add column if not exists water_goal_ml integer;
+alter table logpal_social_profile add column if not exists steps integer;
+alter table logpal_social_profile add column if not exists step_goal integer;
+alter table logpal_social_profile add column if not exists protein_g integer;
+alter table logpal_social_profile add column if not exists carbs_g integer;
+alter table logpal_social_profile add column if not exists fat_g integer;
+alter table logpal_social_profile add column if not exists exercise_calories integer;

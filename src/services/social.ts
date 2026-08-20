@@ -58,8 +58,25 @@ export interface Person {
   proteinPct: number | null
   carbsPct: number | null
   fatPct: number | null
+  /**
+   * The figures themselves, and only from accounts that chose to publish them.
+   *
+   * Null is the normal case: sharing a percentage does not write these, so a
+   * profile on `percent` has nothing here to expose.
+   */
+  calories: number | null
+  calorieGoal: number | null
+  waterMl: number | null
+  waterGoalMl: number | null
+  steps: number | null
+  stepGoal: number | null
+  proteinG: number | null
+  carbsG: number | null
+  fatG: number | null
   /** Today's workout, when they share it: "Running, 35 min". */
   exercise: string | null
+  /** What it burned, on the top setting only. */
+  exerciseCalories: number | null
   /** True when following them needs their approval. */
   private: boolean
   /** True when nothing about them is visible: they share nothing, or they are
@@ -80,7 +97,17 @@ export interface PublishedProfile {
   protein_pct: number | null
   carbs_pct: number | null
   fat_pct: number | null
+  calories: number | null
+  calorie_goal: number | null
+  water_ml: number | null
+  water_goal_ml: number | null
+  steps: number | null
+  step_goal: number | null
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
   exercise: string | null
+  exercise_calories: number | null
 }
 
 interface UsernameRow {
@@ -100,7 +127,17 @@ interface SocialRow {
   protein_pct: number | null
   carbs_pct: number | null
   fat_pct: number | null
+  calories: number | null
+  calorie_goal: number | null
+  water_ml: number | null
+  water_goal_ml: number | null
+  steps: number | null
+  step_goal: number | null
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
   exercise: string | null
+  exercise_calories: number | null
 }
 
 /* -------------------------------------------------------------- hydration -- */
@@ -142,7 +179,17 @@ async function hydrate(userIds: string[]): Promise<Map<string, Person>> {
       proteinPct: p?.protein_pct ?? null,
       carbsPct: p?.carbs_pct ?? null,
       fatPct: p?.fat_pct ?? null,
+      calories: p?.calories ?? null,
+      calorieGoal: p?.calorie_goal ?? null,
+      waterMl: p?.water_ml ?? null,
+      waterGoalMl: p?.water_goal_ml ?? null,
+      steps: p?.steps ?? null,
+      stepGoal: p?.step_goal ?? null,
+      proteinG: p?.protein_g ?? null,
+      carbsG: p?.carbs_g ?? null,
+      fatG: p?.fat_g ?? null,
       exercise: p?.exercise ?? null,
+      exerciseCalories: p?.exercise_calories ?? null,
       private: p?.private ?? false,
       empty:
         !p ||
@@ -389,7 +436,17 @@ export const NOTHING_PUBLISHED: PublishedProfile = {
   protein_pct: null,
   carbs_pct: null,
   fat_pct: null,
+  calories: null,
+  calorie_goal: null,
+  water_ml: null,
+  water_goal_ml: null,
+  steps: null,
+  step_goal: null,
+  protein_g: null,
+  carbs_g: null,
+  fat_g: null,
   exercise: null,
+  exercise_calories: null,
 }
 
 /**

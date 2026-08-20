@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useApp } from '../state/store'
+import type { ShareLevel } from '../types'
 import { Icon } from '../components/Icon'
-import { Empty, Row, SaveBar, Sheet, Spinner, Tabs, Toggle, TopBar } from '../components/ui'
+import {
+  Empty,
+  Row,
+  SaveBar,
+  SegmentedField,
+  Sheet,
+  Spinner,
+  Tabs,
+  Toggle,
+  TopBar,
+} from '../components/ui'
 import { friendlyDate } from '../lib/dates'
 import { NUDGES, fetchNudges, markNudgesSeen, sendNudge, type Nudge } from '../services/nudges'
 import {
@@ -49,11 +60,13 @@ function describe(p: Person): string {
   // Only when the name is the title — otherwise the handle is already shown.
   if (p.name) bits.push(`@${p.username}`)
   if (p.streak) bits.push(`${p.streak} day streak`)
-  /* Progress, never amounts. "68% of calories" is the thing worth cheering;
-     what they actually ate is theirs. */
-  if (p.caloriePct !== null) bits.push(`${p.caloriePct}% calories`)
-  if (p.waterPct !== null) bits.push(`${p.waterPct}% water`)
-  if (p.stepPct !== null) bits.push(`${p.stepPct}% steps`)
+  /* Whatever they chose to publish, at the level they chose. An account on
+     percentages has no figures here to show — they were never written. */
+  if (p.calories !== null && p.calorieGoal) bits.push(`${p.calories} / ${p.calorieGoal} cal`)
+  else if (p.caloriePct !== null) bits.push(`${p.caloriePct}% calories`)
+  if (p.steps !== null) bits.push(`${p.steps.toLocaleString()} steps`)
+  else if (p.stepPct !== null) bits.push(`${p.stepPct}% steps`)
+  if (p.waterPct !== null && p.waterMl === null) bits.push(`${p.waterPct}% water`)
   if (bits.length) return bits.join(' · ')
   /* Deliberately the same sentence for "shares nothing" and "private, and you
      cannot see in". A different one for each would turn the profile into a
@@ -65,6 +78,21 @@ function describe(p: Person): string {
 
 /* ------------------------------------------------------ sharing prompt -- */
 
+/** The three rungs, for anything with a goal behind it. */
+const FIGURE_LEVELS: { value: ShareLevel; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'percent', label: '% of goal' },
+  { value: 'exact', label: 'Exact' },
+]
+
+/** Workouts have no percentage, so the middle rung is the names alone. */
+const WORKOUT_LEVELS: { value: ShareLevel; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'percent', label: 'Exercises' },
+  { value: 'exact', label: '+ calories' },
+]
+
+
 /**
  * Asked once, the first time this account follows someone.
  *
@@ -74,29 +102,41 @@ function describe(p: Person): string {
  * with workouts off, since that one carries what you did and when.
  */
 function SharingPrompt({ onClose }: { onClose(): void }) {
-  const { settings, saveSettings } = useApp()
-  const [calories, setCalories] = useState(true)
-  const [water, setWater] = useState(true)
-  const [steps, setSteps] = useState(true)
-  const [macros, setMacros] = useState(true)
-  const [exercise, setExercise] = useState(settings.shareExercise)
+  const { saveSettings } = useApp()
+  const [calories, setCalories] = useState<ShareLevel>('percent')
+  const [water, setWater] = useState<ShareLevel>('percent')
+  const [steps, setSteps] = useState<ShareLevel>('percent')
+  const [macros, setMacros] = useState<ShareLevel>('percent')
+  const [workouts, setWorkouts] = useState<ShareLevel>('off')
 
   return (
     <Sheet title="What can they see?" onClose={onClose}>
       <div className="hint" style={{ padding: '0 4px 10px' }}>
-        Percentages only — how far through your own goals you are. Never the calories,
-        the litres or the step count themselves, and never your diary or weight.
+        Each of these has three settings: nothing, how far through the goal you are, or
+        the figure itself. Your diary, weight and everything else stay private whatever
+        you pick.
       </div>
       <div className="card" style={{ margin: 0 }}>
-        <Toggle label="Calorie progress" checked={calories} onChange={setCalories} />
-        <Toggle label="Water progress" checked={water} onChange={setWater} />
-        <Toggle label="Step progress" checked={steps} onChange={setSteps} />
-        <Toggle label="Macro progress" checked={macros} onChange={setMacros} />
-        <Toggle
-          label="Today's workouts"
-          sub="What you did and for how long. The one thing here that is not a percentage."
-          checked={exercise}
-          onChange={setExercise}
+        <SegmentedField<ShareLevel>
+          label="Calories"
+          value={calories}
+          options={FIGURE_LEVELS}
+          onChange={setCalories}
+        />
+        <SegmentedField<ShareLevel> label="Water" value={water} options={FIGURE_LEVELS} onChange={setWater} />
+        <SegmentedField<ShareLevel> label="Steps" value={steps} options={FIGURE_LEVELS} onChange={setSteps} />
+        <SegmentedField<ShareLevel>
+          label="Macros"
+          value={macros}
+          options={FIGURE_LEVELS}
+          onChange={setMacros}
+        />
+        <SegmentedField<ShareLevel>
+          label="Workouts"
+          sub="No percentage to give here, so the middle is the exercises alone and the last adds what they burned."
+          value={workouts}
+          options={WORKOUT_LEVELS}
+          onChange={setWorkouts}
         />
       </div>
       <div className="hint" style={{ padding: '10px 4px 0' }}>
@@ -109,11 +149,11 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
           style={{ width: '100%' }}
           onClick={() => {
             saveSettings({
-              shareCaloriePct: calories,
-              shareWaterPct: water,
-              shareStepPct: steps,
-              shareMacroPct: macros,
-              shareExercise: exercise,
+              shareCalories: calories,
+              shareWater: water,
+              shareSteps: steps,
+              shareMacros: macros,
+              shareWorkouts: workouts,
               sharingAsked: true,
             })
             onClose()
@@ -136,50 +176,87 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
  * whether to cheer someone on, and it never says what they ate, drank or weigh.
  */
 function GoalBars({ person }: { person: Person }) {
-  const bars: { label: string; pct: number; color: string }[] = []
-  if (person.caloriePct !== null) {
-    bars.push({ label: 'Calories', pct: person.caloriePct, color: 'var(--accent)' })
-  }
-  if (person.waterPct !== null) {
-    bars.push({ label: 'Water', pct: person.waterPct, color: 'var(--water)' })
-  }
-  if (person.stepPct !== null) {
-    bars.push({ label: 'Steps', pct: person.stepPct, color: 'var(--steps)' })
-  }
-  if (person.proteinPct !== null) {
-    bars.push({ label: 'Protein', pct: person.proteinPct, color: 'var(--protein)' })
-  }
-  if (person.carbsPct !== null) {
-    bars.push({ label: 'Carbs', pct: person.carbsPct, color: 'var(--carbs)' })
-  }
-  if (person.fatPct !== null) {
-    bars.push({ label: 'Fat', pct: person.fatPct, color: 'var(--fat)' })
-  }
-  if (!bars.length) return null
+  /* The bar is always the percentage — that is what a bar is for — and the
+     figure appears beside it only when they chose to publish one. An account
+     sharing exact numbers publishes the percentage too, so the row never has
+     to be drawn twice. */
+  const rows: { label: string; pct: number | null; detail: string | null; color: string }[] = [
+    {
+      label: 'Calories',
+      pct: person.caloriePct,
+      detail:
+        person.calories !== null && person.calorieGoal
+          ? `${person.calories.toLocaleString()} / ${person.calorieGoal.toLocaleString()} cal`
+          : null,
+      color: 'var(--accent)',
+    },
+    {
+      label: 'Water',
+      pct: person.waterPct,
+      detail:
+        person.waterMl !== null && person.waterGoalMl
+          ? `${(person.waterMl / 1000).toFixed(1)} / ${(person.waterGoalMl / 1000).toFixed(1)} L`
+          : null,
+      color: 'var(--water)',
+    },
+    {
+      label: 'Steps',
+      pct: person.stepPct,
+      detail:
+        person.steps !== null && person.stepGoal
+          ? `${person.steps.toLocaleString()} / ${person.stepGoal.toLocaleString()}`
+          : null,
+      color: 'var(--steps)',
+    },
+    {
+      label: 'Protein',
+      pct: person.proteinPct,
+      detail: person.proteinG !== null ? `${person.proteinG} g` : null,
+      color: 'var(--protein)',
+    },
+    {
+      label: 'Carbs',
+      pct: person.carbsPct,
+      detail: person.carbsG !== null ? `${person.carbsG} g` : null,
+      color: 'var(--carbs)',
+    },
+    {
+      label: 'Fat',
+      pct: person.fatPct,
+      detail: person.fatG !== null ? `${person.fatG} g` : null,
+      color: 'var(--fat)',
+    },
+  ].filter((r) => r.pct !== null || r.detail !== null)
+
+  if (!rows.length) return null
 
   return (
     <>
       <div className="section-label">Today, against their goals</div>
       <div className="card" style={{ padding: '12px 16px 14px' }}>
-        {bars.map((b) => (
+        {rows.map((b) => (
           <div key={b.label} style={{ marginBottom: 10 }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
+                gap: 10,
                 fontSize: 13.5,
                 marginBottom: 5,
               }}
             >
               <span style={{ color: 'var(--text-2)' }}>{b.label}</span>
               <span className="num" style={{ fontWeight: 700 }}>
-                {b.pct}%
+                {b.detail ?? `${b.pct}%`}
+                {b.detail && b.pct !== null && (
+                  <span style={{ color: 'var(--text-3)', fontWeight: 600 }}> · {b.pct}%</span>
+                )}
               </span>
             </div>
             <div className="progress" style={{ height: 8 }}>
               <div
                 className="progress__fill"
-                style={{ width: `${Math.min(100, b.pct)}%`, background: b.color }}
+                style={{ width: `${Math.min(100, b.pct ?? 0)}%`, background: b.color }}
               />
             </div>
           </div>
@@ -848,7 +925,14 @@ export function FriendProfile({ userId, username }: { userId: string; username: 
               <>
                 <div className="section-label">Today's workout</div>
                 <div className="card">
-                  <Row title={shown.exercise} sub="Shared by them" />
+                  <Row
+                    title={shown.exercise}
+                    sub={
+                      shown.exerciseCalories !== null
+                        ? `${shown.exerciseCalories.toLocaleString()} cal burned`
+                        : 'Shared by them'
+                    }
+                  />
                 </div>
               </>
             )}
@@ -913,11 +997,11 @@ export function FriendsSharing() {
 
   const [shareName, setShareName] = useState(settings.shareName)
   const [shareStreak, setShareStreak] = useState(settings.shareStreak)
-  const [shareCaloriePct, setShareCaloriePct] = useState(settings.shareCaloriePct)
-  const [shareWaterPct, setShareWaterPct] = useState(settings.shareWaterPct)
-  const [shareStepPct, setShareStepPct] = useState(settings.shareStepPct)
-  const [shareMacroPct, setShareMacroPct] = useState(settings.shareMacroPct)
-  const [shareExercise, setShareExercise] = useState(settings.shareExercise)
+  const [shareCalories, setShareCalories] = useState<ShareLevel>(settings.shareCalories)
+  const [shareWater, setShareWater] = useState<ShareLevel>(settings.shareWater)
+  const [shareSteps, setShareSteps] = useState<ShareLevel>(settings.shareSteps)
+  const [shareMacros, setShareMacros] = useState<ShareLevel>(settings.shareMacros)
+  const [shareWorkouts, setShareWorkouts] = useState<ShareLevel>(settings.shareWorkouts)
 
   /* Private lives on the server row rather than in settings: it is the one
      field the database itself reads, when it decides whether a new follow is
@@ -947,21 +1031,21 @@ export function FriendsSharing() {
   const dirty =
     shareName !== settings.shareName ||
     shareStreak !== settings.shareStreak ||
-    shareCaloriePct !== settings.shareCaloriePct ||
-    shareWaterPct !== settings.shareWaterPct ||
-    shareStepPct !== settings.shareStepPct ||
-    shareMacroPct !== settings.shareMacroPct ||
-    shareExercise !== settings.shareExercise ||
+    shareCalories !== settings.shareCalories ||
+    shareWater !== settings.shareWater ||
+    shareSteps !== settings.shareSteps ||
+    shareMacros !== settings.shareMacros ||
+    shareWorkouts !== settings.shareWorkouts ||
     (priv !== null && priv !== savedPriv)
 
   const sharesNothing =
     !shareName &&
     !shareStreak &&
-    !shareCaloriePct &&
-    !shareWaterPct &&
-    !shareStepPct &&
-    !shareMacroPct &&
-    !shareExercise
+    shareCalories === 'off' &&
+    shareWater === 'off' &&
+    shareSteps === 'off' &&
+    shareMacros === 'off' &&
+    shareWorkouts === 'off'
 
   return (
     <>
@@ -996,37 +1080,43 @@ export function FriendsSharing() {
             checked={shareStreak}
             onChange={setShareStreak}
           />
-          {/* Percentages, one goal at a time. Nothing here publishes a
-              figure: a follower sees 68%, never 1,300 calories. */}
-          <Toggle
+          {/* Three rungs each, not a switch. "Share my steps" means either the
+              percentage or the count, and both are things people want — so both
+              are offered, and neither is implied by the other. */}
+          <SegmentedField<ShareLevel>
             label="Calorie progress"
-            sub="How far through your calorie target you are, as a percentage."
-            checked={shareCaloriePct}
-            onChange={setShareCaloriePct}
+            sub="How far through your calorie target you are, or the number itself."
+            value={shareCalories}
+            options={FIGURE_LEVELS}
+            onChange={setShareCalories}
           />
-          <Toggle
+          <SegmentedField<ShareLevel>
             label="Water progress"
-            sub="Percentage of your daily water goal."
-            checked={shareWaterPct}
-            onChange={setShareWaterPct}
+            sub="Percentage of your water goal, or the amount you drank."
+            value={shareWater}
+            options={FIGURE_LEVELS}
+            onChange={setShareWater}
           />
-          <Toggle
+          <SegmentedField<ShareLevel>
             label="Step progress"
-            sub="Percentage of your daily step goal."
-            checked={shareStepPct}
-            onChange={setShareStepPct}
+            sub="Percentage of your step goal, or the step count."
+            value={shareSteps}
+            options={FIGURE_LEVELS}
+            onChange={setShareSteps}
           />
-          <Toggle
+          <SegmentedField<ShareLevel>
             label="Macro progress"
-            sub="Protein, carbs and fat, each as a percentage of target."
-            checked={shareMacroPct}
-            onChange={setShareMacroPct}
+            sub="Protein, carbs and fat as percentages of target, or in grams."
+            value={shareMacros}
+            options={FIGURE_LEVELS}
+            onChange={setShareMacros}
           />
-          <Toggle
+          <SegmentedField<ShareLevel>
             label="Today's workouts"
-            sub="The exercise you logged today, by name and length. The only line here that is not a percentage."
-            checked={shareExercise}
-            onChange={setShareExercise}
+            sub="No percentage applies here: the middle setting is the exercises you did, and the last adds the calories they burned."
+            value={shareWorkouts}
+            options={WORKOUT_LEVELS}
+            onChange={setShareWorkouts}
           />
         </div>
 
@@ -1049,11 +1139,11 @@ export function FriendsSharing() {
           saveSettings({
             shareName,
             shareStreak,
-            shareCaloriePct,
-            shareWaterPct,
-            shareStepPct,
-            shareMacroPct,
-            shareExercise,
+            shareCalories,
+            shareWater,
+            shareSteps,
+            shareMacros,
+            shareWorkouts,
           })
           /* The toggles reach the server through the store's publish, which
              re-runs on the settings change. Only the private flag is written

@@ -736,3 +736,48 @@ export function OverflowButton({ onClick }: { onClick(): void }) {
     </button>
   )
 }
+
+/**
+ * A row with a three-way choice on the right.
+ *
+ * Used for the sharing levels, where a switch cannot say what needs saying:
+ * "share my steps" means two different things — the percentage or the count —
+ * and both are reasonable. A segmented control puts the three answers side by
+ * side so the middle one is visibly a middle, rather than hiding two of them
+ * behind a menu.
+ */
+export function SegmentedField<T extends string>({
+  label,
+  sub,
+  value,
+  options,
+  onChange,
+}: {
+  label: ReactNode
+  sub?: ReactNode
+  value: T
+  options: { value: T; label: string }[]
+  onChange(v: T): void
+}) {
+  return (
+    <div className="segfield">
+      <div className="segfield__text">
+        <div className="segfield__label">{label}</div>
+        {sub && <div className="segfield__sub">{sub}</div>}
+      </div>
+      <div className="segmented" role="radiogroup" aria-label={typeof label === 'string' ? label : undefined}>
+        {options.map((o) => (
+          <button
+            key={o.value}
+            role="radio"
+            aria-checked={value === o.value}
+            className={`segmented__item ${value === o.value ? 'segmented__item--on' : ''}`}
+            onClick={() => onChange(o.value)}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
