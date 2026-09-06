@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import type { Food, Recipe } from '../types'
+import type { MealKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { Empty, Row, TopBar } from '../components/ui'
@@ -11,7 +12,7 @@ import { RateLimitedError, lookupBarcode, searchProducts } from '../services/ope
 
 type Tab = 'all' | 'favorites' | 'meals' | 'recipes' | 'myfoods'
 
-export function FoodSearch({ date }: { date: string }) {
+export function FoodSearch({ date, meal }: { date: string; meal?: MealKey }) {
   const app = useApp()
   const { settings, data, push, pop } = app
 
@@ -133,7 +134,7 @@ export function FoodSearch({ date }: { date: string }) {
   }
 
   function openFood(food: Food) {
-    push({ name: 'foodDetail', food, date })
+    push({ name: 'foodDetail', food, date, meal })
   }
 
   const showingSearch = query.trim().length > 0

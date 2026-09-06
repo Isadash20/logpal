@@ -8,7 +8,7 @@ import { emptyNutrients, scaleNutrients, sumNutrients } from '../lib/nutrition'
 import { uid } from '../lib/id'
 import { searchLocal } from '../services/foodSearch'
 import { loadFoodDb } from '../services/foodDb'
-import { parseSpokenFood } from './VoiceLog'
+import { parseSpokenFood } from '../lib/spokenFood'
 
 /** Portion words that scale the matched serving up or down. */
 const SIZE_WORDS: { re: RegExp; factor: number; label: string }[] = [

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { type Food } from '../types'
+import { MEAL_KEYS, PERIOD_LABELS, periodForDate, type Food, type MealKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { TopBar } from '../components/ui'
@@ -11,12 +11,14 @@ import { macroPercents, scaleNutrients } from '../lib/nutrition'
 export function FoodDetail({
   food,
   date,
+  meal: initialMeal,
   entryId,
   servings: initialServings,
   servingLabel,
 }: {
   food: Food
   date: string
+  meal?: MealKey
   entryId?: string
   servings?: number
   servingLabel?: string
@@ -29,6 +31,14 @@ export function FoodDetail({
     return i >= 0 ? i : 0
   })
   const [count, setCount] = useState(String(initialServings ?? 1))
+
+  /* The clock still guesses, but it only guesses. Editing an entry keeps the
+     meal it is already in; anything new opens on wherever it was started from,
+     or on the hour's best guess, and either can be changed before saving. */
+  const existing = entryId ? data.foodEntries.find((e) => e.id === entryId) : undefined
+  const [meal, setMeal] = useState<MealKey>(
+    existing?.meal ?? initialMeal ?? periodForDate(Date.now()),
+  )
 
   const serving = food.servings[servingIdx] ?? food.servings[0]
   const n = useMemo(() => {
@@ -45,6 +55,7 @@ export function FoodDetail({
     app.logFood({
       food,
       date,
+      meal,
       servings: qty,
       servingLabel: serving.label,
       nutrients: n,
@@ -146,6 +157,26 @@ export function FoodDetail({
         </div>
 
         <div className="card" style={{ marginBottom: 12 }}>
+          <label className="field">
+            <span className="field__label">Meal</span>
+            <span className="field__control">
+              <select
+                className="select"
+                value={meal}
+                onChange={(e) => setMeal(e.target.value as MealKey)}
+              >
+                {MEAL_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {PERIOD_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+                <Icon name="down" size={16} strokeWidth={2.4} />
+              </span>
+            </span>
+          </label>
+
           <label className="field">
             <span className="field__label">Serving Size</span>
             <span className="field__control">

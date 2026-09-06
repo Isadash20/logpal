@@ -178,7 +178,11 @@ export function Today() {
                 >
                   <Icon name="dots" size={18} />
                 </button>
-                <button className="logpill" onClick={() => push({ name: 'foodSearch', date })}>
+                {/* The row that was tapped is the meal it lands in. */}
+                <button
+                  className="logpill"
+                  onClick={() => push({ name: 'foodSearch', date, meal: period })}
+                >
                   Log
                 </button>
               </div>

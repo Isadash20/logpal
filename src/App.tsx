@@ -5,7 +5,6 @@ import { Sheet } from './components/ui'
 import { Today } from './screens/Today'
 import { Diary } from './screens/Diary'
 import { Plan } from './screens/Plan'
-import { VoiceLog } from './screens/VoiceLog'
 import { MealScan } from './screens/MealScan'
 import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
 import {
@@ -149,13 +148,14 @@ function Shell() {
         return <NutritionScreen date={route.date} />
 
       case 'foodSearch':
-        return <FoodSearch date={route.date} />
+        return <FoodSearch date={route.date} meal={route.meal} />
 
       case 'foodDetail':
         return (
           <FoodDetail
             food={route.food}
             date={route.date}
+            meal={route.meal}
             entryId={route.entryId}
             servings={route.servings}
             servingLabel={route.servingLabel}
@@ -166,16 +166,13 @@ function Shell() {
         return <CreateFood barcode={route.barcode} returnTo={route.returnTo} />
 
       case 'quickAdd':
-        return <QuickAdd date={route.date} />
+        return <QuickAdd date={route.date} meal={route.meal} />
 
       case 'scan':
         return <BarcodeScanner date={route.date} mode={route.mode} />
 
       case 'worthIt':
         return <WorthIt date={route.date} food={route.food} />
-
-      case 'voiceLog':
-        return <VoiceLog date={route.date} />
 
       case 'mealScan':
         return <MealScan date={route.date} />

@@ -85,8 +85,16 @@ function scaleNutrientsLocal(n: Nutrients, by: number): Nutrients {
  *
  * Returns how many lines were newly added, so the caller can say so.
  */
-function mergeIntoList(d: AppData, recipe: Recipe, scale: number): number {
-  const lines = recipe.ingredients ?? []
+function mergeIntoList(
+  d: AppData,
+  recipe: Recipe,
+  scale: number,
+  /* Which lines to take, verbatim. Absent means all of them, which is what
+     adding a whole recipe still does. */
+  only?: string[],
+): number {
+  const all = recipe.ingredients ?? []
+  const lines = only ? all.filter((l) => only.includes(l)) : all
   // The list is written in the reader's own units, like the recipe it came
   // from. A shopping list in cups for someone who buys in grams is a list
   // they have to convert in the aisle.
@@ -142,22 +150,24 @@ export type Route =
   | { name: 'tab'; tab: TabKey }
   | { name: 'diary' }
   | { name: 'nutrition'; date: string }
-  | { name: 'foodSearch'; date: string }
+  | { name: 'foodSearch'; date: string; meal?: MealKey }
   | {
       name: 'foodDetail'
       food: Food
       date: string
+      /* Which meal it lands in. Carried from wherever logging started, so
+         tapping Log on the Dinner row opens with Dinner already chosen. */
+      meal?: MealKey
       entryId?: string
       servings?: number
       servingLabel?: string
     }
   | { name: 'createFood'; barcode?: string; returnTo?: { date: string } }
-  | { name: 'quickAdd'; date: string }
+  | { name: 'quickAdd'; date: string; meal?: MealKey }
   /* `mode` decides where a scan lands: the diary, or the worth-it screen. The
      camera and the lookup are identical either way, so they are not duplicated. */
   | { name: 'scan'; date: string; mode?: 'log' | 'worth' }
   | { name: 'worthIt'; date: string; food?: Food }
-  | { name: 'voiceLog'; date: string }
   | { name: 'mealScan'; date: string }
   | { name: 'exerciseSearch'; date: string; kind: 'cardio' | 'strength' }
   | {
@@ -298,7 +308,7 @@ interface Ctx {
 
   // shopping
   /** Adds one recipe's ingredients, merging with what is already listed. */
-  addRecipeToShoppingList(recipeId: string, servings?: number): number
+  addRecipeToShoppingList(recipeId: string, servings?: number, only?: string[]): number
   /** Adds everything planned between two dates. */
   addPlanToShoppingList(from: string, to: string): number
   toggleShoppingItem(id: string): void
@@ -1142,12 +1152,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     /* ----------------------------------------------------------- shopping -- */
 
-    addRecipeToShoppingList: (recipeId, servings = 1) => {
+    addRecipeToShoppingList: (recipeId, servings = 1, only) => {
       let added = 0
       update((d) => {
         const recipe = findRecipe(d.recipes, recipeId)
         if (!recipe) return
-        added = mergeIntoList(d, recipe, servings)
+        added = mergeIntoList(d, recipe, servings, only)
       })
       return added
     },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Food } from '../types'
+import { MEAL_KEYS, PERIOD_LABELS, periodForDate, type Food, type MealKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon, type IconName } from '../components/Icon'
 import { Row, TopBar } from '../components/ui'
@@ -11,8 +11,9 @@ import { barcodeScanSupported, getBarcodeDetector, lookupBarcode } from '../serv
 
 /* ------------------------------------------------------------- quick add -- */
 
-export function QuickAdd({ date }: { date: string }) {
+export function QuickAdd({ date, meal: initialMeal }: { date: string; meal?: MealKey }) {
   const { pop, logFood } = useApp()
+  const [meal, setMeal] = useState<MealKey>(initialMeal ?? periodForDate(Date.now()))
   const [calories, setCalories] = useState('')
   const [carbs, setCarbs] = useState('')
   const [fat, setFat] = useState('')
@@ -35,7 +36,7 @@ export function QuickAdd({ date }: { date: string }) {
       servings: [{ label: 'entry', multiplier: 1 }],
       source: 'quick',
     }
-    logFood({ food, date, servings: 1, servingLabel: 'entry', nutrients: n })
+    logFood({ food, date, meal, servings: 1, servingLabel: 'entry', nutrients: n })
     pop()
   }
 
@@ -55,6 +56,25 @@ export function QuickAdd({ date }: { date: string }) {
           Log calories without picking a food. Macros are optional.
         </div>
         <div className="card">
+          <label className="field">
+            <span className="field__label">Meal</span>
+            <span className="field__control">
+              <select
+                className="select"
+                value={meal}
+                onChange={(e) => setMeal(e.target.value as MealKey)}
+              >
+                {MEAL_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {PERIOD_LABELS[k]}
+                  </option>
+                ))}
+              </select>
+              <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+                <Icon name="down" size={16} strokeWidth={2.4} />
+              </span>
+            </span>
+          </label>
           <label className="field">
             <span className="field__label">Calories</span>
             <span className="field__control">
@@ -484,12 +504,6 @@ export function AddSheetContent({
       label: 'Barcode scan',
       sub: 'Point at a package',
       onClick: go(() => push({ name: 'scan', date })),
-    },
-    {
-      icon: 'mic',
-      label: 'Voice log',
-      sub: 'Say what you ate',
-      onClick: go(() => push({ name: 'voiceLog', date })),
     },
     {
       icon: 'mealscan',

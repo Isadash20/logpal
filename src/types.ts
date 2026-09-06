@@ -16,9 +16,13 @@ export type MealKey = 'morning' | 'afternoon' | 'evening' | 'late'
 export const MEAL_KEYS: MealKey[] = ['morning', 'afternoon', 'evening', 'late']
 
 export const PERIOD_LABELS: Record<MealKey, string> = {
-  morning: 'Morning',
-  afternoon: 'Afternoon',
-  evening: 'Evening',
+  /* Named for the meal rather than the hour. The clock still supplies the
+     default when something is logged, but it is a suggestion now: the meal is
+     chosen on the way in, and "Morning" was a period while "Breakfast" is the
+     thing people are actually recording. */
+  morning: 'Breakfast',
+  afternoon: 'Lunch',
+  evening: 'Dinner',
   /* Named for what it is rather than when it is. The clock rule is unchanged,
      anything logged from 9pm lands here, but "Late" described the hour and
      "Snacks" describes the food, which is what people are looking for. */

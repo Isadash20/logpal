@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
@@ -370,7 +370,18 @@ function countFor(group: string, f: DraftFilters, options: readonly string[]): n
  * searches you ran before. Everything narrows the same list, and the list is
  * the user's own recipes and the shipped catalogue together.
  */
-export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
+export function PlanPane({
+  date,
+  slot,
+  aboveSearch,
+}: {
+  date?: string
+  slot?: MealSlot
+  /* Rendered above the search box, directly under the page title. The two
+     entries there are destinations rather than results, and burying them under
+     the filter chips made them look like part of the browsing. */
+  aboveSearch?: ReactNode
+}) {
   const { push, data, rememberSearch, forgetSearch, toggleRecipeBookmark } = useApp()
   const dbSize = useFoodDb()
 
@@ -581,6 +592,8 @@ export function PlanPane({ date, slot }: { date?: string; slot?: MealSlot }) {
 
   return (
     <>
+      {aboveSearch}
+
       <div className="searchbar">
         <div className="searchbar__box">
           <Icon name="search" size={17} />
@@ -1292,6 +1305,10 @@ export function RecipeView({
   const [servings, setServings] = useState(() => recipe?.servingsMade ?? 1)
   const [note, setNote] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
+  /* Which lines go on the list. Adding a recipe used to add all of it, which
+     is wrong most of the time: half the list is already in the cupboard, and
+     the half that is not is the reason for going. */
+  const [listPicker, setListPicker] = useState<Set<string> | null>(null)
 
   const resolved = useMemo(
     () =>
@@ -1550,8 +1567,14 @@ export function RecipeView({
               <button
                 className="btn btn--ghost"
                 onClick={() => {
-                  const n = addRecipeToShoppingList(recipe.id, scale)
-                  setNote(n ? `${n} added to your shopping list` : 'Already on your list')
+                  /* Anything already in the pantry starts unticked; the rest
+                     is ticked, so the common case is one tap. */
+                  const lines = recipe.ingredients ?? []
+                  const inPantry = (line: string) => {
+                    const name = parseIngredient(line).name.toLowerCase()
+                    return data.pantry.some((p) => name.includes(p))
+                  }
+                  setListPicker(new Set(lines.filter((l) => !inPantry(l))))
                 }}
               >
                 Add to shopping list
@@ -1644,6 +1667,64 @@ export function RecipeView({
           Log to diary
         </button>
       </div>
+
+      {listPicker && (
+        <div className="scrim" onClick={() => setListPicker(null)} role="presentation">
+          <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog">
+            <div className="sheet__grip" />
+            <div className="sheet__title">Add to your list</div>
+            <div style={{ maxHeight: '52vh', overflowY: 'auto' }}>
+              {(recipe.ingredients ?? []).map((line) => {
+                const on = listPicker.has(line)
+                return (
+                  <button
+                    key={line}
+                    className="row"
+                    onClick={() =>
+                      setListPicker((prev) => {
+                        const next = new Set(prev)
+                        if (on) next.delete(line)
+                        else next.add(line)
+                        return next
+                      })
+                    }
+                  >
+                    <span className={`tickbox ${on ? 'tickbox--on' : ''}`}>
+                      {on && <Icon name="check" size={13} strokeWidth={3} />}
+                    </span>
+                    <span className="row__main row__title" style={{ fontWeight: 500 }}>
+                      {line}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="fsheet__actions" style={{ padding: '12px 16px 6px', gap: 10 }}>
+              <button
+                className="btn btn--ghost"
+                onClick={() =>
+                  setListPicker((prev) =>
+                    prev && prev.size ? new Set() : new Set(recipe.ingredients ?? []),
+                  )
+                }
+              >
+                {listPicker.size ? 'Clear all' : 'Select all'}
+              </button>
+              <button
+                className="btn btn--primary"
+                disabled={!listPicker.size}
+                onClick={() => {
+                  const n = addRecipeToShoppingList(recipe.id, scale, [...listPicker])
+                  setListPicker(null)
+                  setNote(n ? `${n} added to your list` : 'Already on your list')
+                }}
+              >
+                Add {listPicker.size || ''}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {picking && (
         <div className="scrim" onClick={() => setPicking(false)} role="presentation">

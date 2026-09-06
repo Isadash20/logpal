@@ -2616,3 +2616,69 @@ button.row:active {
 @media (prefers-reduced-motion: reduce) {
   .confetti { display: none; }
 }
+
+/* A checkbox for list rows: the tick is the state, the box is the target. */
+.tickbox {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 6px;
+  border: 1.8px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  margin-right: 12px;
+  color: var(--on-accent);
+}
+
+.tickbox--on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ------------------------------------------------- recipe photograph -- */
+
+/* The photo on a recipe someone is writing. Same proportions as the cards on
+   Plan, so what they are making matches what they will see later. */
+.rphoto {
+  display: block;
+  width: 100%;
+  height: 190px;
+  background: var(--surface-3);
+  overflow: hidden;
+  position: relative;
+}
+
+.rphoto__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rphoto__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------- full sheet -- */
+
+/* A step that takes the whole screen instead of sliding up from the bottom.
+   Used where the job is searching: a field near the bottom of a phone, moving
+   as results arrive, is the thing this replaces. */
+.fullsheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+
