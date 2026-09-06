@@ -404,9 +404,27 @@ const SIZE_WORDS = new Set([
  * to contain that word is what stops "cinnamon" landing on a cinnamon bun and
  * "salt" on a chocolate sea salt bar.
  */
+/**
+ * Words that describe the cut or shape rather than the food.
+ *
+ * "Cod fillets" is cod; the database files it as "Fish, cod, Atlantic", with
+ * no fillet in the name. Taking the last word as the head sent that line to a
+ * vegetarian fillet, which shares the only word being matched on.
+ */
+const FORM_WORDS = new Set(
+  [
+    'fillet', 'fillets', 'filet', 'filets', 'breast', 'breasts', 'thigh', 'thighs',
+    'chop', 'chops', 'steak', 'steaks', 'loin', 'cutlet', 'cutlets', 'strip',
+    'strips', 'cube', 'cubes', 'piece', 'pieces', 'slice', 'slices', 'stick',
+    'sticks', 'half', 'halves', 'wedge', 'wedges', 'floret', 'florets',
+  ].map(stem),
+)
+
 function headNoun(name: string): string {
   const words = tokens(name).filter((w) => !STOP.has(w) && !SIZE_WORDS.has(w))
-  const last = words.length ? words[words.length - 1] : tokens(name).pop()
+  const meaningful = words.filter((w) => !FORM_WORDS.has(stem(w)))
+  const pool = meaningful.length ? meaningful : words
+  const last = pool.length ? pool[pool.length - 1] : tokens(name).pop()
   return last ? stem(last) : ''
 }
 
@@ -441,6 +459,11 @@ const DERIVED = new Set([
   'bars', 'cookie', 'cookies', 'cake', 'bread', 'candy', 'snack', 'drink',
   'soda', 'dressing', 'spread', 'jam', 'jelly', 'pie', 'roll', 'bun',
   'cracker', 'crackers', 'chocolate', 'ice',
+  /* A dish built around the ingredient is not the ingredient: "low sodium
+     black beans" matched a brand of rice-and-beans, and priced a tin of beans
+     as a prepared meal. */
+  'rice', 'pasta', 'noodle', 'noodles', 'soup', 'salad', 'pizza', 'burrito',
+  'sandwich', 'wrap', 'casserole', 'stew', 'curry', 'dinner', 'entree',
 ].map(stem))
 
 /**
@@ -526,6 +549,10 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
   const asked = new Set(words.map(stem))
   const seen = new Set<string>()
 
+  /* The best of the loose matches, kept in case no rung produces a close one. */
+  let fallback: Food | null = null
+  let fallbackExtra = Infinity
+
   for (const attempt of attempts) {
     const q = attempt.trim()
     if (!q || seen.has(q)) continue
@@ -544,17 +571,39 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
       for (const w of foodWords) if (!asked.has(w) && !STOP.has(w)) extra++
       /* Ties go to the earlier candidate, which is the one the ranked search
          already preferred. This reorders within the shortlist, it does not
-         replace the ranking. */
-      if (extra < bestExtra) {
-        bestExtra = extra
+         replace the ranking.
+
+         A reference food breaks a near-tie in its own favour: "low sodium
+         black beans" matched a brand of rice-and-beans over the plain tin,
+         and someone writing a recipe means the ingredient. */
+      /* A food whose own name opens with the thing being asked for is that
+         thing: "Salt, table" against "Taro, cooked, with salt", which carries
+         the same word and is a vegetable. */
+      const leads = stem(tokens(food.name)[0] ?? '') === head
+      const bestLeads = best ? stem(tokens(best.name)[0] ?? '') === head : false
+      const better =
+        extra < bestExtra ||
+        (extra <= bestExtra + 1 && leads && !bestLeads) ||
+        (extra <= bestExtra + 1 && food.generic === true && best?.generic !== true)
+      if (better) {
+        bestExtra = Math.min(extra, bestExtra)
         best = food
       }
     }
 
-    if (best) return best
+    /* A rung only answers if its answer is close. "8 large strawberries"
+       matched a branded cereal with "Large" in its name: the phrase was found,
+       so the plainer rungs were never tried. Three or more words nobody asked
+       for is a different food that happens to share a noun, and the next rung
+       deserves a look. */
+    if (best && bestExtra <= 2) return best
+    if (best && bestExtra < fallbackExtra) {
+      fallback = best
+      fallbackExtra = bestExtra
+    }
   }
 
-  return null
+  return fallback
 }
 
 /**
@@ -573,6 +622,24 @@ export function matchIngredient(rawName: string, search: (q: string) => Food[]):
  * both used to win the label match, and both are how five ounces of tuna came
  * out at 85 calories and a tin of coconut milk at eleven.
  */
+/**
+ * Serving labels that describe one of the thing rather than a measure of it.
+ *
+ * Deliberately a list of shapes rather than of foods: "1 medium", "1 cracker",
+ * "1 slice" all mean one, while "1 cup" and "1 oz" mean an amount that has to
+ * be counted out.
+ */
+const WHOLE_ITEM =
+  /^1\s+(each|whole|item|medium|small|large|extra large|jumbo|fruit|egg|cracker|cookie|bar|stick|link|patty|fillet|filet|breast|thigh|wing|leg|clove|stalk|ear|head|bunch|sprig|scoop|packet|bag|bottle|can|container|pod)\b/i
+
+/**
+ * Parts of one, which only answer when nothing whole does.
+ *
+ * A kiwi has both "1 medium" and "1 slice" on it, and taking the first match
+ * priced a whole kiwi as one slice: four calories.
+ */
+const PART_ITEM = /^1\s+(piece|slice|leaf|section|wedge|half)\b/i
+
 /** A US tin, when the label does not say. */
 const TIN_G = 425
 
@@ -661,9 +728,30 @@ function servingFor(
    * match happened to be is how a can of pumpkin became fifteen ounces of
    * pumpkin seeds. An undercount you can see beats an overcount you cannot. */
 
-  // No unit at all, "2 eggs", "1 avocado". The food's own first serving is
-  // exactly the right notion of "one of them".
-  if (!parsed.unit) return { serving: servings[0], servings: qty }
+  /* No unit at all: "2 eggs", "1 avocado", "1 graham cracker".
+   *
+   * The first serving is usually the right notion of "one of them", but not
+   * always: graham crackers lead with "1 cup, crushed", so one cracker was
+   * priced as a cupful, 366 calories. A label that names a single item wins
+   * when the food has one. */
+  if (!parsed.unit) {
+    /* Best of all is a serving named after the food: "1 banana" on a banana,
+       which beat nothing before and left one banana priced as one slice. */
+    const own = tokens(parsed.name).map(stem)
+    const named = servings.find((s) => {
+      const m = s.label.match(/^1\s+([A-Za-z]+)\b/)
+      return m ? own.includes(stem(m[1])) : false
+    })
+    const single =
+      named ??
+      servings.find((s) => WHOLE_ITEM.test(s.label)) ??
+      servings.find((s) => PART_ITEM.test(s.label))
+    if (single) {
+      const per = readQuantity(single.label)?.qty ?? 1
+      return { serving: single, servings: qty / per }
+    }
+    return { serving: servings[0], servings: qty }
+  }
 
   return null
 }
