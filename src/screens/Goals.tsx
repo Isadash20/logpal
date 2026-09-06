@@ -12,6 +12,7 @@ import {
   KCAL_PER_LB,
   proteinTarget,
   weeksToGoal,
+  calorieMinimum,
 } from '../lib/nutrition'
 import { cal, weight as fmtWeight } from '../lib/format'
 import { displayToLb, formatHeight, lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
@@ -230,11 +231,10 @@ export function Goals() {
           <Row title="Daily target" value={cal(plan.calories)} />
         </div>
 
-        {plan.flooredCalories && (
+        {plan.belowMinimum && (
           <div className="hint" style={{ color: 'var(--warning)', fontWeight: 600 }}>
-            Your pace would drop below the minimum this app recommends, so the target was
-            raised to {cal(plan.calories)}. A slower pace is easier to sustain, worth
-            running past a clinician first.
+            This target is under {cal(calorieMinimum(profile))} calories a day, which is not
+            a pace we would recommend.
           </div>
         )}
 

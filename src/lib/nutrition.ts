@@ -117,17 +117,26 @@ export function tdee(profile: Profile, age: number): number {
   return base * ACTIVITY_FACTORS[profile.activityLevel]
 }
 
+/** The point below which a target is flagged: 1,200 for women, 1,500 for men. */
+export function calorieMinimum(profile: Profile): number {
+  return profile.sex === 'male' ? 1500 : 1200
+}
+
 /**
- * Daily calorie goal = maintenance − the deficit implied by the weekly goal,
- * floored at the safety minimum (1200 for women, 1500 for men) exactly as
- * consumer trackers do.
+ * Daily calorie goal = maintenance − the deficit implied by the weekly goal.
+ *
+ * The figure is no longer raised to the safety minimum. Overriding someone's
+ * stated pace and then telling them it had been overridden is the worst of
+ * both: they did not get the plan they asked for, and the number on screen was
+ * not the one their choice produces. The minimum is still a real line, so
+ * `resolvePlan` reports when a target falls under it and the screens say so
+ * plainly. The choice stays theirs.
  */
 export function calorieGoal(profile: Profile, age: number): number {
   if (profile.planMode === 'custom') return profile.customPlan.calories
   const maintenance = tdee(profile, age)
   const dailyDelta = (profile.goal.rate * KCAL_PER_LB) / 7
-  const floor = profile.sex === 'male' ? 1500 : 1200
-  return Math.max(floor, Math.round(maintenance + dailyDelta))
+  return Math.max(600, Math.round(maintenance + dailyDelta))
 }
 
 export const WEEKLY_GOAL_OPTIONS: { value: WeeklyGoal; label: string }[] = [
@@ -386,8 +395,8 @@ export interface ResolvedPlan {
   waterMl: number
   maintenance: number
   bmr: number
-  /** True when the goal was clamped by the safety floor. */
-  flooredCalories: boolean
+  /** True when the target sits under the recommended minimum for this person. */
+  belowMinimum: boolean
 }
 
 /**
@@ -419,14 +428,14 @@ export function resolvePlan(
       waterMl: c.waterMl,
       maintenance,
       bmr: base,
-      flooredCalories: false,
+      belowMinimum: false,
     }
   }
 
   const dailyDelta = (profile.goal.rate * KCAL_PER_LB) / 7
-  const floor = profile.sex === 'male' ? 1500 : 1200
-  const raw = Math.round(maintenance + dailyDelta)
-  const calories = Math.max(floor, raw)
+  /* The pace someone chose is the pace they get. Below the recommended
+     minimum the plan says so; it does not quietly move the number. */
+  const calories = Math.max(600, Math.round(maintenance + dailyDelta))
 
   // Protein is anchored to lean mass first, then fat takes its goal-dependent
   // share, and carbs get whatever is left. Protein is capped at half of
@@ -463,7 +472,7 @@ export function resolvePlan(
       }),
     maintenance,
     bmr: base,
-    flooredCalories: raw < floor,
+    belowMinimum: calories < calorieMinimum(profile),
   }
 }
 

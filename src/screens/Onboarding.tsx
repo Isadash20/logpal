@@ -12,6 +12,7 @@ import {
   age as ageOf,
   resolvePlan,
   weeksToGoal,
+  calorieMinimum,
 } from '../lib/nutrition'
 import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY, recommendFast } from '../lib/fasting'
@@ -553,11 +554,10 @@ export function Onboarding() {
               </div>
             )}
 
-            {plan.flooredCalories && (
+            {plan.belowMinimum && (
               <div className="hint" style={{ color: 'var(--warning)', fontWeight: 600 }}>
-                That pace would put you below the minimum this app will recommend, so your
-                goal has been raised to {cal(plan.calories)}. Consider a slower pace, or
-                speak to a clinician.
+                This pace puts you under {cal(calorieMinimum(draft))} calories a day,
+                which is not a pace we would recommend.
               </div>
             )}
 
