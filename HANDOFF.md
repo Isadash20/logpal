@@ -1,7 +1,7 @@
 # LogPal — handoff
 
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
-current as of **2026-08-14**, commit `ac7c271` on `main`, 42 commits, deployed.
+current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
 **Two large features landed after the original text below was written**, and
 they are documented in §14 and §15 at the end rather than woven through:
@@ -148,9 +148,11 @@ without the prefix belongs to this app.
 
 ## 3. Current state
 
-**Everything is pushed and deployed.** 60 commits, working tree clean, HEAD is
-`66b8392`, and production is confirmed running it. 60 TypeScript files in
-`src/`, plus 40 MB of food database and 1.4 MB of recipes in `public/`.
+**Everything is pushed and deployed.** 68 commits, working tree clean, HEAD is
+`66e0323`, and production is confirmed running it — the live bundle was grepped
+for the sha, not inferred from the dashboard. 98 tests pass across 8 files.
+84 TypeScript files in `src/`, plus 40 MB of food database and 1.4 MB of
+recipes in `public/`.
 
 Verify what production is actually running — do not infer it from behaviour:
 
@@ -453,20 +455,29 @@ any more; see §8.
 **Nutrition screen** — Calories (donut by period), Nutrients (Total/Goal/Left
 across 17 nutrients), Macros.
 
-**Four ways to log**, from the `+` FAB:
+**Three ways to log**, from the `+` FAB:
 
 1. **Barcode scan** — live camera decode via **ZXing**. Not `BarcodeDetector`:
    that API is Chromium-only, so on Safari and Firefox the camera opened and
    silently never decoded. This was a reported bug and this is the fix.
    Successful scans are saved to the device and become searchable offline.
-2. **Voice log** — Web Speech API. Parses "two eggs and a cup of oatmeal" into
-   quantity + food pairs, matches against the database, shows everything for
-   review before logging. Typed fallback where speech is unavailable.
-3. **Meal scan** — photo, then a written description, then an estimate.
+2. **Meal scan** — photo, then a written description, then an estimate.
    **There is no vision model connected.** The estimate comes from the
    description, not the image, and the screen says so. Size words (*large*,
    *small*) scale portions. Wiring a real recogniser needs an API key.
-4. **Quick add** — calories, optionally macros.
+3. **Quick add** — calories, optionally macros.
+
+There were four. **Voice logging was removed 2026-09-06** — Web Speech got the
+sentence wrong often enough that reviewing its guess cost more than typing the
+food. Its parser survives as `lib/spokenFood.ts`, because the description
+someone types under a meal-scan photograph is the same shape of sentence.
+
+**The meal is chosen on the way in.** Tapping Log on the Dinner row opens on
+Dinner; food detail and quick add both carry a meal picker, and editing an
+entry keeps the meal it is already in. The clock still supplies the default,
+but it is a suggestion rather than a verdict — before this, correcting the
+period meant deleting the entry and logging it again at the right hour.
+Periods are named for the meal now: Breakfast, Lunch, Dinner, Snacks.
 
 **Intermittent fasting** — seven protocols (12:12 → OMAD → custom), live ring
 timer that counts past target, eating-window schedule, streak / longest /
@@ -494,8 +505,16 @@ women: 10·kg + 6.25·cm − 5·age − 161
 
 Activity multipliers `1.2 / 1.375 / 1.55 / 1.725` cover **everyday movement
 only** — logged workouts are added back to the day, which is why they're lower
-than an all-in TDEE figure. Weekly goal applied at 3,500 kcal/lb. Floored at
-1,500 (men) / 1,200 (women), with a visible warning when the floor bites.
+than an all-in TDEE figure. Weekly goal applied at 3,500 kcal/lb.
+
+**The minimum is reported, not enforced** (changed 2026-09-06). `resolvePlan`
+used to raise a target up to 1,500 (men) / 1,200 (women) and then say it had
+done so, which is the worst of both — the person did not get the pace they
+chose, and the number on screen was not the one their choice produces. It now
+returns what the pace gives, floored only at 600 so the arithmetic cannot go
+absurd, and sets `belowMinimum` (was `flooredCalories`) when it lands under the
+recommended line. Goals and Onboarding name the figure and say the target is
+under it. `calorieMinimum(profile)` is the one place that number lives.
 
 **Protein is anchored to lean mass, not body weight** — scaling to total weight
 over-prescribes for heavier bodies. Lean mass comes from the self-reported body
@@ -618,6 +637,7 @@ src/
     recipeTags.ts           computed meal/diet/nutrition/cuisine tags
     stepDetail.ts           per-step ingredient, equipment and appliance chips
     ingredients.ts          quantity/unit/name parser
+    spokenFood.ts           sentence -> quantity + food pairs (meal scan)
     dates.ts units.ts format.ts id.ts
   data/
     authoredRecipes.ts      153 recipes written for LogPal, nutrition stated
