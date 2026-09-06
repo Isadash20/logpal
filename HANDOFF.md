@@ -126,10 +126,16 @@ The consent screen is in **Testing** mode, so only Google accounts listed under
 Test users can sign in; everyone else gets `403: access_denied` on Google's own
 page before ever reaching the app. Switch to In production before sharing.
 
-Note that database also holds `habits`, `trackers`, `schedules`, `mental` from
-an abandoned Daily Planner setup. Unrelated and harmless — everything here is
-prefixed `logpal_` — but it is not a clean database, so do not assume a table
-without the prefix belongs to this app.
+This database used to hold seven unprefixed tables — `habits`, `habit_checks`,
+`trackers`, `journals`, `profiles`, `schedules`, `mental` — four from an
+abandoned Daily Planner setup and three from the `cloud-sync.sql` mis-run
+described in that project's own notes. **Dropped 2026-09-06**, after checking
+that nothing here reads them: every table this app touches is prefixed
+`logpal_`. Verified from outside afterwards, all seven 404 while the
+`logpal_*` tables still answer 200.
+
+Keep the prefix rule. It is the only thing that made the cleanup safe, since
+the names collide exactly with a live schema in the other project.
 
 ### Supabase setup, from scratch
 
