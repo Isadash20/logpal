@@ -5,21 +5,22 @@
  * carry yellow and make the whole app read cheap.
  *
  * The accent was #0066EE, sampled from MyFitnessPal, and that one value was
- * most of why this app looked like theirs. It is indigo now, and the neutrals
- * carry a matching violet bias rather than a blue one, so the wash and the
- * accent belong to each other instead of merely coexisting.
+ * most of why this app looked like theirs. It is blue violet now, picked on a
+ * real board rather than from a swatch, and the neutrals carry a matching
+ * violet bias rather than a blue one so the wash and the accent belong to each
+ * other instead of merely coexisting.
  */
 
 :root {
   /* Brand */
-  --accent: #4f46e5;
-  --accent-press: #4338ca;
-  --accent-soft: #eeebfb;
-  --accent-ring: rgba(79, 70, 229, 0.18);
+  --accent: #5b5bd6;
+  --accent-press: #4a4ab8;
+  --accent-soft: #ececfc;
+  --accent-ring: rgba(91, 91, 214, 0.18);
 
   /* Chrome. The near-black that carries the premium feel */
-  --ink: #1a1730;
-  --ink-2: #2a2545;
+  --ink: #1a1a36;
+  --ink-2: #292950;
   --on-ink: #ffffff;
   --on-ink-2: #9aa3b2;
 
@@ -90,10 +91,12 @@
 }
 
 :root[data-theme='dark'] {
-  --accent: #8b83ff;
-  --accent-press: #a49dff;
-  --accent-soft: #1e1b3a;
-  --accent-ring: rgba(139, 131, 255, 0.22);
+  /* Lifted for a dark background, the same way the macros are: the daylight
+     accent reads as navy once the wash behind it is black. */
+  --accent: #9292ff;
+  --accent-press: #a8a8ff;
+  --accent-soft: #1d1d3c;
+  --accent-ring: rgba(146, 146, 255, 0.22);
 
   --ink: #0b0a17;
   --ink-2: #171528;
