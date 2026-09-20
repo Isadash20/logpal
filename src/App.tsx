@@ -40,6 +40,7 @@ import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
+import { ShadeLab, shadeLabOpen } from './components/ShadeLab'
 
 type TabDef = { key: TabKey; label: string; icon: IconName }
 
@@ -129,6 +130,9 @@ function Shell() {
           ))}
         </nav>
       </div>
+
+      {/* Palette bench, at ?shades=1 only. */}
+      {shadeLabOpen() && <ShadeLab />}
 
       {addOpen && (
         <Sheet onClose={() => setAddOpen(false)}>
