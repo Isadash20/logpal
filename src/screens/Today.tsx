@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { MEAL_KEYS, PERIOD_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { TopBar } from '../components/ui'
 import { WeekStrip } from '../components/charts'
 import { WidgetGrid } from '../components/WidgetGrid'
 import { Confetti, celebratedToday, markCelebrated } from '../components/Confetti'
@@ -79,54 +78,116 @@ export function Today() {
      coming back to Home in edit mode would be a small trap. */
   const [editing, setEditing] = useState(false)
 
+  /* The masthead gets out of the way on the way down and comes back on the way
+     up, the way a phone's own chrome does. It is the largest thing on the
+     screen and the least useful once you are reading the board, but it also
+     holds Your plan and Settings, so it cannot simply be scrolled off and
+     left there: any upward flick brings it back. */
+  const headRef = useRef<HTMLDivElement>(null)
+  const [headHeight, setHeadHeight] = useState(0)
+  const [headHidden, setHeadHidden] = useState(false)
+  const lastY = useRef(0)
+
+  useLayoutEffect(() => {
+    const el = headRef.current
+    if (!el) return
+    const measure = () => setHeadHeight(el.offsetHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const onBoardScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const y = e.currentTarget.scrollTop
+    const dy = y - lastY.current
+    lastY.current = y
+    /* Back at the top it is always shown, whatever the gesture was doing:
+       arriving at the top of the day with no date on screen reads as a bug. */
+    if (y <= 8) setHeadHidden(false)
+    else if (dy > 6) setHeadHidden(true)
+    else if (dy < -6) setHeadHidden(false)
+  }
+
+  /* The eyebrow above already carries the full date, so the title must not
+     repeat it. It names the day in relation to now instead, which is the thing
+     the date itself cannot tell you at a glance. */
+  const relative =
+    date === today()
+      ? 'Today'
+      : date === addDays(today(), -1)
+        ? 'Yesterday'
+        : date === addDays(today(), 1)
+          ? 'Tomorrow'
+          : null
+
+  /* Weekday for the title, month and day for the eyebrow. Splitting them this
+     way is why the pair never says the same word twice: on a relative day the
+     eyebrow carries the whole date, and on any other day the title has already
+     said "Thursday", so the eyebrow drops it. */
+  const [weekday, monthDay] = longDate(date).split(', ')
+  const dayTitle = relative ?? weekday
+  const dayEyebrow = relative ? `${weekday}, ${monthDay}` : monthDay
+
   return (
     <>
       {celebrating && <Confetti onDone={() => setCelebrating(false)} />}
 
-      <TopBar
-        right={
-          <>
-            {/* Sits beside Your plan rather than inside Settings: rearranging
-                the board is something you do while looking at it. */}
-            <button
-              className="textbtn"
-              style={{ padding: '0 4px', fontSize: 13.5 }}
-              onClick={() => setEditing((v) => !v)}
-            >
-              {editing ? 'Done' : 'Edit widgets'}
-            </button>
-            <button
-              className="goldpill"
-              onClick={() => push({ name: 'goals' })}
-              aria-label="Your plan"
-            >
-              Your plan
-            </button>
-            <button className="iconbtn" onClick={() => setTab('more')} aria-label="Settings">
-              <Icon name="settings" size={21} />
-            </button>
-          </>
-        }
-      />
+      {/* One masthead rather than four things floating on the wash: the date,
+          the day, the streak, the two actions and the week are all the same
+          subject, so they are one panel. */}
+      <div
+        ref={headRef}
+        className={`dayhead ${headHidden ? 'dayhead--hidden' : ''}`}
+        style={{ marginTop: headHidden ? -headHeight : 0 }}
+      >
+        <div className="dayhead__top">
+          <div className="dayhead__date">{dayEyebrow}</div>
+          <button
+            className="goldpill"
+            onClick={() => push({ name: 'goals' })}
+            aria-label="Your plan"
+          >
+            Your plan
+          </button>
+          <button
+            className="dayhead__icon"
+            onClick={() => setTab('more')}
+            aria-label="Settings"
+          >
+            <Icon name="settings" size={19} />
+          </button>
+        </div>
 
-      <div className="scroll">
-        <div className="pagetitle">
-          {date === today() ? 'Today' : longDate(date)}
+        <div className="dayhead__row">
+          <div className="dayhead__title">{dayTitle}</div>
           {/* Only from one day. A streak of zero is not worth a badge, and
               showing "0" on day one is discouraging rather than motivating. */}
           {logStreak > 0 && (
-            <span className="streak" title={`${logStreak} days logged in a row`}>
+            <span className="dayhead__streak" title={`${logStreak} days logged in a row`}>
               <Icon name="flame" size={14} />
               <span className="num">{logStreak}</span>
-              <span className="streak__unit">
+              <span className="dayhead__streak-unit">
                 {logStreak === 1 ? 'day' : 'days'}
               </span>
             </span>
           )}
         </div>
 
-        <div style={{ padding: '0 12px 16px' }}>
+        <div className="dayhead__week">
           <WeekStrip days={week} onPick={setDate} />
+        </div>
+      </div>
+
+      <div className="scroll homeboard" onScroll={onBoardScroll}>
+        <div className="boardbar">
+          <button
+            className="textbtn"
+            style={{ padding: '0 4px', fontSize: 13.5 }}
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? 'Done' : 'Edit widgets'}
+          </button>
         </div>
 
         {/* --------------------------------------------------------- board -- */}

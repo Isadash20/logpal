@@ -63,6 +63,10 @@ h4 {
   background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 240px);
   position: relative;
   box-shadow: 0 0 0 1px var(--border);
+  /* Keeps the masthead inside the frame while it slides away. Fixed children
+     such as the nav dock and the sheets are unaffected: only a transform on an
+     ancestor would trap those, and there is none here. */
+  overflow: hidden;
 }
 
 .topbar {
@@ -202,12 +206,14 @@ h4 {
   background: var(--surface);
 }
 
-/* Floating pill nav with the add button riding beside it, not inside it. */
+/* Floating pill nav with the add button in the middle of it. It used to ride
+   alongside as a separate circle; centring it puts the one thing the app is
+   for in the place a thumb reaches without moving, and stops the six tabs
+   being squeezed into whatever width the circle left behind. */
 .navdock {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 10px;
   padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
   z-index: 20;
   background: linear-gradient(180deg, transparent, var(--bg) 55%);
@@ -217,10 +223,12 @@ h4 {
   flex: 1;
   min-width: 0;
   display: grid;
-  /* Five tabs since Friends became one of them. Named explicitly rather than
-     auto-fit so the columns stay equal. An auto grid gave "Progress" more
-     room than "Plan" and the icons stopped lining up. */
-  grid-template-columns: repeat(6, 1fr);
+  /* Three tabs, the button, three tabs. Named explicitly rather than auto-fit
+     so the columns stay equal — an auto grid gave "Progress" more room than
+     "Plan" and the icons stopped lining up. The middle column is sized by the
+     button itself, so the halves stay symmetrical whatever it measures. */
+  grid-template-columns: repeat(3, 1fr) auto repeat(3, 1fr);
+  align-items: center;
   background: var(--surface);
   border-radius: var(--r-full);
   padding: 7px 4px;
@@ -255,9 +263,14 @@ h4 {
   background: var(--surface-3);
 }
 
+/* Sized to clear the pill's own height rather than to sit inside it, and
+   lifted just enough to read as the primary action. Kept at 48px because that
+   is the floor for a comfortable tap target; the lift is small so the button
+   never breaks the pill's silhouette the way a half-overlapping circle does. */
 .fab {
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
+  margin: -7px 6px;
   flex: none;
   border-radius: var(--r-full);
   background: var(--accent);
@@ -2682,3 +2695,148 @@ button.row:active {
 }
 
 
+
+/* ------------------------------------------------------------- day head -- */
+
+/* Home's masthead. Everything that used to float loose above the board -- a
+   transparent top bar, the page title, the streak chip, the week strip -- is
+   one panel now. Loose elements on a wash read as an app that has not decided
+   where its header is; a panel with an edge reads as a header.
+   
+   It is also where the accent gets to be itself at full strength. Everywhere
+   else the indigo is a detail on white; here it is the ground, which is the
+   single loudest thing in the app and the reason the rest can stay quiet. */
+.dayhead {
+  flex: none;
+  position: relative;
+  padding: calc(14px + env(safe-area-inset-top)) 18px 0;
+  background:
+    radial-gradient(120% 100% at 88% 0%, var(--accent-press) 0%, transparent 62%),
+    linear-gradient(168deg, var(--accent) 0%, var(--ink) 165%);
+  border-radius: 0 0 28px 28px;
+  color: #fff;
+  /* The week capsule below hangs past this edge; the board's own top padding
+     makes up the difference. */
+  margin-bottom: 0;
+  /* Slid up rather than collapsed: the week capsule overhangs the bottom edge,
+     so anything that clips this panel clips that too. */
+  transition: margin-top 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  z-index: 2;
+}
+
+.dayhead--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dayhead { transition: none; }
+}
+
+.dayhead__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+}
+
+/* The full date, small. The big title says "Today", which is a relationship
+   rather than a date -- on any other day it is the only thing naming which. */
+.dayhead__date {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.68);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dayhead__icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dayhead__icon:active {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.dayhead__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 16px;
+}
+
+.dayhead__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 33px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* Gold on indigo, rather than gold on a wash. Same pill, and it finally has a
+   ground worth sitting on. */
+.dayhead .goldpill {
+  box-shadow: 0 2px 10px rgba(20, 16, 50, 0.28);
+}
+
+/* The streak, restated for the dark ground: the gold-tinted version is
+   invisible here, and a flame does not need a colour to read as a streak. */
+.dayhead__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.dayhead__streak .num { font-variant-numeric: tabular-nums; }
+
+.dayhead__streak-unit {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* The week sits in its own white capsule straddling the panel's bottom edge.
+   Straddling rather than sitting inside: it belongs to both halves, since it
+   is the header's last line and the board's date control at once. It also
+   keeps the strip on white, so its own colours need no dark-ground variant. */
+.dayhead__week {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 10px 8px 8px;
+  margin: 0 -4px;
+  transform: translateY(19px);
+  box-shadow: var(--shadow-2);
+}
+
+/* Clears the overhang. Without it the first widget sits under the capsule. */
+.homeboard {
+  padding-top: 30px;
+}
+
+/* Arranging the board is a thing you do to the board, so its control lives
+   with it rather than in the masthead among the day's own information. */
+.boardbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 18px 2px;
+}

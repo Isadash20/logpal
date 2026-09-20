@@ -1,21 +1,25 @@
 /*
  * Design tokens.
  *
- * Neutrals are deliberately COOL (blue-biased): #F6F6F8, #EBEBF0, #6C6C70.
- * Warm-tinted greys (bone, ivory, greige) carry yellow and make the whole app
- * read cheap. Every neutral here is sampled from the category leader.
+ * Neutrals are deliberately COOL. Warm-tinted greys (bone, ivory, greige)
+ * carry yellow and make the whole app read cheap.
+ *
+ * The accent was #0066EE, sampled from MyFitnessPal, and that one value was
+ * most of why this app looked like theirs. It is indigo now, and the neutrals
+ * carry a matching violet bias rather than a blue one, so the wash and the
+ * accent belong to each other instead of merely coexisting.
  */
 
 :root {
   /* Brand */
-  --accent: #0066ee;
-  --accent-press: #0052be;
-  --accent-soft: #e8f1fe;
-  --accent-ring: rgba(0, 102, 238, 0.16);
+  --accent: #4f46e5;
+  --accent-press: #4338ca;
+  --accent-soft: #eeebfb;
+  --accent-ring: rgba(79, 70, 229, 0.18);
 
   /* Chrome. The near-black that carries the premium feel */
-  --ink: #151824;
-  --ink-2: #262b3d;
+  --ink: #1a1730;
+  --ink-2: #2a2545;
   --on-ink: #ffffff;
   --on-ink-2: #9aa3b2;
 
@@ -24,15 +28,16 @@
      but then they differ by lightness alone, which is unreadable on an 8px
      bar. Blue-against-amber is also the one contrast that survives red-green
      colourblindness. */
-  --carbs: #38bdf8;
-  --fat: #1e40af;
+  --carbs: #8b9bff;
+  --fat: #312e81;
   --protein: #f59e0b;
   /* Water sits deeper than carbs so the two never read as the same blue. */
   --water: #0891b2;
-  /* Sleep is the one colour allowed to leave the blue family, because it is
-     the only tile that is about the night; steps stay in it, since walking
-     sits beside water as an all-day count. */
-  --sleep: #6d5ae0;
+  /* Sleep is the one colour allowed to leave the accent's family, because it
+     is the only tile that is about the night; steps stay near water, since
+     walking sits beside it as an all-day count. Sleep used to be indigo, which
+     is now the accent, so it has moved on to violet to stay its own thing. */
+  --sleep: #a855f7;
   --steps: #0e9488;
 
   /* Status */
@@ -43,20 +48,20 @@
 
   /* Surfaces. The page is a soft blue-lavender wash, not flat grey, cards
      float on it rather than butting edge to edge. */
-  --bg: #e7eaf3;
-  --bg-top: #d9e4f5;
+  --bg: #e9e7f5;
+  --bg-top: #ded9f2;
   --surface: #ffffff;
-  --surface-2: #f7f8fb;
-  --surface-3: #eef0f6;
-  --border: #e8e9ef;
-  --border-strong: #d3d6e0;
+  --surface-2: #f8f7fc;
+  --surface-3: #eeecf7;
+  --border: #e9e7f1;
+  --border-strong: #d5d1e6;
 
   --gold: #f5c542;
 
   /* Text */
-  --text: #1d1d20;
-  --text-2: #6c6c70;
-  --text-3: #a9a9b2;
+  --text: #1c1a26;
+  --text-2: #6a677a;
+  --text-3: #a8a5b8;
   --on-accent: #ffffff;
 
   /* Shape */
@@ -85,23 +90,23 @@
 }
 
 :root[data-theme='dark'] {
-  --accent: #4d94ff;
-  --accent-press: #6ba7ff;
-  --accent-soft: #12243d;
-  --accent-ring: rgba(77, 148, 255, 0.22);
+  --accent: #8b83ff;
+  --accent-press: #a49dff;
+  --accent-soft: #1e1b3a;
+  --accent-ring: rgba(139, 131, 255, 0.22);
 
-  --ink: #0b0e17;
-  --ink-2: #171b28;
+  --ink: #0b0a17;
+  --ink-2: #171528;
   --on-ink: #ffffff;
   --on-ink-2: #8b94a5;
 
   /* Same trio, lifted for a dark background. The light-mode navy would
      disappear against it, so fat moves up to a mid blue instead. */
-  --carbs: #8fdcff;
-  --fat: #4c6ef5;
+  --carbs: #a5b4fc;
+  --fat: #6366f1;
   --protein: #fbbf24;
   --water: #22a5c7;
-  --sleep: #9b8cff;
+  --sleep: #c084fc;
   --steps: #2dd4bf;
 
   --positive: #3ddc84;
@@ -109,17 +114,17 @@
   --danger: #ff5d70;
   --gold: #fdda1c;
 
-  --bg: #0b0e17;
-  --bg-top: #121727;
-  --surface: #141824;
-  --surface-2: #191e2c;
-  --surface-3: #222839;
-  --border: #262d3f;
-  --border-strong: #38415a;
+  --bg: #0c0a16;
+  --bg-top: #14112a;
+  --surface: #171526;
+  --surface-2: #1c1a2e;
+  --surface-3: #262340;
+  --border: #292640;
+  --border-strong: #3d3960;
 
-  --text: #f2f4f8;
-  --text-2: #98a1b3;
-  --text-3: #6a7385;
+  --text: #f3f2f8;
+  --text-2: #9c99b3;
+  --text-3: #6e6b85;
   --on-accent: #ffffff;
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);

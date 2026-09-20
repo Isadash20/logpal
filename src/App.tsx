@@ -41,12 +41,21 @@ import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
 
-const TABS: { key: TabKey; label: string; icon: IconName }[] = [
+type TabDef = { key: TabKey; label: string; icon: IconName }
+
+/* Split either side of the add button, which now sits in the middle of the bar
+   rather than riding beside it. Three and three: adding a seventh tab means
+   deciding which half it joins, and the halves have to stay even or the plus
+   stops being centred. */
+const TABS_LEFT: TabDef[] = [
   { key: 'today', label: 'Home', icon: 'home' },
   /* Beside Home, because it is used before eating rather than after: the rest
      of the app records what happened, this one is consulted first. */
   { key: 'nutriscan', label: 'NutriScan', icon: 'nutriscan' },
   { key: 'plan', label: 'Plan', icon: 'plan' },
+]
+
+const TABS_RIGHT: TabDef[] = [
   { key: 'progress', label: 'Progress', icon: 'progress' },
   { key: 'friends', label: 'Friends', icon: 'user' },
   { key: 'more', label: 'Settings', icon: 'settings' },
@@ -107,13 +116,18 @@ function Shell() {
 
       <div className="navdock">
         <nav className="tabbar">
-          {TABS.map((t) => (
+          {TABS_LEFT.map((t) => (
+            <TabButton key={t.key} tab={t} active={activeTab} onSelect={setTab} />
+          ))}
+          {/* In the flow, not positioned over it: the middle grid column is the
+              button's own, so the tabs either side can never slide under it. */}
+          <button className="fab" onClick={() => setAddOpen(true)} aria-label="Add entry">
+            <Icon name="plus" size={25} strokeWidth={2.6} />
+          </button>
+          {TABS_RIGHT.map((t) => (
             <TabButton key={t.key} tab={t} active={activeTab} onSelect={setTab} />
           ))}
         </nav>
-        <button className="fab" onClick={() => setAddOpen(true)} aria-label="Add entry">
-          <Icon name="plus" size={27} strokeWidth={2.6} />
-        </button>
       </div>
 
       {addOpen && (
