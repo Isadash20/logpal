@@ -102,11 +102,18 @@ export function Today() {
     const y = e.currentTarget.scrollTop
     const dy = y - lastY.current
     lastY.current = y
-    /* Back at the top it is always shown, whatever the gesture was doing:
-       arriving at the top of the day with no date on screen reads as a bug. */
-    if (y <= 8) setHeadHidden(false)
-    else if (dy > 6) setHeadHidden(true)
-    else if (dy < -6) setHeadHidden(false)
+
+    /* Position decides it, with a gap between the two thresholds so a wobble
+       around one number cannot flicker the panel. An earlier version keyed off
+       the delta alone, which meant a single wheel notch that jumped the whole
+       distance, or a slow drag of a few pixels at a time, left the masthead
+       sitting there.
+       The delta only survives as the way back: a deliberate flick upward
+       brings it in before the top, which is what makes Your plan and Settings
+       reachable from the middle of a long board. */
+    if (y < 24) setHeadHidden(false)
+    else if (dy < -24) setHeadHidden(false)
+    else if (y > 64) setHeadHidden(true)
   }
 
   /* The eyebrow above already carries the full date, so the title must not
