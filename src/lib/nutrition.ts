@@ -75,9 +75,19 @@ export function bmr(opts: {
   heightIn: number
   age: number
 }): number {
-  const kg = opts.weightLb * 0.45359237
-  const cm = opts.heightIn * 2.54
-  const base = 10 * kg + 6.25 * cm - 5 * opts.age
+  /* A half-filled profile used to produce a negative BMR, and from there a
+     calorie target of a few hundred: an account signed in before its cloud
+     copy lands has a weight and a height of zero for a moment, and the
+     equation takes both literally. Anything outside human range is treated as
+     missing and replaced with the figure a new account starts on, so the
+     numbers on screen are never nonsense while the real ones are in flight. */
+  const weightLb = opts.weightLb >= 50 && opts.weightLb <= 1000 ? opts.weightLb : 150
+  const heightIn = opts.heightIn >= 36 && opts.heightIn <= 96 ? opts.heightIn : 66
+  const age = opts.age >= 13 && opts.age <= 110 ? opts.age : 30
+
+  const kg = weightLb * 0.45359237
+  const cm = heightIn * 2.54
+  const base = 10 * kg + 6.25 * cm - 5 * age
   return opts.sex === 'male' ? base + 5 : base - 161
 }
 
@@ -136,7 +146,7 @@ export function calorieGoal(profile: Profile, age: number): number {
   if (profile.planMode === 'custom') return profile.customPlan.calories
   const maintenance = tdee(profile, age)
   const dailyDelta = (profile.goal.rate * KCAL_PER_LB) / 7
-  return Math.max(600, Math.round(maintenance + dailyDelta))
+  return Math.max(800, Math.round(maintenance + dailyDelta))
 }
 
 export const WEEKLY_GOAL_OPTIONS: { value: WeeklyGoal; label: string }[] = [
@@ -433,9 +443,12 @@ export function resolvePlan(
   }
 
   const dailyDelta = (profile.goal.rate * KCAL_PER_LB) / 7
-  /* The pace someone chose is the pace they get. Below the recommended
-     minimum the plan says so; it does not quietly move the number. */
-  const calories = Math.max(600, Math.round(maintenance + dailyDelta))
+  /* The pace someone chose is the pace they get, and below the recommended
+     minimum the plan says so rather than quietly moving the number. The floor
+     here is not that minimum: it is the point past which a figure is not a
+     plan at all, and it exists only so arithmetic on a half-loaded profile
+     cannot put a three-figure target on screen. */
+  const calories = Math.max(800, Math.round(maintenance + dailyDelta))
 
   // Protein is anchored to lean mass first, then fat takes its goal-dependent
   // share, and carbs get whatever is left. Protein is capped at half of

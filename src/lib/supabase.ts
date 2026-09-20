@@ -49,11 +49,36 @@ export const supabase: SupabaseClient | null =
  *
  * Returns true when a session was established.
  */
+/**
+ * A failed OAuth return, held for whoever renders next.
+ *
+ * Supabase reports these as parameters on the return URL, and the sign-in
+ * screen is the natural place to show them. But a device that was already
+ * signed in never renders that screen, so the parameters used to sit in the
+ * address bar for the rest of the session, error and all. They are lifted off
+ * the URL here and kept in memory instead.
+ */
+let authError: { code: string; description: string } | null = null
+
+export function takeAuthError(): { code: string; description: string } | null {
+  return authError
+}
+
 export async function consumeAuthFragment(): Promise<boolean> {
   if (!supabase) return false
 
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
   const query = new URLSearchParams(window.location.search)
+
+  const errorCode = hash.get('error') ?? query.get('error')
+  if (errorCode) {
+    authError = {
+      code: errorCode,
+      description: hash.get('error_description') ?? query.get('error_description') ?? '',
+    }
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+
   const access_token = hash.get('access_token')
   const refresh_token = hash.get('refresh_token')
   const code = query.get('code')

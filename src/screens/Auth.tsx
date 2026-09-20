@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { requireClient } from '../lib/supabase'
+import { requireClient, takeAuthError } from '../lib/supabase'
 
 type Mode = 'in' | 'up'
 
@@ -53,13 +53,20 @@ export function Auth({ onSkip }: { onSkip(): void }) {
      back on this screen as though they had never left. Without this, a
      misconfigured Google client is indistinguishable from a mis-click. */
   useEffect(() => {
+    /* Read from where the bootstrap put it rather than from the URL: the
+       parameters are lifted off on startup so they cannot linger in the
+       address bar of a device that was already signed in. */
+    const held = takeAuthError()
     const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const fromQuery = new URLSearchParams(window.location.search)
-    const code = fromHash.get('error') ?? fromQuery.get('error')
+    const code = held?.code ?? fromHash.get('error') ?? fromQuery.get('error')
     if (!code) return
 
     const description =
-      fromHash.get('error_description') ?? fromQuery.get('error_description') ?? ''
+      held?.description ??
+      fromHash.get('error_description') ??
+      fromQuery.get('error_description') ??
+      ''
 
     setError(
       /redirect|redirect_uri/i.test(description)
