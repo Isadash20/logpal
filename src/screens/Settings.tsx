@@ -458,6 +458,8 @@ export function PrefsProfile() {
               Signing out leaves this device&apos;s copy in place. It does not delete
               anything from your account.
             </div>
+
+            <DeleteAccount />
           </>
         )}
 
@@ -711,6 +713,12 @@ export function About() {
             ? 'Your diary syncs to your account, so it follows you between devices.'
             : 'You are signed out, so everything lives in this browser only. Clearing site data starts you over.'}
         </div>
+
+        <div className="btn-wrap">
+          <a className="btn btn--ghost" href="/privacy" target="_blank" rel="noreferrer">
+            Privacy policy
+          </a>
+        </div>
       </div>
     </>
   )
@@ -739,6 +747,92 @@ function SignInPrompt() {
  * it takes the account with it, because clearing only this device would be a
  * lie. The next sync would pull everything straight back down.
  */
+/**
+ * Delete the account itself.
+ *
+ * Distinct from Clear all data, which empties an account and leaves it
+ * standing. App Store Review Guideline 5.1.1(v) requires that an account
+ * someone can create in the app can also be deleted in the app, without an
+ * email to support. Behind a typed confirmation because it also releases the
+ * username, and a tap on the wrong red button should not cost someone their
+ * handle.
+ */
+function DeleteAccount() {
+  const { deleteAccount } = useApp()
+  const [confirming, setConfirming] = useState(false)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const armed = typed.trim().toUpperCase() === 'DELETE'
+
+  async function run() {
+    setBusy(true)
+    setError(null)
+    try {
+      await deleteAccount()
+    } catch (err) {
+      setError((err as Error).message)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <>
+      <div className="section-label">Delete account</div>
+      <div className="btn-wrap" style={{ paddingTop: 0 }}>
+        <button className="btn btn--danger" onClick={() => setConfirming(true)}>
+          Delete my account
+        </button>
+      </div>
+      <div className="hint" style={{ color: 'var(--text-3)' }}>
+        Permanently removes your account, your username, your diary and everything
+        else stored under it. This cannot be undone.
+      </div>
+
+      {confirming && (
+        <Dialog
+          title="Delete your account?"
+          onClose={() => {
+            if (!busy) setConfirming(false)
+          }}
+        >
+          <div style={{ color: 'var(--text-2)', marginBottom: 12, fontSize: 14 }}>
+            Your account, username, diary, weight, measurements, fasts, custom foods,
+            recipes and friends will be deleted everywhere. Type DELETE to confirm.
+          </div>
+          <input
+            className="input"
+            autoCapitalize="characters"
+            autoComplete="off"
+            placeholder="DELETE"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            disabled={busy}
+            style={{ marginBottom: 12 }}
+          />
+          {error && (
+            <div className="hint" style={{ color: 'var(--danger)', marginBottom: 8 }}>
+              {error}
+            </div>
+          )}
+          <button className="btn btn--danger" disabled={!armed || busy} onClick={() => void run()}>
+            {busy ? 'Deleting…' : 'Delete account'}
+          </button>
+          <button
+            className="btn btn--ghost"
+            style={{ marginTop: 8 }}
+            disabled={busy}
+            onClick={() => setConfirming(false)}
+          >
+            Cancel
+          </button>
+        </Dialog>
+      )}
+    </>
+  )
+}
+
 function ClearData() {
   const { resetAll, session } = useApp()
   const [confirming, setConfirming] = useState(false)

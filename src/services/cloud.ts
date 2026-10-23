@@ -513,6 +513,21 @@ export async function deleteAll(): Promise<void> {
   }
 }
 
+/**
+ * Deletes the signed-in account itself, not just its data.
+ *
+ * Required by App Store Review Guideline 5.1.1(v). `delete_own_account` in
+ * supabase/schema.sql runs as the definer and removes the caller's auth.users
+ * row; every logpal_* table cascades from it, so the diary, profile, follows
+ * and the username all go in the same statement. The session this call was
+ * made with is invalid the moment it returns, so the caller signs out after.
+ */
+export async function deleteAccount(): Promise<void> {
+  const db = requireClient()
+  const { error } = await db.rpc('delete_own_account')
+  if (error) throw error
+}
+
 /* ------------------------------------------------------------- usernames -- */
 
 /**

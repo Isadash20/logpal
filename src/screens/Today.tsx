@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MEAL_KEYS, PERIOD_LABELS } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
@@ -9,9 +9,13 @@ import { cal } from '../lib/format'
 import { addDays, longDate, today } from '../lib/dates'
 
 /**
- * Home screen, laid out to match the reference app: a calorie bar, a macro
- * bar, then plain rows. Deliberately flat. No rings or donuts here. The rich
- * charts live on Progress and Nutrition, where someone has gone looking.
+ * Home.
+ *
+ * Laid out the way the trackers studied for DESIGN.md lay out their day
+ * screen: a header in the flow of the page (date, a large title, the streak
+ * and the way into Settings), the dated week, the arrangeable board, then the
+ * day's meals as rows with an add button on each. Content on white, nothing
+ * to scroll past before the numbers.
  */
 export function Today() {
   const app = useApp()
@@ -51,6 +55,7 @@ export function Today() {
       date: string
       selected?: boolean
       isToday?: boolean
+      future?: boolean
     }[] = []
     // Monday-first, matching the reference app's default week start.
     const d0 = new Date(date + 'T00:00:00')
@@ -64,61 +69,23 @@ export function Today() {
         date: d,
         selected: d === date,
         isToday: d === realToday,
+        future: d > realToday,
       })
     }
     return out
   }, [date, totalsFor])
 
-  /* The streak lives in the store now: a day counts as logged when it has
-     calories on it, the same rule the week strip's ticks use above, and the
-     same number followers are shown. One rule, one place, so the three cannot
-     disagree. */
+  /* The streak lives in the store: a day counts as logged when it has
+     calories on it, the same rule the week strip uses and the same number
+     followers are shown. One rule, one place, so the three cannot disagree. */
 
   /* Arranging the board. Not persisted: it is a mode, not a preference, and
      coming back to Home in edit mode would be a small trap. */
   const [editing, setEditing] = useState(false)
 
-  /* The masthead gets out of the way on the way down and comes back on the way
-     up, the way a phone's own chrome does. It is the largest thing on the
-     screen and the least useful once you are reading the board, but it also
-     holds Your plan and Settings, so it cannot simply be scrolled off and
-     left there: any upward flick brings it back. */
-  const headRef = useRef<HTMLDivElement>(null)
-  const [headHeight, setHeadHeight] = useState(0)
-  const [headHidden, setHeadHidden] = useState(false)
-  const lastY = useRef(0)
-
-  useLayoutEffect(() => {
-    const el = headRef.current
-    if (!el) return
-    const measure = () => setHeadHeight(el.offsetHeight)
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  const onBoardScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const y = e.currentTarget.scrollTop
-    const dy = y - lastY.current
-    lastY.current = y
-
-    /* Position decides it, with a gap between the two thresholds so a wobble
-       around one number cannot flicker the panel. An earlier version keyed off
-       the delta alone, which meant a single wheel notch that jumped the whole
-       distance, or a slow drag of a few pixels at a time, left the masthead
-       sitting there.
-       The delta only survives as the way back: a deliberate flick upward
-       brings it in before the top, which is what makes Your plan and Settings
-       reachable from the middle of a long board. */
-    if (y < 24) setHeadHidden(false)
-    else if (dy < -24) setHeadHidden(false)
-    else if (y > 64) setHeadHidden(true)
-  }
-
-  /* The eyebrow above already carries the full date, so the title must not
-     repeat it. It names the day in relation to now instead, which is the thing
-     the date itself cannot tell you at a glance. */
+  /* The eyebrow carries the full date, so the title must not repeat it. It
+     names the day in relation to now instead, which is the thing the date
+     itself cannot tell you at a glance. */
   const relative =
     date === today()
       ? 'Today'
@@ -128,10 +95,6 @@ export function Today() {
           ? 'Tomorrow'
           : null
 
-  /* Weekday for the title, month and day for the eyebrow. Splitting them this
-     way is why the pair never says the same word twice: on a relative day the
-     eyebrow carries the whole date, and on any other day the title has already
-     said "Thursday", so the eyebrow drops it. */
   const [weekday, monthDay] = longDate(date).split(', ')
   const dayTitle = relative ?? weekday
   const dayEyebrow = relative ? `${weekday}, ${monthDay}` : monthDay
@@ -140,143 +103,136 @@ export function Today() {
     <>
       {celebrating && <Confetti onDone={() => setCelebrating(false)} />}
 
-      {/* One masthead rather than four things floating on the wash: the date,
-          the day, the streak, the two actions and the week are all the same
-          subject, so they are one panel. */}
-      <div
-        ref={headRef}
-        className={`dayhead ${headHidden ? 'dayhead--hidden' : ''}`}
-        style={{ marginTop: headHidden ? -headHeight : 0 }}
-      >
-        <div className="dayhead__top">
-          <div className="dayhead__date">{dayEyebrow}</div>
-          <button
-            className="goldpill"
-            onClick={() => push({ name: 'goals' })}
-            aria-label="Your plan"
-          >
-            Your plan
-          </button>
-          <button
-            className="dayhead__icon"
-            onClick={() => setTab('more')}
-            aria-label="Settings"
-          >
-            <Icon name="settings" size={19} />
-          </button>
-        </div>
-
-        <div className="dayhead__row">
-          <div className="dayhead__title">{dayTitle}</div>
-          {/* Only from one day. A streak of zero is not worth a badge, and
-              showing "0" on day one is discouraging rather than motivating. */}
-          {logStreak > 0 && (
-            <span className="dayhead__streak" title={`${logStreak} days logged in a row`}>
-              <Icon name="flame" size={14} />
-              <span className="num">{logStreak}</span>
-              <span className="dayhead__streak-unit">
-                {logStreak === 1 ? 'day' : 'days'}
+      <div className="scroll">
+        <div className="home-head">
+          <div className="home-head__top">
+            <div className="home-head__text">
+              <span className="home-head__eyebrow">{dayEyebrow}</span>
+              <h1 className="home-head__title">{dayTitle}</h1>
+            </div>
+            {/* Only from one day. A streak of zero is not worth a badge, and
+                showing "0" on day one is discouraging rather than motivating. */}
+            {logStreak > 0 && (
+              <span className="pill" title={`${logStreak} days logged in a row`}>
+                <span className="pill__flame">
+                  <Icon name="flame" size={16} strokeWidth={2.2} />
+                </span>
+                <span className="num">{logStreak}</span>
               </span>
-            </span>
-          )}
-        </div>
+            )}
+            <button
+              className="pill pill--icon"
+              onClick={() => setTab('more')}
+              aria-label="Settings"
+            >
+              <Icon name="settings" size={19} />
+            </button>
+          </div>
 
-        <div className="dayhead__week">
           <WeekStrip days={week} onPick={setDate} />
         </div>
-      </div>
 
-      <div className="scroll homeboard" onScroll={onBoardScroll}>
         <div className="boardbar">
-          <button
-            className="textbtn"
-            style={{ padding: '0 4px', fontSize: 13.5 }}
-            onClick={() => setEditing((v) => !v)}
-          >
+          <button className="boardbar__btn" onClick={() => setEditing((v) => !v)}>
             {editing ? 'Done' : 'Edit widgets'}
           </button>
         </div>
 
         {/* --------------------------------------------------------- board -- */}
-        {/* Everything above the diary is a widget now. Which of these matter is
-            personal. A fasting timer to one person, calories to another, step
-            counts to nobody at all, so the board is arranged rather than
-            fixed. See lib/widgetLayout.ts. */}
+        {/* Which of these matter is personal. A fasting timer to one person,
+            calories to another, step counts to nobody at all, so the board is
+            arranged rather than fixed. See lib/widgetLayout.ts. */}
         <WidgetGrid date={date} editing={editing} onEditingChange={setEditing} />
 
-        <div style={{ height: 16 }} />
-
-        {/* ---------------------------------------------------------- diary -- */}
+        {/* ---------------------------------------------------------- meals -- */}
         <div className="section-head">
-          <span>Diary</span>
+          <span>Meals</span>
           <button className="textbtn" style={{ padding: 0 }} onClick={() => push({ name: 'diary' })}>
-            View all
+            Open diary
           </button>
         </div>
 
-        {/* One card per period, spaced apart, matching the reference layout. */}
-        {MEAL_KEYS.map((period) => {
-          const items = entriesFor(date, period)
-          return (
-            <div className="card" key={period} style={{ marginBottom: 10 }}>
-              <div className="row" style={{ borderBottom: 0 }}>
-                <span style={{ color: 'var(--accent)', display: 'flex', flex: 'none' }}>
-                  <Icon name={PERIOD_ICON[period]} size={21} />
-                </span>
-                <span className="row__main">
-                  <span className="row__title" style={{ display: 'block', fontWeight: 500 }}>
-                    {PERIOD_LABELS[period]}
+        <div className="card">
+          {MEAL_KEYS.map((period) => {
+            const items = entriesFor(date, period)
+            const kcal = totals.byMeal[period].calories
+            const tint = PERIOD_TINT[period]
+            const label = PERIOD_LABELS[period]
+            return (
+              <div className="meal" key={period}>
+                {/* The row body opens the diary once something is in it and
+                    goes straight to search while it is empty; the round button
+                    always logs. Two targets, both obvious, neither nested. */}
+                <button
+                  className="meal__body"
+                  onClick={() =>
+                    items.length
+                      ? push({ name: 'diary' })
+                      : push({ name: 'foodSearch', date, meal: period })
+                  }
+                  aria-label={items.length ? `${label} in the diary` : `Log ${label}`}
+                >
+                  <span
+                    className="meal__icon"
+                    style={{
+                      background: `color-mix(in srgb, ${tint} 14%, var(--surface))`,
+                      color: tint,
+                    }}
+                  >
+                    <Icon name={PERIOD_ICON[period]} size={21} strokeWidth={2} />
+                  </span>
+                  <span className="meal__main">
+                    <span className="meal__name">{label}</span>
+                    <span className="meal__sub">
+                      {items.length ? items.map((i) => i.name).join(', ') : 'Nothing logged yet'}
+                    </span>
                   </span>
                   {items.length > 0 && (
-                    <span className="row__sub" style={{ display: 'block' }}>
-                      {items.map((i) => i.name).join(', ')}
+                    <span className="meal__cal num">
+                      {cal(kcal)}
+                      <small>cal</small>
                     </span>
                   )}
-                  {items.length > 0 && (
-                    <span className="row__sub" style={{ display: 'block' }}>
-                      {cal(totals.byMeal[period].calories)} cal
-                    </span>
-                  )}
-                </span>
-                <button
-                  className="iconbtn"
-                  style={{ width: 32, height: 32, flex: 'none' }}
-                  onClick={() => push({ name: 'diary' })}
-                  aria-label={`${PERIOD_LABELS[period]} options`}
-                >
-                  <Icon name="dots" size={18} />
                 </button>
-                {/* The row that was tapped is the meal it lands in. */}
                 <button
-                  className="logpill"
+                  className="meal__add"
                   onClick={() => push({ name: 'foodSearch', date, meal: period })}
+                  aria-label={`Add to ${label}`}
                 >
-                  Log
+                  <Icon name="plus" size={18} strokeWidth={2.4} />
                 </button>
               </div>
-            </div>
-          )
-        })}
-
-        <div style={{ textAlign: 'center', padding: '6px 16px 4px' }}>
-          <button
-            className="textbtn"
-            style={{ fontWeight: 700, fontSize: 16 }}
-            onClick={() => {
-              app.setCompleted(date, !log.completed)
-            }}
-          >
-            {log.completed ? 'Day complete ✓' : 'Complete diary'}
-          </button>
+            )
+          })}
         </div>
 
+        <div className="btn-wrap" style={{ paddingTop: 4 }}>
+          <button
+            className="btn btn--ghost"
+            onClick={() => app.setCompleted(date, !log.completed)}
+          >
+            {log.completed && <Icon name="check" size={18} strokeWidth={2.4} />}
+            {log.completed ? 'Day complete' : 'Complete diary'}
+          </button>
+        </div>
       </div>
     </>
   )
 }
+
 const PERIOD_ICON = {
   morning: 'sunrise',
   afternoon: 'sun',
   evening: 'moon',
   late: 'stars',
+} as const
+
+/* Each meal's icon sits on its own tint, so the four rows can be told apart
+   before the words are read. Drawn from the tokens so the row never carries a
+   colour the rest of the app does not. */
+const PERIOD_TINT = {
+  morning: 'var(--warning)',
+  afternoon: 'var(--fat)',
+  evening: 'var(--accent)',
+  late: 'var(--sleep)',
 } as const

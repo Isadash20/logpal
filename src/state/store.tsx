@@ -35,7 +35,13 @@ import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredie
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
 import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
-import { deleteAll, fetchAll, fetchUsername, pushChanges } from '../services/cloud'
+import {
+  deleteAccount as deleteAccountRemote,
+  deleteAll,
+  fetchAll,
+  fetchUsername,
+  pushChanges,
+} from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
 import { addDays, today } from '../lib/dates'
 
@@ -349,6 +355,8 @@ interface Ctx {
   /** Called after claiming a handle, so the sign-up gate lets go. */
   setUsername(u: string): void
   signOut(): Promise<void>
+  /** Deletes the account and everything in it, then drops to a fresh device-local app. */
+  deleteAccount(): Promise<void>
   /** True when the user chose to carry on without an account on this device. */
   localOnly: boolean
   setLocalOnly(v: boolean): void
@@ -1290,6 +1298,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       syncedRef.current = null
       setLocalOnly(false)
       setData(localAdapter.load() ?? defaultData())
+      setStack([{ name: 'tab', tab: 'today' }])
+      setActiveTab('today')
+    },
+    deleteAccount: async () => {
+      if (!supabase) return
+      await deleteAccountRemote()
+      /* The server side is gone; the local copy would otherwise linger as a
+         ghost of an account that no longer exists, and the save effect would
+         try to push it against a dead session. */
+      syncedRef.current = null
+      localAdapter.clear()
+      await supabase.auth.signOut().catch(() => undefined)
+      setLocalOnly(false)
+      setData(defaultData())
       setStack([{ name: 'tab', tab: 'today' }])
       setActiveTab('today')
     },

@@ -1,136 +1,144 @@
 /*
  * Design tokens.
  *
- * Neutrals are deliberately COOL. Warm-tinted greys (bone, ivory, greige)
- * carry yellow and make the whole app read cheap.
+ * Rebuilt 2026-10-23 after studying the interfaces of Cal AI, MyFitnessPal,
+ * Lifesum, Yazio, Lose It, MacroFactor, Cronometer and Gentler Streak (see
+ * DESIGN.md). What the best of them share: a near-white neutral ground, pure
+ * white cards with a soft shadow, one brand colour used sparingly, black type
+ * with big bold numerals, and colour reserved for meaning (the three macros,
+ * water, a streak). No tinted washes, no gradient mastheads, no glass.
  *
- * The accent was #0066EE, sampled from MyFitnessPal, and that one value was
- * most of why this app looked like theirs. It is blue violet now, picked on a
- * real board rather than from a swatch, and the neutrals carry a matching
- * violet bias rather than a blue one so the wash and the accent belong to each
- * other instead of merely coexisting.
+ * Neutrals stay COOL. Warm greys (bone, ivory, greige) read as yellow and were
+ * rejected early on; that rule still holds.
+ *
+ * The accent is the blue violet the user picked on a real board, kept as the
+ * one brand colour: the calorie ring, the add button, the active tab, links.
+ * It is never a ground. The lavender wash and the indigo masthead are gone
+ * because a purple gradient is the single loudest "made by a machine" tell,
+ * and because every professional tracker studied puts its content on white.
  */
 
 :root {
   /* Brand */
   --accent: #5b5bd6;
-  --accent-press: #4a4ab8;
-  --accent-soft: #ececfc;
-  --accent-ring: rgba(91, 91, 214, 0.18);
+  --accent-press: #4a4ac2;
+  --accent-soft: #ecebfb;
+  --accent-ring: rgba(91, 91, 214, 0.2);
 
   /* Chrome. The near-black that carries the premium feel */
-  --ink: #1a1a36;
-  --ink-2: #292950;
+  --ink: #111118;
+  --ink-2: #26262f;
   --on-ink: #ffffff;
-  --on-ink-2: #9aa3b2;
+  --on-ink-2: #a3a3b3;
 
-  /* Macros. Two blues from the calorie accent's own family, separated by
-     lightness, plus one warm. Deriving all three from the accent looks tidier
-     but then they differ by lightness alone, which is unreadable on an 8px
-     bar. Blue-against-amber is also the one contrast that survives red-green
-     colourblindness. */
-  --carbs: #8b9bff;
-  --fat: #312e81;
-  --protein: #f59e0b;
-  /* Water sits deeper than carbs so the two never read as the same blue. */
-  --water: #0891b2;
-  /* Sleep is the one colour allowed to leave the accent's family, because it
-     is the only tile that is about the night; steps stay near water, since
-     walking sits beside it as an all-day count. Sleep used to be indigo, which
-     is now the accent, so it has moved on to violet to stay its own thing. */
+  /* Macros. Three hues that cannot be confused with each other or with the
+     accent: coral for protein, amber for carbohydrate, blue for fat. The same
+     mapping Cal AI uses, and the pairing (red/orange against blue) survives
+     red-green colourblindness. */
+  --protein: #e5533d;
+  --carbs: #f2a33a;
+  --fat: #3b82f6;
+  /* Water is cyan, a clear step from fat's blue. Steps are green, the colour
+     every pedometer uses. Sleep is the one purple, far enough from the violet
+     accent to stay its own thing. */
+  --water: #06b6d4;
+  --steps: #10b981;
   --sleep: #a855f7;
-  --steps: #0e9488;
 
   /* Status */
-  --positive: #17a34a;
+  --positive: #16a34a;
   --warning: #e8890c;
   --danger: #e02f45;
-  --gold: #fdda1c;
-
-  /* Surfaces. The page is a soft blue-lavender wash, not flat grey, cards
-     float on it rather than butting edge to edge. */
-  --bg: #e9e7f5;
-  --bg-top: #ded9f2;
-  --surface: #ffffff;
-  --surface-2: #f8f7fc;
-  --surface-3: #eeecf7;
-  --border: #e9e7f1;
-  --border-strong: #d5d1e6;
-
   --gold: #f5c542;
 
+  /* Surfaces. Neutral, cool, near white. Cards are pure white on it and are
+     separated from it by a shadow, not a border. */
+  --bg: #f4f4f7;
+  --bg-top: #f4f4f7;
+  --surface: #ffffff;
+  --surface-2: #f7f7fa;
+  --surface-3: #ededf2;
+  --border: #ebebf0;
+  --border-strong: #d9d9e2;
+
   /* Text */
-  --text: #1c1a26;
-  --text-2: #6a677a;
-  --text-3: #a8a5b8;
+  --text: #111118;
+  --text-2: #6b6b7b;
+  --text-3: #9a9aaa;
   --on-accent: #ffffff;
 
   /* Shape */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 22px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-card: 20px;
+  --r-xl: 24px;
   --r-full: 999px;
 
-  /* Elevation */
-  --shadow-1: 0 1px 2px rgba(21, 24, 36, 0.05);
-  --shadow-2: 0 4px 14px rgba(21, 24, 36, 0.09);
-  --shadow-3: 0 16px 40px rgba(21, 24, 36, 0.2);
+  /* Elevation. Soft and low: a card should look set on the page, not floating
+     above it. */
+  --shadow-1: 0 1px 2px rgba(17, 17, 24, 0.04), 0 2px 8px rgba(17, 17, 24, 0.04);
+  --shadow-card: 0 1px 2px rgba(17, 17, 24, 0.03), 0 8px 24px rgba(17, 17, 24, 0.05);
+  --shadow-2: 0 2px 6px rgba(17, 17, 24, 0.06), 0 10px 30px rgba(17, 17, 24, 0.12);
+  --shadow-3: 0 16px 40px rgba(17, 17, 24, 0.18);
 
   /* Layout */
   --tabbar-h: 58px;
   --topbar-h: 54px;
   --page-max: 640px;
+  --gutter: 16px;
 
+  /* The system face everywhere, which on iPhone is SF Pro: the same type the
+     reference apps and the phone's own screens are set in. Numerals use the
+     same face rather than the rounded variant so figures read as data, not
+     as a toy. */
   --font:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
   --font-num:
-    ui-rounded, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
 }
 
 :root[data-theme='dark'] {
-  /* Lifted for a dark background, the same way the macros are: the daylight
-     accent reads as navy once the wash behind it is black. */
-  --accent: #9292ff;
-  --accent-press: #a8a8ff;
-  --accent-soft: #1d1d3c;
-  --accent-ring: rgba(146, 146, 255, 0.22);
+  --accent: #8d8dff;
+  --accent-press: #a3a3ff;
+  --accent-soft: #24244a;
+  --accent-ring: rgba(141, 141, 255, 0.25);
 
-  --ink: #0b0a17;
-  --ink-2: #171528;
-  --on-ink: #ffffff;
-  --on-ink-2: #8b94a5;
+  /* Ink flips: the one committing button on a screen is white on dark, the
+     way it is in every dark-mode tracker studied. */
+  --ink: #f3f3f8;
+  --ink-2: #dcdce4;
+  --on-ink: #111118;
+  --on-ink-2: #55556a;
 
-  /* Same trio, lifted for a dark background. The light-mode navy would
-     disappear against it, so fat moves up to a mid blue instead. */
-  --carbs: #a5b4fc;
-  --fat: #6366f1;
-  --protein: #fbbf24;
-  --water: #22a5c7;
+  --protein: #f0705c;
+  --carbs: #f5b24f;
+  --fat: #60a5fa;
+  --water: #22d3ee;
+  --steps: #34d399;
   --sleep: #c084fc;
-  --steps: #2dd4bf;
 
   --positive: #3ddc84;
   --warning: #ffb340;
   --danger: #ff5d70;
   --gold: #fdda1c;
 
-  --bg: #0c0a16;
-  --bg-top: #14112a;
-  --surface: #171526;
-  --surface-2: #1c1a2e;
-  --surface-3: #262340;
-  --border: #292640;
-  --border-strong: #3d3960;
+  --bg: #0e0e12;
+  --bg-top: #0e0e12;
+  --surface: #18181d;
+  --surface-2: #1e1e24;
+  --surface-3: #2a2a32;
+  --border: #26262e;
+  --border-strong: #3a3a44;
 
-  --text: #f3f2f8;
-  --text-2: #9c99b3;
-  --text-3: #6e6b85;
+  --text: #f3f3f8;
+  --text-2: #a0a0b0;
+  --text-3: #6d6d7c;
   --on-accent: #ffffff;
 
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }

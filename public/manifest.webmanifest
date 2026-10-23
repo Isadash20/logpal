@@ -1,0 +1,16 @@
+{
+  "name": "LogPal",
+  "short_name": "LogPal",
+  "description": "Calorie and nutrition tracker: log food by search, barcode or photo, plan meals, and track weight, water and fasting.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e9e7f5",
+  "theme_color": "#e9e7f5",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png" }
+  ]
+}

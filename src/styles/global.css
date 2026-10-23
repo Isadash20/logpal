@@ -59,8 +59,7 @@ h4 {
   flex-direction: column;
   max-width: var(--page-max);
   margin: 0 auto;
-  /* The wash fades out as you scroll down, so the top of the page feels lit. */
-  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 240px);
+  background: var(--bg);
   position: relative;
   box-shadow: 0 0 0 1px var(--border);
   /* Keeps the masthead inside the frame while it slides away. Fixed children
@@ -90,20 +89,21 @@ h4 {
 
 /* Large left-aligned page title, the way the reference app leads a screen. */
 .pagetitle {
-  padding: 4px 18px 14px;
-  font-size: 30px;
+  padding: 6px var(--gutter) 14px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.03em;
+  line-height: 1.1;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .section-head {
-  padding: 22px 18px 10px;
-  font-size: 19px;
+  padding: 24px var(--gutter) 10px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -163,24 +163,25 @@ h4 {
 /* The blue "Log" pill sitting at the end of each diary row. */
 .logpill {
   flex: none;
-  padding: 7px 20px;
+  padding: 8px 18px;
   border-radius: var(--r-full);
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 14px;
 }
 
 .logpill:active {
-  background: #d7e6fd;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .goldpill {
   flex: none;
-  padding: 7px 15px;
+  padding: 8px 14px;
   border-radius: var(--r-full);
-  background: var(--gold);
-  color: #4a3a00;
+  background: color-mix(in srgb, var(--gold) 30%, var(--surface));
+  color: #5a4300;
   font-weight: 700;
   font-size: 13.5px;
   white-space: nowrap;
@@ -196,7 +197,7 @@ h4 {
 /* Boxed right-hand control. The reference app's signature field affordance. */
 .boxed {
   border: 1px solid var(--border-strong);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 8px 12px;
   min-width: 92px;
   text-align: right;
@@ -214,7 +215,7 @@ h4 {
   flex: none;
   display: flex;
   align-items: center;
-  padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
+  padding: 6px var(--gutter) calc(10px + env(safe-area-inset-bottom));
   z-index: 20;
   background: linear-gradient(180deg, transparent, var(--bg) 55%);
 }
@@ -231,7 +232,7 @@ h4 {
   align-items: center;
   background: var(--surface);
   border-radius: var(--r-full);
-  padding: 7px 4px;
+  padding: 6px 6px;
   box-shadow: var(--shadow-2);
 }
 
@@ -240,13 +241,14 @@ h4 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  color: var(--text-2);
-  font-size: 9.5px;
+  gap: 3px;
+  color: var(--text-3);
+  font-size: 10px;
   font-weight: 600;
-  padding: 4px 0;
+  padding: 5px 0 3px;
   border-radius: var(--r-full);
   min-width: 0;
+  transition: color 0.15s ease;
 }
 
 /* Five labels in the width that held four: the longest one decides, and
@@ -259,8 +261,8 @@ h4 {
 }
 
 .tabbar__item--active {
-  color: var(--text);
-  background: var(--surface-3);
+  color: var(--accent);
+  font-weight: 700;
 }
 
 /* Sized to clear the pill's own height rather than to sit inside it, and
@@ -268,16 +270,21 @@ h4 {
    is the floor for a comfortable tap target; the lift is small so the button
    never breaks the pill's silhouette the way a half-overlapping circle does. */
 .fab {
-  width: 48px;
-  height: 48px;
-  margin: -7px 6px;
+  width: 52px;
+  height: 52px;
+  margin: -8px 4px;
   flex: none;
   border-radius: var(--r-full);
   background: var(--accent);
   color: var(--on-accent);
   display: grid;
   place-items: center;
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 6px 16px var(--accent-ring);
+  transition: transform 0.12s ease;
+}
+
+.fab:active {
+  transform: scale(0.94);
 }
 
 .fab:active {
@@ -289,14 +296,14 @@ h4 {
 /* Cards float on the wash with side margins, never edge to edge. */
 .card {
   background: var(--surface);
-  border-radius: 16px;
-  margin: 0 14px 14px;
+  border-radius: var(--r-card);
+  margin: 0 var(--gutter) 12px;
   overflow: hidden;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
 }
 
 .card--flush {
-  border-radius: 16px;
+  border-radius: var(--r-card);
 }
 
 .card--inset {
@@ -311,7 +318,7 @@ h4 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -323,14 +330,14 @@ h4 {
 }
 
 .card__body {
-  padding: 16px;
+  padding: 18px;
 }
 
 .section-label {
-  padding: 22px 18px 8px;
-  font-size: 19px;
+  padding: 24px var(--gutter) 8px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 
@@ -340,12 +347,12 @@ h4 {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 16px;
+  padding: 12px 18px;
   width: 100%;
   text-align: left;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
-  min-height: 48px;
+  min-height: 52px;
 }
 
 .row:last-child {
@@ -363,6 +370,7 @@ button.row:active {
 
 .row__title {
   font-size: 15px;
+  font-weight: 500;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -370,7 +378,7 @@ button.row:active {
 }
 
 .row__sub {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -415,9 +423,9 @@ button.row:active {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 4px 11px 16px;
+  padding: 12px 4px 12px 18px;
   text-align: left;
-  min-height: 48px;
+  min-height: 52px;
 }
 
 .row__body:active {
@@ -460,7 +468,7 @@ button.row:active {
 .calbar {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 14px 16px 16px;
+  padding: 16px 18px 18px;
 }
 
 .calbar__formula {
@@ -479,8 +487,8 @@ button.row:active {
 .calbar__num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
@@ -505,11 +513,11 @@ button.row:active {
 }
 
 .progress {
-  height: 6px;
+  height: 8px;
   border-radius: var(--r-full);
   background: var(--surface-3);
   overflow: hidden;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .progress__fill {
@@ -528,8 +536,8 @@ button.row:active {
 .macros {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 14px 18px 16px;
 }
 
 .macro__top {
@@ -553,7 +561,7 @@ button.row:active {
 }
 
 .macro__track {
-  height: 5px;
+  height: 6px;
   border-radius: var(--r-full);
   background: var(--surface-3);
   overflow: hidden;
@@ -571,10 +579,10 @@ button.row:active {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
-  min-height: 48px;
+  min-height: 52px;
 }
 
 .field__label {
@@ -645,13 +653,19 @@ button.row:active {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 18px;
-  border-radius: var(--r-md);
+  padding: 15px 20px;
+  border-radius: var(--r-full);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
+  letter-spacing: -0.01em;
   background: var(--accent);
   color: var(--on-accent);
   width: 100%;
+  transition: transform 0.12s ease;
+}
+
+.btn:active {
+  transform: scale(0.985);
 }
 
 .btn:active {
@@ -675,7 +689,7 @@ button.row:active {
 
 .btn--ghost {
   background: var(--surface);
-  color: var(--accent);
+  color: var(--text);
   border: 1px solid var(--border-strong);
 }
 
@@ -690,7 +704,7 @@ button.row:active {
 }
 
 .btn-wrap {
-  padding: 16px;
+  padding: 16px var(--gutter);
 }
 
 .chips {
@@ -707,19 +721,23 @@ button.row:active {
 
 .chip {
   flex: none;
-  padding: 7px 14px;
+  padding: 8px 14px;
   border-radius: var(--r-full);
-  background: var(--surface-3);
-  color: var(--text-2);
+  background: var(--surface);
+  color: var(--text);
   font-size: 13.5px;
   font-weight: 600;
   white-space: nowrap;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-strong);
 }
 
+/* Selected reads as filled-dark, the way the reference apps mark a chosen
+   range or quantity. An accent-filled chip would compete with the one accent
+   button a screen is allowed. */
 .chip--active {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
 }
 
 /* ----------------------------------------------------------------- tabs -- */
@@ -735,18 +753,19 @@ button.row:active {
 
 .tabs__item {
   flex: 1;
-  padding: 12px 6px 10px;
-  font-size: 13.5px;
-  font-weight: 700;
+  padding: 13px 6px 11px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-2);
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 2px solid transparent;
   text-align: center;
   white-space: nowrap;
 }
 
 .tabs__item--active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 700;
+  border-bottom-color: var(--text);
 }
 
 /* --------------------------------------------------------------- search -- */
@@ -755,7 +774,7 @@ button.row:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px var(--gutter) 10px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -766,8 +785,8 @@ button.row:active {
   align-items: center;
   gap: 8px;
   background: var(--surface-3);
-  border-radius: var(--r-md);
-  padding: 8px 10px;
+  border-radius: var(--r-full);
+  padding: 10px 14px;
   color: var(--text-3);
   min-width: 0;
 }
@@ -799,7 +818,7 @@ button.row:active {
   width: 100%;
   max-width: var(--page-max);
   background: var(--surface);
-  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  border-radius: 28px 28px 0 0;
   padding-bottom: env(safe-area-inset-bottom);
   /* Percentage of the scrim, which Sheet pins to visualViewport. The region
      genuinely on screen once the keyboard and Safari's toolbars are taken out.
@@ -842,8 +861,8 @@ button.row:active {
   width: calc(100% - 48px);
   max-width: 340px;
   background: var(--surface);
-  border-radius: var(--r-lg);
-  padding: 20px;
+  border-radius: var(--r-xl);
+  padding: 22px;
   margin: auto;
   box-shadow: var(--shadow-3);
   animation: pop 0.16s ease;
@@ -921,7 +940,7 @@ button.row:active {
 }
 
 .hint {
-  padding: 10px 16px 16px;
+  padding: 10px var(--gutter) 16px;
   color: var(--text-2);
   font-size: 12.5px;
   line-height: 1.5;
@@ -961,15 +980,15 @@ button.row:active {
 .banner {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 14px;
   text-align: left;
   background: var(--surface);
-  border-radius: 16px;
-  margin: 0 14px 10px;
-  width: calc(100% - 28px);
-  padding: 14px;
-  box-shadow: var(--shadow-1);
-  min-height: 62px;
+  border-radius: var(--r-card);
+  margin: 0 var(--gutter) 10px;
+  width: calc(100% - 2 * var(--gutter));
+  padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  min-height: 66px;
 }
 
 .banner:active {
@@ -977,10 +996,10 @@ button.row:active {
 }
 
 .banner__icon {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex: none;
-  border-radius: 11px;
+  border-radius: 13px;
   background: var(--accent-soft);
   color: var(--accent);
   display: grid;
@@ -1020,7 +1039,7 @@ button.row:active {
 /* Sticky save footer on settings sub-pages. */
 .savebar {
   flex: none;
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
@@ -1068,9 +1087,9 @@ button.row:active {
 
 .authinput {
   width: 100%;
-  padding: 13px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
+  border-radius: 14px;
   background: var(--surface);
   color: var(--text);
   /* 16px is the floor that stops iOS Safari zooming the page on focus. */
@@ -1153,15 +1172,20 @@ button.row:active {
 .streak {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px 9px 3px 7px;
+  gap: 4px;
+  padding: 5px 11px 5px 8px;
   border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--gold) 22%, transparent);
-  color: color-mix(in srgb, var(--gold) 62%, var(--text));
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: -0.01em;
   flex: none;
+}
+
+.streak svg {
+  color: var(--warning);
 }
 
 /* Paired tiles, intermittent fasting and water, side by side under the
@@ -1170,8 +1194,8 @@ button.row:active {
 .tilerow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 0 14px 14px;
+  gap: 12px;
+  margin: 0 var(--gutter) 12px;
 }
 
 .tile {
@@ -1179,11 +1203,11 @@ button.row:active {
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
-  padding: 14px;
+  padding: 16px;
   min-height: 132px;
-  border-radius: 16px;
+  border-radius: var(--r-card);
   background: var(--surface);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
   text-align: left;
 }
 
@@ -1299,7 +1323,7 @@ button.row:active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 12px 14px 0;
+  padding: 12px var(--gutter) 0;
 }
 
 /* Horizontal rail, used per day in the planner and per section on browse. */
@@ -1307,7 +1331,7 @@ button.row:active {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding: 0 14px 4px;
+  padding: 0 var(--gutter) 4px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
 }
@@ -1328,7 +1352,7 @@ button.row:active {
   border-radius: var(--r-lg);
   overflow: hidden;
   background: var(--surface);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
   min-width: 0;
 }
 
@@ -1358,8 +1382,8 @@ button.row:active {
   height: 100%;
   display: grid;
   place-content: center;
-  background: linear-gradient(150deg, var(--accent-soft), var(--surface-3));
-  color: var(--accent);
+  background: var(--surface-3);
+  color: var(--text-3);
 }
 
 /* Cuisine or meal-type tag, top-left over the image. */
@@ -1980,14 +2004,14 @@ button.row:active {
 .planbanner {
   display: flex;
   align-items: center;
-  gap: 13px;
-  width: calc(100% - 28px);
-  margin: 0 14px 12px;
-  padding: 14px;
+  gap: 14px;
+  width: calc(100% - 2 * var(--gutter));
+  margin: 0 var(--gutter) 12px;
+  padding: 14px 16px;
   text-align: left;
   background: var(--surface);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
 }
 
 .planbanner__icon {
@@ -2116,7 +2140,8 @@ button.row:active {
 
 /* Per-step chips: what this step needs, in reach without scrolling back to the
    ingredient list. Appliances are boxed because a setting is a thing to go and
-   do, where an ingredient is a thing to pick up. */
+   do, where an ingredient is a thing to pick up. Scoped to .step: an earlier
+   version redefined .chip globally and broke the selected state everywhere. */
 .step__times {
   display: flex;
   align-items: center;
@@ -2128,14 +2153,16 @@ button.row:active {
 }
 .step__times b { color: var(--text); font-weight: 700; }
 
-.chips {
+.step .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+  padding: 0;
+  overflow: visible;
 }
 
-.chip {
+.step .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2145,9 +2172,9 @@ button.row:active {
   font-size: 12.5px;
   background: var(--surface);
 }
-.chip em { font-style: normal; color: var(--text-3); }
+.step .chip em { font-style: normal; color: var(--text-3); }
 
-.chip--appliance {
+.step .chip--appliance {
   background: var(--surface-2, var(--bg));
   border-color: transparent;
   border-radius: 12px;
@@ -2156,8 +2183,8 @@ button.row:active {
   align-items: flex-start;
   gap: 1px;
 }
-.chip--appliance b { font-size: 13px; font-weight: 700; }
-.chip--appliance em { font-size: 11.5px; }
+.step .chip--appliance b { font-size: 13px; font-weight: 700; }
+.step .chip--appliance em { font-size: 11.5px; }
 
 /* An excluded ingredient is not a selected one. It reads as a strike-through
    rather than a highlight, so "no peanuts" never looks like "peanuts". */
@@ -2185,13 +2212,13 @@ button.row:active {
 .wgrid {
   display: grid;
   grid-auto-flow: row dense;
-  padding: 0 14px 4px;
+  padding: 0 var(--gutter) 4px;
 }
 
 .widget {
   position: relative;
   background: var(--surface);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   min-width: 0;
@@ -2231,7 +2258,7 @@ button.row:active {
   gap: 3px;
   height: 100%;
   width: 100%;
-  padding: 13px 14px 14px;
+  padding: 14px 16px 15px;
   text-align: left;
 }
 
@@ -2245,10 +2272,11 @@ button.row:active {
 .widget__title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
+  letter-spacing: -0.005em;
 }
 
 .widget__figures {
@@ -2264,10 +2292,11 @@ button.row:active {
   display: flex;
   align-items: baseline;
   gap: 5px;
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  margin-top: 2px;
+  margin-top: 4px;
+  line-height: 1.1;
 }
 
 .widget__unit {
@@ -2324,7 +2353,7 @@ button.row:active {
 }
 
 .wedit {
-  padding: 14px 16px 4px;
+  padding: 14px var(--gutter) 4px;
 }
 
 .wedit__label {
@@ -2421,10 +2450,10 @@ button.row:active {
 /* The two scores on the worth-it screen: the band as a headline, then the
    dials that produced it. */
 .verdict {
-  margin: 4px 14px 12px;
+  margin: 4px var(--gutter) 12px;
   padding: 14px 16px 16px;
   background: var(--surface);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-card);
   text-align: center;
 }
@@ -2506,7 +2535,7 @@ button.row:active {
   gap: 16px;
   padding: 24px 18px;
   background: var(--surface);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-card);
   text-align: center;
 }
@@ -2593,7 +2622,7 @@ button.row:active {
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: 84px;
   gap: 12px;
-  padding: 0 14px 8px;
+  padding: 0 var(--gutter) 8px;
 }
 
 .fboard .widget__value {
@@ -2694,149 +2723,260 @@ button.row:active {
   background: var(--bg);
 }
 
+/* ------------------------------------------------------------ home head -- */
 
-
-/* ------------------------------------------------------------- day head -- */
-
-/* Home's masthead. Everything that used to float loose above the board -- a
-   transparent top bar, the page title, the streak chip, the week strip -- is
-   one panel now. Loose elements on a wash read as an app that has not decided
-   where its header is; a panel with an edge reads as a header.
-   
-   It is also where the accent gets to be itself at full strength. Everywhere
-   else the indigo is a detail on white; here it is the ground, which is the
-   single loudest thing in the app and the reason the rest can stay quiet. */
-.dayhead {
-  flex: none;
-  position: relative;
-  padding: calc(14px + env(safe-area-inset-top)) 18px 0;
-  background:
-    radial-gradient(120% 100% at 88% 0%, var(--accent-press) 0%, transparent 62%),
-    linear-gradient(168deg, var(--accent) 0%, var(--ink) 165%);
-  border-radius: 0 0 28px 28px;
-  color: #fff;
-  /* The week capsule below hangs past this edge; the board's own top padding
-     makes up the difference. */
-  margin-bottom: 0;
-  /* Slid up rather than collapsed: the week capsule overhangs the bottom edge,
-     so anything that clips this panel clips that too. */
-  transition: margin-top 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
-  z-index: 2;
+/* Home's header, in the flow of the page rather than a panel over it. A date
+   line, a large title, and two round controls at the right: the streak and
+   the way into Settings. It sits straight on the ground, the way every tracker
+   studied starts its day screen: content on white, nothing to scroll past. */
+.home-head {
+  padding: calc(8px + env(safe-area-inset-top)) var(--gutter) 0;
 }
 
-.dayhead--hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dayhead { transition: none; }
-}
-
-.dayhead__top {
+.home-head__top {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 48px;
 }
 
-/* The full date, small. The big title says "Today", which is a relationship
-   rather than a date -- on any other day it is the only thing naming which. */
-.dayhead__date {
+.home-head__text {
   flex: 1;
   min-width: 0;
-  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.home-head__eyebrow {
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.dayhead__icon {
-  width: 36px;
-  height: 36px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: var(--r-full);
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.dayhead__icon:active {
-  background: rgba(255, 255, 255, 0.26);
-}
-
-.dayhead__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0 16px;
-}
-
-.dayhead__title {
-  flex: 1;
-  min-width: 0;
-  font-size: 33px;
+.home-head__title {
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
-/* Gold on indigo, rather than gold on a wash. Same pill, and it finally has a
-   ground worth sitting on. */
-.dayhead .goldpill {
-  box-shadow: 0 2px 10px rgba(20, 16, 50, 0.28);
-}
-
-/* The streak, restated for the dark ground: the gold-tinted version is
-   invisible here, and a flame does not need a colour to read as a streak. */
-.dayhead__streak {
+/* Round white controls that sit on the ground. */
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  flex: none;
-  padding: 5px 11px 5px 9px;
+  justify-content: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 13px;
   border-radius: var(--r-full);
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  font-size: 13.5px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--text);
+  flex: none;
+  transition: transform 0.12s ease;
 }
 
-.dayhead__streak .num { font-variant-numeric: tabular-nums; }
+.pill:active {
+  transform: scale(0.95);
+}
 
-.dayhead__streak-unit {
+.pill--icon {
+  width: 38px;
+  padding: 0;
+  color: var(--text);
+}
+
+.pill__flame {
+  display: flex;
+  color: var(--warning);
+}
+
+/* The week: seven dated circles. The day being viewed is filled in the accent,
+   a day with food logged carries an accent ring, days still to come are
+   dashed. Three states, each a different kind of mark, none relying on colour
+   alone. */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 14px 0 2px;
+}
+
+.week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.week__label {
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-/* The week sits in its own white capsule straddling the panel's bottom edge.
-   Straddling rather than sitting inside: it belongs to both halves, since it
-   is the header's last line and the board's date control at once. It also
-   keeps the strip on white, so its own colours need no dark-ground variant. */
-.dayhead__week {
+.week__label--today {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.week__circle {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  border: 1.5px solid var(--border-strong);
   background: var(--surface);
-  border-radius: 20px;
-  padding: 10px 8px 8px;
-  margin: 0 -4px;
-  transform: translateY(19px);
-  box-shadow: var(--shadow-2);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-/* Clears the overhang. Without it the first widget sits under the capsule. */
-.homeboard {
-  padding-top: 30px;
+.week__circle--future {
+  color: var(--text-3);
+  border-style: dashed;
+  background: transparent;
+}
+
+.week__circle--logged {
+  border: 2px solid var(--accent);
+}
+
+.week__circle--selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 /* Arranging the board is a thing you do to the board, so its control lives
-   with it rather than in the masthead among the day's own information. */
+   with it, small and out of the way. */
 .boardbar {
   display: flex;
   justify-content: flex-end;
-  padding: 0 18px 2px;
+  padding: 6px var(--gutter) 6px;
+}
+
+.boardbar__btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 4px 2px;
+}
+
+/* ------------------------------------------------------------ meal rows -- */
+
+/* One row per meal on Home: an icon in a tinted square, the meal, what is in
+   it, and either its calories or a round add button when it is still empty.
+   The pattern every tracker studied uses for its day's log. */
+.meal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.meal:last-child {
+  border-bottom: 0;
+}
+
+.meal__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 4px 0;
+}
+
+.meal__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.meal__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.meal__name {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.meal__sub {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meal__cal {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+  color: var(--text);
+}
+
+.meal__cal small {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-left: 2px;
+}
+
+.meal__add {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: transform 0.12s ease;
+}
+
+.meal__add:active {
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: scale(0.94);
+}
+
+/* A small icon in a tinted circle, the way the reference apps label a stat.
+   The tint is the stat's own colour at low strength, so the circle says which
+   figure this is before the label does. */
+.stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  flex: none;
 }

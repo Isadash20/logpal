@@ -495,3 +495,23 @@ alter table logpal_social_profile add column if not exists protein_g integer;
 alter table logpal_social_profile add column if not exists carbs_g integer;
 alter table logpal_social_profile add column if not exists fat_g integer;
 alter table logpal_social_profile add column if not exists exercise_calories integer;
+
+-- ------------------------------------------------------------ account deletion
+--
+-- App Store Review Guideline 5.1.1(v): an app that lets people create an
+-- account must let them delete it from inside the app. The client cannot
+-- delete its own auth.users row (that needs the service role), so this runs
+-- as the definer and deletes exactly the caller. Every logpal_* table
+-- references auth.users on delete cascade, so the row's data goes with it,
+-- and the handle in logpal_usernames is released by the same cascade.
+create or replace function delete_own_account()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from auth.users where id = auth.uid();
+$$;
+
+revoke all on function delete_own_account() from public;
+grant execute on function delete_own_account() to authenticated;

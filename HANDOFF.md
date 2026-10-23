@@ -3,6 +3,14 @@
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
 current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
+**App Store work started 2026-10-13** — see `APPSTORE.md` for the route
+(Capacitor), what blocks on the user (developer account, Xcode, Sign in with
+Apple), and what landed that day: icon set, web manifest and Apple meta tags,
+`/privacy` page, and in-app account deletion backed by `delete_own_account()`
+at the bottom of `supabase/schema.sql`, **which has not been run against the
+live project yet**. §11's "No Sign in with Apple" is now a hard App Store
+blocker (Guideline 4.8), not a nice-to-have.
+
 **Two large features landed after the original text below was written**, and
 they are documented in §14 and §15 at the end rather than woven through:
 following/friends, and meal planning. Where the older sections disagree with
@@ -325,6 +333,21 @@ reached from Home → "View all", not a tab.
 ---
 
 ## 5. Design system
+
+**Rebuilt 2026-10-23. `DESIGN.md` is now the brief and the table below is
+historical.** The user asked for a sleeker, more professional look and for the
+"AI tendencies" to go; eight shipping trackers were studied from their App
+Store screenshots and the system was rebuilt on what they share: neutral
+near-white ground, white cards (radius 20, soft shadow), the blue-violet
+accent kept but used only as a detail, macros recoloured coral/amber/blue, a
+dated week strip, a header in the flow of the page instead of the indigo
+masthead, meal rows with an add button each. The lavender wash, the gradient
+masthead and the `dayhead` classes are gone; `.home-head`, `.pill`, `.week`,
+`.meal` and `.stat-icon` replaced them. Widgets were restyled in place, so the
+board and its layout code are untouched. The `.chip` class had been defined
+twice (the second time for recipe steps) and the duplicate had silently
+broken the selected state everywhere; it is scoped to `.step` now.
+
 
 `src/styles/tokens.css` is the single source of colour. Changing a scheme is a
 one-file edit.

@@ -101,7 +101,7 @@ export function Diary() {
         <button
           className="card"
           style={{
-            width: '100%',
+            width: 'calc(100% - 2 * var(--gutter))',
             textAlign: 'left',
             display: 'block',
             padding: '14px 16px',

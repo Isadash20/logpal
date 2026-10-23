@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { useApp } from '../state/store'
-import { Icon } from './Icon'
+import { Icon, type IconName } from './Icon'
 import { cal } from '../lib/format'
 import { mlToDisplay, waterUnitLabel } from '../lib/units'
 import { formatSleep } from '../screens/wellness'
@@ -21,6 +21,10 @@ import type { WidgetId } from '../lib/widgetLayout'
  * widget narrowed to one column keeps its headline number and loses the
  * sub-line; a widget one row tall loses its progress bar. Nothing is ever
  * squeezed. The parts that do not fit are simply not drawn.
+ *
+ * The look follows DESIGN.md: a small grey title with the stat's icon in a
+ * tinted circle, one large figure, a grey sub-line, and the progress drawn
+ * in the stat's own colour.
  */
 
 export interface WidgetProps {
@@ -38,21 +42,32 @@ function useOpen(editing: boolean) {
   }
 }
 
+/* ---------------------------------------------------------------- title -- */
+
+/** The widget's name with its icon in a circle tinted by the stat's colour. */
+function Title({ icon, color, children }: { icon: IconName; color: string; children: ReactNode }) {
+  return (
+    <span className="widget__title">
+      <span
+        className="stat-icon"
+        style={{ background: `color-mix(in srgb, ${color} 14%, var(--surface))`, color }}
+      >
+        <Icon name={icon} size={15} strokeWidth={2.2} />
+      </span>
+      {children}
+    </span>
+  )
+}
 
 /* ----------------------------------------------------------------- ring -- */
 
 /**
  * A progress ring with its percentage in the middle.
  *
- * Shown instead of the bar once a widget is tall enough to have the room. A
- * bar reads as a sliver in a widget three rows high, and the space wants
- * filling with something, so the same figure is drawn as the shape every
- * other progress display in the app uses: the fasting dial, and the sleep and
- * step screens.
- *
- * The arc is capped at a full turn while the number is not: 130% of a calorie
- * goal is worth saying, and a ring that wrapped past twelve o'clock would read
- * as 30%.
+ * Sized by the space it is given, or by `size` when a widget wants a fixed
+ * dial beside its figures. The arc is capped at a full turn while the number
+ * is not: 130% of a calorie goal is worth saying, and a ring that wrapped past
+ * twelve o'clock would read as 30%.
  */
 function Ring({
   value,
@@ -60,6 +75,8 @@ function Ring({
   caption,
   label,
   over,
+  size,
+  stroke = 8,
 }: {
   /** 0-1 and beyond; 1 is the goal. */
   value: number
@@ -68,16 +85,18 @@ function Ring({
   label?: string
   /** Colours the ring as a warning once past the goal (calories, not steps). */
   over?: boolean
+  /** Fixed pixel size. Without it the ring fills whatever space it is given. */
+  size?: number
+  stroke?: number
 }) {
   const r = 34
   const circumference = 2 * Math.PI * r
   const filled = Math.min(1, Math.max(0, value))
   const tone = over && value > 1 ? 'var(--danger)' : color
+  const fixed = size !== undefined
+  /* Small dials get a proportionally larger figure or it vanishes. */
+  const fontSize = fixed && size! <= 56 ? 21 : 17
 
-  /* Sized by the space it is given rather than a fixed number of pixels: the
-     widget can be two rows or four, one column or four, and a ring that stayed
-     86px left most of a large widget empty. The viewBox does the scaling, so
-     the percentage inside grows with it. */
   return (
     <span
       style={{
@@ -86,10 +105,10 @@ function Ring({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 2,
-        flex: 1,
+        flex: fixed ? 'none' : 1,
         minHeight: 0,
         minWidth: 0,
-        width: '100%',
+        width: fixed ? size : '100%',
       }}
     >
       <svg
@@ -99,9 +118,13 @@ function Ring({
         aria-label={`${Math.round(value * 100)}%`}
         /* Capped so a four-column widget on a tablet does not turn into one
            enormous dial; the flex above still shrinks it on a phone. */
-        style={{ flex: 1, minHeight: 0, width: '100%', maxWidth: 124 }}
+        style={
+          fixed
+            ? { width: size, height: size, flex: 'none' }
+            : { flex: 1, minHeight: 0, width: '100%', maxWidth: 124 }
+        }
       >
-        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--surface-3)" strokeWidth="8" />
+        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
         {filled > 0 && (
           <circle
             cx="40"
@@ -109,7 +132,7 @@ function Ring({
             r={r}
             fill="none"
             stroke={tone}
-            strokeWidth="8"
+            strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${filled * circumference} ${circumference}`}
             transform="rotate(-90 40 40)"
@@ -122,7 +145,7 @@ function Ring({
           textAnchor="middle"
           dominantBaseline="central"
           className="num"
-          style={{ fontSize: 17, fontWeight: 800, fill: 'var(--text)' }}
+          style={{ fontSize, fontWeight: 800, fill: 'var(--text)', letterSpacing: '-0.03em' }}
         >
           {Math.round(value * 100)}%
         </text>
@@ -146,57 +169,106 @@ function isExpanded(h: number): boolean {
   return h >= 3
 }
 
+/** The thin bar under a figure, in the stat's colour. */
+function Bar({ value, color }: { value: number; color: string }) {
+  return (
+    <span className="tile__bar" style={{ marginTop: 'auto' }}>
+      <span
+        className="tile__fill"
+        style={{ width: `${Math.min(100, Math.max(0, value) * 100)}%`, background: color }}
+      />
+    </span>
+  )
+}
+
 /* ------------------------------------------------------------- calories -- */
 
-function CaloriesWidget({ date, h }: WidgetProps) {
+/**
+ * The hero. Remaining is the large figure, since it is the one that changes
+ * what you do next; eaten and goal sit under it in grey. The ring at the
+ * right shows how far through the goal the day is, the shape every tracker
+ * studied puts beside this number.
+ */
+function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
   const { totalsFor, settings } = useApp()
+  const open = useOpen(editing)
   const totals = totalsFor(date)
   const credit = settings.exerciseAddsCalories ? totals.exerciseCalories : 0
   const consumed = totals.nutrients.calories
-  const left = totals.goal - consumed + credit
-  const pctEaten = totals.goal > 0 ? Math.min(100, (consumed / totals.goal) * 100) : 0
+  const goal = totals.goal + credit
+  const left = goal - consumed
+  const ratio = goal > 0 ? consumed / goal : 0
+
+  const ring = h >= 2 && w >= 3
+  const ringSize = isExpanded(h) ? 132 : 96
 
   return (
-    <div className="widget__body">
-      <div className="widget__title">Calories</div>
-      <div className="widget__figures">
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
-          <span className="num" style={{ fontSize: 27, fontWeight: 800, letterSpacing: '-0.03em' }}>
-            {cal(consumed)}
-          </span>
-          <span style={{ fontSize: 15, fontWeight: 600 }}>cal</span>
-          <span className="num" style={{ fontSize: 14, color: 'var(--text-2)' }}>
-            / {cal(totals.goal + credit)}
-          </span>
-        </div>
-        <div style={{ flex: 'none' }}>
+    <div
+      className="widget__body"
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
+    >
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'stretch' }}>
+        <Title icon="flame" color="var(--accent)">
+          Calories
+        </Title>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4, minWidth: 0 }}>
           <span
             className="num"
-            style={{ fontSize: 19, fontWeight: 800, color: left < 0 ? 'var(--danger)' : 'var(--text)' }}
+            style={{
+              fontSize: h >= 2 ? 36 : 26,
+              fontWeight: 800,
+              letterSpacing: '-0.035em',
+              lineHeight: 1,
+              color: left < 0 ? 'var(--danger)' : 'var(--text)',
+            }}
           >
             {cal(Math.abs(left))}
           </span>
-          <span style={{ fontSize: 14, color: 'var(--text-2)' }}> {left < 0 ? 'over' : 'left'}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>
+            {left < 0 ? 'over' : 'left'}
+          </span>
         </div>
-      </div>
-      {isExpanded(h) ? (
-        <div style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 4 }}>
-          <Ring
-            value={totals.goal > 0 ? consumed / (totals.goal + credit) : 0}
-            color="var(--accent)"
-            over
-            caption="of goal"
-          />
-        </div>
-      ) : (
-        h > 1 && (
-          <div className="progress" style={{ height: 8, marginTop: 'auto' }}>
+        {h >= 2 && (
+          <div className="widget__sub" style={{ marginTop: 6 }}>
+            <span className="num" style={{ color: 'var(--text)', fontWeight: 600 }}>
+              {cal(consumed)}
+            </span>{' '}
+            eaten
+            <span style={{ color: 'var(--text-3)' }}> · </span>
+            <span className="num" style={{ color: 'var(--text)', fontWeight: 600 }}>
+              {cal(goal)}
+            </span>{' '}
+            goal
+          </div>
+        )}
+        {h >= 2 && (
+          <button
+            className="textbtn"
+            style={{ padding: 0, marginTop: 'auto', alignSelf: 'flex-start', fontSize: 13.5 }}
+            onClick={() => open({ name: 'goals' })}
+          >
+            Your plan
+          </button>
+        )}
+        {h === 1 && (
+          <div className="progress" style={{ height: 6, marginTop: 'auto' }}>
             <div
               className={`progress__fill ${left < 0 ? 'progress__fill--over' : ''}`}
-              style={{ width: `${pctEaten}%` }}
+              style={{ width: `${Math.min(100, ratio * 100)}%` }}
             />
           </div>
-        )
+        )}
+      </div>
+      {ring && (
+        <Ring value={ratio} color="var(--accent)" over size={ringSize} stroke={9} />
+      )}
+      {h >= 2 && !ring && (
+        <div className="progress" style={{ height: 6, marginTop: 'auto' }}>
+          <div
+            className={`progress__fill ${left < 0 ? 'progress__fill--over' : ''}`}
+            style={{ width: `${Math.min(100, ratio * 100)}%` }}
+          />
+        </div>
       )}
     </div>
   )
@@ -204,27 +276,26 @@ function CaloriesWidget({ date, h }: WidgetProps) {
 
 /* --------------------------------------------------------------- macros -- */
 
+/**
+ * Three equal units, each in its own colour: grams eaten over the target with
+ * a bar underneath. Expanded, each becomes a ring. The narrow one-row form
+ * keeps only the grams.
+ */
 function MacrosWidget({ date, w, h }: WidgetProps) {
   const { totalsFor, macroTargets } = useApp()
   const n = totalsFor(date).nutrients
-  const kcal = { c: n.carbs * 4, f: n.fat * 9, p: n.protein * 4 }
-  const total = kcal.c + kcal.f + kcal.p
-  const share = (v: number) => (total > 0 ? (v / total) * 100 : 0)
 
-  const rows: [string, number, number, number, string][] = [
-    ['Carbs', kcal.c, n.carbs, macroTargets.carbs, 'var(--carbs)'],
-    ['Fat', kcal.f, n.fat, macroTargets.fat, 'var(--fat)'],
-    ['Protein', kcal.p, n.protein, macroTargets.protein, 'var(--protein)'],
+  const rows: [string, number, number, string][] = [
+    ['Protein', n.protein, macroTargets.protein, 'var(--protein)'],
+    ['Carbs', n.carbs, macroTargets.carbs, 'var(--carbs)'],
+    ['Fat', n.fat, macroTargets.fat, 'var(--fat)'],
   ]
 
   return (
     <div className="widget__body">
-      {/* Expanded, each macro gets its own ring, filled by how much of that
-          macro's target has been eaten. The same thing the grams line says,
-          drawn. The compact form keeps the share-of-calories split instead,
-          because three numbers that add to 100 is the comparison worth having
-          when there is only room for one line. */}
-      <div className="widget__title">Macros</div>
+      <Title icon="chart" color="var(--carbs)">
+        Macros
+      </Title>
       {isExpanded(h) ? (
         <div
           style={{
@@ -236,7 +307,7 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             paddingTop: 2,
           }}
         >
-          {rows.map(([label, , gramsNow, target, color]) => (
+          {rows.map(([label, gramsNow, target, color]) => (
             <Ring
               key={label}
               value={target > 0 ? gramsNow / target : 0}
@@ -247,61 +318,63 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
           ))}
         </div>
       ) : (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-        {rows.map(([label, k, gramsNow, target, color]) => (
-          <div key={label} style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span
-                style={{
-                  fontSize: w > 2 ? 14 : 12,
-                  color: 'var(--text-2)',
-                  fontWeight: 500,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {label}
-              </span>
-              <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flex: 'none' }} />
-            </div>
-            <div
-              className="num"
-              style={{ fontSize: w > 2 ? 20 : 17, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 2 }}
-            >
-              {Math.round(share(k))} %
-            </div>
-            {/* The grams line is the first thing to go when there is no room:
-                the percentages are the comparison, the grams are the detail. */}
-            {h > 1 && (
-              <div className="num" style={{ fontSize: 12, color: 'var(--text-3)' }}>
-                {Math.round(gramsNow)} / {target} g
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      )}
-
-      {!isExpanded(h) && (
         <div
           style={{
-            display: 'flex',
-            height: 9,
-            borderRadius: 999,
-            overflow: 'hidden',
-            background: 'var(--surface-3)',
-            marginTop: 'auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: w > 2 ? 14 : 8,
+            marginTop: 6,
+            flex: 1,
           }}
         >
-          {total > 0 &&
-            ([
-              [kcal.c, 'var(--carbs)'],
-              [kcal.f, 'var(--fat)'],
-              [kcal.p, 'var(--protein)'],
-            ] as [number, string][]).map(([v, color], i) => (
-              <div key={i} style={{ width: `${share(v)}%`, background: color }} />
-            ))}
+          {rows.map(([label, gramsNow, target, color]) => (
+            <div key={label} style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flex: 'none' }} />
+                <span
+                  style={{
+                    fontSize: 12.5,
+                    color: 'var(--text-2)',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {label}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0 }}>
+                <span
+                  className="num"
+                  style={{ fontSize: w > 2 ? 20 : 17, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}
+                >
+                  {Math.round(gramsNow)}
+                </span>
+                <span className="num" style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>
+                  / {target} g
+                </span>
+              </div>
+              {h > 1 && (
+                <span className="widget__sub" style={{ fontSize: 12 }}>
+                  {gramsNow > target
+                    ? `${Math.round(gramsNow - target)} g over`
+                    : `${Math.round(target - gramsNow)} g left`}
+                </span>
+              )}
+              {h > 1 && (
+                <span className="tile__bar" style={{ height: 5, marginTop: 'auto' }}>
+                  <span
+                    className="tile__fill"
+                    style={{
+                      width: `${target > 0 ? Math.min(100, (gramsNow / target) * 100) : 0}%`,
+                      background: color,
+                    }}
+                  />
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -323,13 +396,13 @@ function FastingWidget({ h, editing }: WidgetProps) {
   }, [fast])
 
   const progress = fast ? fastProgress(fast, now) : 0
+  const color = progress >= 1 ? 'var(--positive)' : 'var(--sleep)'
 
   return (
     <button className="widget__body widget__body--tap" onClick={() => open({ name: 'fasting' })}>
-      <span className="widget__title">
-        <Icon name="clock" size={15} />
+      <Title icon="clock" color="var(--sleep)">
         Fasting
-      </span>
+      </Title>
       <span className="widget__value">
         <span className="num">{fast ? formatDuration(fastElapsedMs(fast, now)) : '0:00'}</span>
       </span>
@@ -340,22 +413,10 @@ function FastingWidget({ h, editing }: WidgetProps) {
           </span>
           {isExpanded(h) ? (
             <span style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 4 }}>
-              <Ring
-                value={progress}
-                color={progress >= 1 ? 'var(--positive)' : 'var(--accent)'}
-                caption="of target"
-              />
+              <Ring value={progress} color={color} caption="of target" />
             </span>
           ) : (
-            <span className="tile__bar" style={{ marginTop: 'auto' }}>
-              <span
-                className="tile__fill"
-                style={{
-                  width: `${Math.min(100, progress * 100)}%`,
-                  background: progress >= 1 ? 'var(--positive)' : 'var(--accent)',
-                }}
-              />
-            </span>
+            <Bar value={progress} color={color} />
           )}
         </>
       )}
@@ -373,13 +434,13 @@ function WaterWidget({ date, w, h, editing }: WidgetProps) {
     const v = mlToDisplay(ml, settings.waterUnit)
     return settings.waterUnit === 'ml' ? Math.round(v) : Math.round(v * 10) / 10
   }
+  const ratio = waterTarget > 0 ? log.water / waterTarget : 0
 
   return (
     <button className="widget__body widget__body--tap" onClick={() => open({ name: 'water', date })}>
-      <span className="widget__title">
-        <Icon name="water" size={15} />
+      <Title icon="water" color="var(--water)">
         Water
-      </span>
+      </Title>
       <span className="widget__value">
         <span className="num">{fmt(log.water)}</span>
         {/* One column is too narrow for "6 / 13.1 cups". The goal is the
@@ -399,22 +460,10 @@ function WaterWidget({ date, w, h, editing }: WidgetProps) {
           </span>
           {isExpanded(h) ? (
             <span style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 4 }}>
-              <Ring
-                value={waterTarget > 0 ? log.water / waterTarget : 0}
-                color="var(--water)"
-                caption="of goal"
-              />
+              <Ring value={ratio} color="var(--water)" caption="of goal" />
             </span>
           ) : (
-            <span className="tile__bar" style={{ marginTop: 'auto' }}>
-              <span
-                className="tile__fill"
-                style={{
-                  width: `${waterTarget > 0 ? Math.min(100, (log.water / waterTarget) * 100) : 0}%`,
-                  background: 'var(--water)',
-                }}
-              />
-            </span>
+            <Bar value={ratio} color="var(--water)" />
           )}
         </>
       )}
@@ -429,15 +478,15 @@ function SleepWidget({ date, w, h, editing }: WidgetProps) {
   const open = useOpen(editing)
   const log = dayLog(date)
   const goal = profile.sleepGoalMin
+  const ratio = (log.sleepMin ?? 0) / Math.max(1, goal)
 
   return (
     <button className="widget__body widget__body--tap" onClick={() => open({ name: 'sleep', date })}>
-      <span className="widget__title">
-        <Icon name="moon" size={15} />
+      <Title icon="moon" color="var(--sleep)">
         Sleep
-      </span>
+      </Title>
       <span className="widget__value">
-        <span className="num">{log.sleepMin == null ? '-' : formatSleep(log.sleepMin)}</span>
+        <span className="num">{log.sleepMin == null ? '–' : formatSleep(log.sleepMin)}</span>
         {w > 1 && <span className="widget__unit">/ {formatSleep(goal)}</span>}
       </span>
       {h > 1 && (
@@ -451,18 +500,10 @@ function SleepWidget({ date, w, h, editing }: WidgetProps) {
           </span>
           {isExpanded(h) ? (
             <span style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 4 }}>
-              <Ring value={(log.sleepMin ?? 0) / Math.max(1, goal)} color="var(--sleep)" caption="of target" />
+              <Ring value={ratio} color="var(--sleep)" caption="of target" />
             </span>
           ) : (
-            <span className="tile__bar" style={{ marginTop: 'auto' }}>
-              <span
-                className="tile__fill"
-                style={{
-                  width: `${Math.min(100, ((log.sleepMin ?? 0) / Math.max(1, goal)) * 100)}%`,
-                  background: 'var(--sleep)',
-                }}
-              />
-            </span>
+            <Bar value={ratio} color="var(--sleep)" />
           )}
         </>
       )}
@@ -477,15 +518,15 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
   const open = useOpen(editing)
   const log = dayLog(date)
   const goal = profile.stepGoal
+  const ratio = (log.steps ?? 0) / Math.max(1, goal)
 
   return (
     <button className="widget__body widget__body--tap" onClick={() => open({ name: 'steps', date })}>
-      <span className="widget__title">
-        <Icon name="steps" size={15} />
+      <Title icon="steps" color="var(--steps)">
         Steps
-      </span>
+      </Title>
       <span className="widget__value">
-        <span className="num">{log.steps == null ? '-' : log.steps.toLocaleString()}</span>
+        <span className="num">{log.steps == null ? '–' : log.steps.toLocaleString()}</span>
         {w > 1 && <span className="widget__unit">/ {goal.toLocaleString()}</span>}
       </span>
       {h > 1 && (
@@ -499,18 +540,10 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
           </span>
           {isExpanded(h) ? (
             <span style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 4 }}>
-              <Ring value={(log.steps ?? 0) / Math.max(1, goal)} color="var(--steps)" caption="of goal" />
+              <Ring value={ratio} color="var(--steps)" caption="of goal" />
             </span>
           ) : (
-            <span className="tile__bar" style={{ marginTop: 'auto' }}>
-              <span
-                className="tile__fill"
-                style={{
-                  width: `${Math.min(100, ((log.steps ?? 0) / Math.max(1, goal)) * 100)}%`,
-                  background: 'var(--steps)',
-                }}
-              />
-            </span>
+            <Bar value={ratio} color="var(--steps)" />
           )}
         </>
       )}
@@ -531,15 +564,12 @@ function ExerciseWidget({ date, h, editing }: WidgetProps) {
       className="widget__body widget__body--tap"
       onClick={() => open({ name: 'exerciseSearch', date, kind: 'cardio' })}
     >
-      <span className="widget__title">
-        <Icon name="dumbbell" size={15} />
+      <Title icon="dumbbell" color="var(--steps)">
         Exercise
-      </span>
-      <span className="widget__value" style={{ fontSize: workouts.length ? 17 : 20 }}>
-        <span className="num">
-          {workouts.length
-            ? workouts.map((e) => e.name).join(', ')
-            : 'Nothing logged'}
+      </Title>
+      <span className="widget__value" style={{ fontSize: workouts.length ? 17 : 17, fontWeight: workouts.length ? 700 : 600 }}>
+        <span style={{ color: workouts.length ? 'var(--text)' : 'var(--text-2)' }}>
+          {workouts.length ? workouts.map((e) => e.name).join(', ') : 'Nothing logged'}
         </span>
       </span>
       {h > 1 && workouts.length > 0 && (

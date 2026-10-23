@@ -545,7 +545,7 @@ export function LineChart({
             y={18}
             textAnchor="middle"
             fontSize="10.5"
-            fill="#fff"
+            fill="var(--on-ink)"
           >
             {cur.x} · {format(cur.y)}
             {unit}
@@ -675,28 +675,17 @@ export function BarChart({
 /* ------------------------------------------------------------ week strip -- */
 
 /**
- * Seven dots, one per day, filled in proportion to goal completion. The
- * cheapest possible "am I being consistent?" answer.
- */
-/**
- * Weekday letters over plain circles: filled with a tick once the day has been
- * logged, hollow otherwise, with a marker dot above the selected day.
- */
-export /**
- * The week strip.
+ * The week: seven dated circles under their weekday letters.
  *
  * Three states have to be readable at a glance, and they are easy to collapse
  * into one another: a day that has been *logged*, the day being *viewed*, and
- * the real calendar *today*. Logged alone filled the circle dark, so on a good
- * week every circle looked identical and nothing said which one you were
- * actually looking at.
- *
- * Logged fills dark; the viewed day fills in the accent with a ring around it,
- * bright enough to stand out from a row of dark circles even when it is logged
- * too; today keeps a dot above its letter, which matters once you navigate away
- * from it.
+ * the real calendar *today*. The viewed day is filled in the accent; a logged
+ * day carries an accent ring; today's letter is set dark; days still to come
+ * are dashed. Each state is a different kind of mark, so none of them depends
+ * on colour alone, and the date number inside the circle is what the
+ * reference apps all show, so a week is a week and not a row of ticks.
  */
-function WeekStrip({
+export function WeekStrip({
   days,
   onPick,
 }: {
@@ -708,96 +697,43 @@ function WeekStrip({
     selected?: boolean
     /** The real calendar today, which is not always the day being viewed. */
     isToday?: boolean
+    /** After today: nothing can have been logged there yet. */
+    future?: boolean
   }[]
   onPick?(date: string): void
 }) {
   return (
-    <div style={{ display: 'flex', padding: '2px 0 4px' }}>
-      {days.map((d, i) => (
-        <button
-          key={d.date}
-          onClick={() => onPick?.(d.date)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 7,
-          }}
-          aria-label={
-            `${d.label}` +
-            (d.isToday ? ', today' : '') +
-            (d.logged ? ', logged' : '') +
-            (d.selected ? ', selected' : '')
-          }
-          aria-current={d.selected ? 'date' : undefined}
-        >
-          <span style={{ position: 'relative', lineHeight: 1 }}>
-            {d.isToday && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: -6,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 4,
-                  height: 4,
-                  borderRadius: 999,
-                  background: d.selected ? 'var(--accent)' : 'var(--text-2)',
-                }}
-              />
-            )}
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: d.selected ? 700 : 500,
-                color: d.selected ? 'var(--accent)' : 'var(--text-2)',
-              }}
-            >
+    <div className="week" role="group" aria-label="This week">
+      {days.map((d) => {
+        const n = Number(d.date.slice(8, 10))
+        const circle = [
+          'week__circle',
+          d.selected && 'week__circle--selected',
+          !d.selected && d.logged && 'week__circle--logged',
+          !d.selected && !d.logged && d.future && 'week__circle--future',
+        ]
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <button
+            key={d.date}
+            className="week__day"
+            onClick={() => onPick?.(d.date)}
+            aria-label={
+              `${d.label} ${n}` +
+              (d.isToday ? ', today' : '') +
+              (d.logged ? ', logged' : '') +
+              (d.selected ? ', selected' : '')
+            }
+            aria-current={d.selected ? 'date' : undefined}
+          >
+            <span className={`week__label ${d.isToday ? 'week__label--today' : ''}`}>
               {d.label}
             </span>
-          </span>
-          <span
-            style={{
-              width: 27,
-              height: 27,
-              borderRadius: 999,
-              display: 'grid',
-              placeItems: 'center',
-              background: d.selected
-                ? 'var(--accent)'
-                : d.logged
-                  ? 'var(--ink)'
-                  : 'transparent',
-              border:
-                d.selected || d.logged ? 'none' : '1.5px solid var(--border-strong)',
-              /* The ring is what keeps the viewed day distinct when the whole
-                 week is logged and every other circle is already filled. */
-              boxShadow: d.selected ? '0 0 0 3px var(--accent-ring)' : 'none',
-              color: '#fff',
-            }}
-          >
-            {d.logged ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M20 6L9 17l-5-5"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : d.selected ? (
-              // Nothing logged yet, so the circle would otherwise be a flat
-              // disc with no indication of what it is.
-              <span
-                style={{ width: 6, height: 6, borderRadius: 999, background: '#fff' }}
-              />
-            ) : null}
-          </span>
-          {i < 0 && null}
-        </button>
-      ))}
+            <span className={circle}>{n}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
