@@ -45,6 +45,20 @@ export type IconName =
   | 'nutriscan'
   | 'stars'
   | 'plan'
+  | 'apple'
+  | 'leaf'
+  | 'bread'
+  | 'drumstick'
+  | 'fish'
+  | 'cheese'
+  | 'egg'
+  | 'cup'
+  | 'cookie'
+  | 'burger'
+  | 'bowl'
+  | 'bean'
+  | 'bottle'
+  | 'sparkle'
 
 const PATHS: Record<IconName, string> = {
   back: 'M15 19l-7-7 7-7',
@@ -99,6 +113,27 @@ const PATHS: Record<IconName, string> = {
   steps: 'M7 4.5a2.5 2.5 0 015 0c0 2-1 3-1 4.5H8c0-1.5-1-2.5-1-4.5zM8 11h3v2.5a1.5 1.5 0 01-3 0zM13 12.5a2.5 2.5 0 015 0c0 2-1 3-1 4.5h-3c0-1.5-1-2.5-1-4.5zM14 19h3v1.5a1.5 1.5 0 01-3 0z',
   stars: 'M12 3l1.6 3.6L17 8l-3.4 1.4L12 13l-1.6-3.6L7 8l3.4-1.4zM18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z',
   plan: 'M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1zM8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01',
+
+  /* Food groups, for the mark beside a food. See lib/foodIcon.ts. Drawn to
+     read at 16px inside a tinted circle: one closed shape each, a detail or
+     two, nothing finer than the stroke. */
+  apple:
+    'M12 8.5c-1-.8-2.2-1.1-3.4-.8C6.3 8.3 5 10.7 5.5 13.6c.5 3.4 2.6 6.4 4.5 7.2.7.3 1.3.1 2-.2.7.3 1.3.5 2 .2 1.9-.8 4-3.8 4.5-7.2.5-2.9-.8-5.3-3.1-5.9-1.2-.3-2.4 0-3.4.8zM12 8.5c0-2 1-3.6 3-4.5',
+  leaf: 'M4 20c.5-8 5.5-13.5 16-15-.8 10.5-6 15.5-14 15.5M4 20l8-8',
+  bread: 'M6.5 11A3.5 3.5 0 017 4h10a3.5 3.5 0 01.5 7v9h-11v-9z',
+  drumstick:
+    'M14.5 3.5a5.5 5.5 0 00-4.9 8L4.5 16.6 7.4 19.5l5.1-5.1a5.5 5.5 0 102-10.9zM4.5 16.6l-1.5.9 1 1 1 1 .9-1.5',
+  fish: 'M2 12s4-6 10-6c3 0 6 2 8 6-2 4-5 6-8 6-6 0-10-6-10-6zM20 12l2.5-4.5M20 12l2.5 4.5M9 11h.01',
+  cheese: 'M3 10l16-5.5V10M3 10v8h18v-8H3zM8 14h.01M14 15h.01M17 12.5h.01',
+  egg: 'M12 3c3 0 7 5 7 11a7 7 0 01-14 0c0-6 4-11 7-11z',
+  cup: 'M4 8h13v7.5a4.5 4.5 0 01-4.5 4.5h-4A4.5 4.5 0 014 15.5zM17 10h1.5a2.5 2.5 0 010 5H17M8 3c0 1.5 1 1.5 1 3M12 3c0 1.5 1 1.5 1 3',
+  cookie:
+    'M12 3a9 9 0 109 9 3 3 0 01-3-3 3 3 0 01-3-3 3 3 0 01-3-3zM8 10h.01M12 15h.01M8 15.5h.01M15 16h.01',
+  burger: 'M4 10a8 8 0 0116 0zM4 14h16M3 17a2.5 2.5 0 002.5 2.5h13A2.5 2.5 0 0021 17v-.5H3zM9 7h.01M13 7h.01',
+  bowl: 'M3 11h18a9 9 0 01-9 9 9 9 0 01-9-9zM8 7l1-3M12 7l1-3M16 7l1-3',
+  bean: 'M7 8c0-3 2.5-5 5-5 4 0 6.5 3 6.5 7 0 5-3.5 9-7.5 9-3 0-5-2-5-5 0-2 1.5-3 1.5-4.5S7 9 7 8z',
+  bottle: 'M10 3h4v3l2 3v10a2 2 0 01-2 2h-4a2 2 0 01-2-2V9l2-3zM8 13h8',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
 }
 
 /** The three-dot and sun icons read as dots, not strokes. */

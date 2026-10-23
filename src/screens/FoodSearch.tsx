@@ -4,6 +4,7 @@ import type { MealKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { Empty, Row, TopBar } from '../components/ui'
+import { FoodMark } from '../components/FoodMark'
 import { cal } from '../lib/format'
 import { scaleNutrients, sumNutrients } from '../lib/nutrition'
 import { looksLikeBarcode, searchLocal } from '../services/foodSearch'
@@ -390,6 +391,7 @@ function FoodRow({
 
   return (
     <Row
+      left={<FoodMark name={food.name} brand={food.brand} />}
       title={food.name}
       sub={sub}
       value={cal(kcal)}

@@ -80,3 +80,26 @@ generic. The screenshots are not kept in the repo.
 - No gradients, no blur, no glow, no emoji. Icons are the stroke set in
   `Icon.tsx`.
 - Verify on a phone-width viewport in both themes before calling it done.
+
+## What a page of numbers was still missing (added the same day)
+
+The first pass was clean and the user's verdict was "neat, but empty". Looking
+again at the reference screenshots, the difference was never the layout: it
+was that every one of them has *life* on the page that ours lacked. Four
+things were added, each a pattern taken from a specific app:
+
+- **A greeting and one sentence about the day** (Lifesum's "Good morning"
+  card, MFP's coach), computed from the day's own figures in
+  `lib/dayInsight.ts`. One rule fires; short sentences; it never tells anyone
+  what to eat.
+- **A one-tap "Log again" rail** of recent foods (MacroFactor's recents, the
+  quick-log advice in every UX piece read). A repeat meal is the common case.
+- **A mark beside every food** (MacroFactor's pictograms): a food-group icon
+  on its group's tint, decided from the name in `lib/foodIcon.ts`. Lists stop
+  reading as spreadsheets.
+- **Recipes with photographs that fit the calories left** (Lifesum's plans,
+  Cal AI's photo rows), from the catalogue, favouring protein when protein is
+  behind. The one place Home shows a picture of food.
+
+Plus a weight widget with a trend line, which every weight-loss app puts on
+its first screen.

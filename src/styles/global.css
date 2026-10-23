@@ -2980,3 +2980,203 @@ button.row:active {
   place-items: center;
   flex: none;
 }
+
+/* -------------------------------------------------------------- insight -- */
+
+/* One sentence about today, under a greeting. The card the coaching apps
+   open with, done with arithmetic rather than a model: see lib/dayInsight.ts.
+   A mark at the left says the tone before the words do. */
+.insight {
+  display: flex;
+  gap: 12px;
+  margin: 4px var(--gutter) 12px;
+  padding: 14px 16px 14px 14px;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.insight__mark {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-top: 1px;
+}
+
+.insight--good .insight__mark {
+  background: color-mix(in srgb, var(--positive) 14%, var(--surface));
+  color: var(--positive);
+}
+
+.insight--warn .insight__mark {
+  background: color-mix(in srgb, var(--warning) 16%, var(--surface));
+  color: var(--warning);
+}
+
+.insight__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.insight__head {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.insight__text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.insight__action {
+  align-self: flex-start;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------ quick log -- */
+
+/* Foods logged before, as a rail of small cards. One tap logs the same thing
+   again, which is how most meals actually happen: the same breakfast, the
+   same coffee. Every tracker studied has a version of this. */
+.qrail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px var(--gutter) 6px;
+  scrollbar-width: none;
+}
+
+.qrail::-webkit-scrollbar {
+  display: none;
+}
+
+.qcard {
+  flex: none;
+  width: 122px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.12s ease;
+}
+
+.qcard:active {
+  transform: scale(0.97);
+}
+
+.qcard__name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.5em;
+}
+
+.qcard__meta {
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The receipt: the card turns green for a moment so the tap is seen to have
+   landed, then the food is back, ready to be logged again tomorrow. */
+.qcard__done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--positive);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  animation: fade 0.15s ease;
+}
+
+/* ------------------------------------------------------------ food mark -- */
+
+.foodmark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.foodmark--round {
+  border-radius: var(--r-full);
+}
+
+/* ---------------------------------------------------------------- ideas -- */
+
+/* Recipes with photographs that fit what is left of the day. The one place
+   Home gets a picture of food, which is the thing a day screen of numbers
+   most lacks. */
+.idea {
+  flex: none;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  transition: transform 0.12s ease;
+}
+
+.idea:active {
+  transform: scale(0.97);
+}
+
+.idea__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 16px;
+  background: var(--surface-3);
+  display: block;
+}
+
+.idea__name {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.idea__meta {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: -4px;
+  font-variant-numeric: tabular-nums;
+}

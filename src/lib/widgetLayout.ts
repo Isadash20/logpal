@@ -25,6 +25,7 @@ export const WIDGET_IDS = [
   'water',
   'sleep',
   'steps',
+  'weight',
   'exercise',
 ] as const
 
@@ -65,6 +66,7 @@ export const WIDGET_LABELS: Record<WidgetId, string> = {
   water: 'Water',
   sleep: 'Sleep',
   steps: 'Steps',
+  weight: 'Weight',
   exercise: 'Exercise',
 }
 
@@ -76,6 +78,7 @@ export const MIN_WIDTH: Record<WidgetId, WidgetWidth> = {
   water: 1,
   sleep: 1,
   steps: 1,
+  weight: 2,
   exercise: 2,
 }
 
@@ -89,10 +92,10 @@ export function defaultLayout(): WidgetLayout {
       { id: 'water', w: 2, h: 2 },
       { id: 'sleep', w: 2, h: 2 },
       { id: 'steps', w: 2, h: 2 },
-      /* Full width and one row: it is a line of text, not a gauge, and it sits
-         under the rest because it is a record of what happened rather than a
-         target to work towards. */
-      { id: 'exercise', w: 4, h: 1 },
+      /* The trend and the record sit together at the bottom: both are about
+         what happened rather than a target to work towards. */
+      { id: 'weight', w: 2, h: 2 },
+      { id: 'exercise', w: 2, h: 2 },
     ],
     hidden: [],
   }

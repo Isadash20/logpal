@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactElement, type ReactNode } from 'react'
 import { useApp } from '../state/store'
 import { Icon, type IconName } from './Icon'
 import { cal } from '../lib/format'
-import { mlToDisplay, waterUnitLabel } from '../lib/units'
+import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
+import { addDays, shortDate } from '../lib/dates'
 import { formatSleep } from '../screens/wellness'
 import {
   activeFast,
@@ -551,6 +552,78 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
   )
 }
 
+/* --------------------------------------------------------------- weight -- */
+
+/** A small trend line: the last fortnight of weigh-ins, nothing labelled. */
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const span = Math.max(max - min, 0.5)
+  const pts = values.map((v, i) => {
+    const x = (i / Math.max(1, values.length - 1)) * 100
+    const y = 4 + (1 - (v - min) / span) * 24
+    return [x, y] as const
+  })
+  const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
+  const last = pts[pts.length - 1]
+  return (
+    <svg
+      viewBox="0 0 100 32"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      style={{ width: '100%', height: 34, marginTop: 'auto', display: 'block', overflow: 'visible' }}
+    >
+      <path d={d} fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={last[0]} cy={last[1]} r="3" fill={color} vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
+/**
+ * Latest weight, the change over a week, and the trend. The figure every
+ * weight-loss tracker studied puts on its first screen, and the one this app
+ * kept two taps away.
+ */
+function WeightWidget({ date, w, h, editing }: WidgetProps) {
+  const { data, settings } = useApp()
+  const open = useOpen(editing)
+  const unit = settings.weightUnit
+  const disp = (lb: number) => Math.round(lbToDisplay(lb, unit) * 10) / 10
+
+  const sorted = data.weights
+    .filter((x) => x.date <= date)
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+  const latest = sorted[sorted.length - 1]
+  const weekAgo = addDays(date, -7)
+  const ref = [...sorted].reverse().find((x) => x.date <= weekAgo)
+  const delta = latest && ref ? latest.weight - ref.weight : null
+  const trend = sorted.slice(-14).map((x) => x.weight)
+
+  const sub = !latest
+    ? 'Tap to log a weigh-in'
+    : delta == null
+      ? `Logged ${shortDate(latest.date)}`
+      : Math.abs(disp(delta)) < 0.05
+        ? 'No change this week'
+        : `${delta < 0 ? 'Down' : 'Up'} ${Math.abs(disp(delta))} ${unit} this week`
+
+  return (
+    <button className="widget__body widget__body--tap" onClick={() => open({ name: 'weightEntry' })}>
+      <Title icon="scale" color="var(--accent)">
+        Weight
+      </Title>
+      <span className="widget__value">
+        <span className="num">{latest ? disp(latest.weight) : '–'}</span>
+        {latest && w > 1 && <span className="widget__unit">{unit}</span>}
+      </span>
+      {h > 1 && <span className="widget__sub">{sub}</span>}
+      {h > 1 && trend.length >= 2 && (
+        <Sparkline values={trend} color={delta != null && delta < 0 ? 'var(--positive)' : 'var(--accent)'} />
+      )}
+    </button>
+  )
+}
+
 /* -------------------------------------------------------------- exercise -- */
 
 function ExerciseWidget({ date, h, editing }: WidgetProps) {
@@ -572,9 +645,11 @@ function ExerciseWidget({ date, h, editing }: WidgetProps) {
           {workouts.length ? workouts.map((e) => e.name).join(', ') : 'Nothing logged'}
         </span>
       </span>
-      {h > 1 && workouts.length > 0 && (
+      {h > 1 && (
         <span className="widget__sub">
-          {totals.exerciseMinutes} min · {cal(totals.exerciseCalories)} cal
+          {workouts.length
+            ? `${totals.exerciseMinutes} min · ${cal(totals.exerciseCalories)} cal`
+            : 'Tap to add a workout'}
         </span>
       )}
     </button>
@@ -588,5 +663,6 @@ export const WIDGETS: Record<WidgetId, (p: WidgetProps) => ReactElement> = {
   water: WaterWidget,
   sleep: SleepWidget,
   steps: StepsWidget,
+  weight: WeightWidget,
   exercise: ExerciseWidget,
 }

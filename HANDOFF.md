@@ -348,6 +348,13 @@ board and its layout code are untouched. The `.chip` class had been defined
 twice (the second time for recipe steps) and the duplicate had silently
 broken the selected state everywhere; it is scoped to `.step` now.
 
+Then, the same day, the "life" layer (DESIGN.md's last section): a computed
+daily insight (`lib/dayInsight.ts`, tested), a one-tap "Log again" rail, a
+food-group mark beside every food (`lib/foodIcon.ts`, `FoodMark`, tested),
+a rail of recipe ideas that fit the calories left, and a `weight` widget.
+Home now loads `recipes.json` on first render for the ideas rail; it was
+already a week-cached fetch on the Plan tab.
+
 
 `src/styles/tokens.css` is the single source of colour. Changing a scheme is a
 one-file edit.

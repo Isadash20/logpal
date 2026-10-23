@@ -12,6 +12,7 @@ import {
   TopBar,
 } from '../components/ui'
 import { CalorieFormula, MacroBars } from '../components/nutrition'
+import { FoodMark } from '../components/FoodMark'
 import { WeekStrip } from '../components/charts'
 import { cal, entrySubtitle, timeOfDay } from '../lib/format'
 import { addDays, friendlyDate, longDate, today } from '../lib/dates'
@@ -155,6 +156,7 @@ export function Diary() {
                 {group.map((e) => (
                   <Row
                     key={e.id}
+                    left={<FoodMark name={e.name} brand={e.brand} size={32} />}
                     title={e.name}
                     sub={entrySubtitle({
                       brand: e.brand,
