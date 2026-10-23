@@ -69,12 +69,16 @@ h4 {
 }
 
 .topbar {
-  height: var(--topbar-h);
+  /* Inside the native shell the page runs edge to edge, so the bar grows by
+     the status bar's height and keeps its row below it. Zero on the web. */
+  height: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   flex: none;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 4px;
+  padding-left: 4px;
+  padding-right: 4px;
   background: transparent;
   position: sticky;
   top: 0;
@@ -1059,7 +1063,9 @@ button.row:active {
 }
 
 .auth__head {
-  padding: 44px 18px 4px;
+  /* Clears the status bar and the Dynamic Island inside the native shell,
+     where the page runs edge to edge; on the web the inset is zero. */
+  padding: calc(32px + env(safe-area-inset-top)) 18px 4px;
   font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.03em;

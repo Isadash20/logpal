@@ -583,7 +583,11 @@ export function Onboarding() {
 
       <div
         className="btn-wrap"
-        style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}
+        style={{
+          background: 'var(--surface)',
+          borderTop: '1px solid var(--border)',
+          paddingBottom: 'calc(16px + env(safe-area-inset-bottom))',
+        }}
       >
         {step === 'plan' ? (
           <button className="btn btn--ink" onClick={finish}>

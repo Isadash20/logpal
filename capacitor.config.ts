@@ -16,6 +16,9 @@ const config: CapacitorConfig = {
   appId: 'com.logpal.app',
   appName: 'LogPal',
   webDir: 'dist',
+  /* Painted behind the web view until the page draws, so launch goes from
+     the splash to the app's own ground rather than through a black frame. */
+  backgroundColor: '#f4f4f7',
   ios: {
     /* The web app draws its own safe areas (viewport-fit=cover and the
        env() insets), so the WebView runs edge to edge. */

@@ -8,8 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "ios": "npm run build && cap sync ios",
-    "ios:open": "cap open ios"
+    "ios": "npm run build && cap copy ios",
+    "ios:open": "cap open ios",
+    "ios:sync": "npm run build && cap sync ios"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

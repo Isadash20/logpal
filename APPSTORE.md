@@ -31,8 +31,15 @@ the `delete_own_account()` SQL at the bottom of `supabase/schema.sql`.
 | Sign-in leaves the app through the system browser and returns by deep link (Google refuses embedded web views) | `src/lib/native.ts`, `src/lib/supabase.ts`, `src/screens/Auth.tsx` |
 | **Sign in with Apple** button, shown in the app only | `src/screens/Auth.tsx` |
 
-Two scripts: `npm run ios` builds the web app and syncs it into the iOS
-project; `npm run ios:open` opens that project in Xcode once Xcode exists.
+Two scripts: `npm run ios` builds the web app and copies it into the iOS
+project; `npm run ios:open` opens that project in Xcode. (`npm run ios:sync`
+also re-resolves the Swift packages; only needed when a plugin is added, and
+it can hang on a keychain prompt, so it is not the default.)
+
+**Xcode 27.1 is installed and the app builds and runs in the iPhone 18 Pro
+Simulator (verified 2026-10-23):** sign-in screen with the Apple button, the
+system-browser sign-in sheet opening to Google, onboarding, and Home with
+the status bar and home indicator cleared.
 
 The bundle id is `com.logpal.app`, a placeholder. It must match the App ID
 you register in the developer portal and cannot change after the first
