@@ -46,13 +46,21 @@ function useOpen(editing: boolean) {
 /* ---------------------------------------------------------------- title -- */
 
 /** The widget's name with its icon in a circle tinted by the stat's colour. */
-function Title({ icon, color, children }: { icon: IconName; color: string; children: ReactNode }) {
+function Title({
+  icon,
+  color,
+  glyph = '#ffffff',
+  children,
+}: {
+  icon: IconName
+  color: string
+  /** The icon's own colour; white on a solid disc unless told otherwise. */
+  glyph?: string
+  children: ReactNode
+}) {
   return (
     <span className="widget__title">
-      <span
-        className="stat-icon"
-        style={{ background: `color-mix(in srgb, ${color} 14%, var(--surface))`, color }}
-      >
+      <span className="stat-icon" style={{ background: color, color: glyph }}>
         <Icon name={icon} size={15} strokeWidth={2.2} />
       </span>
       {children}
@@ -209,7 +217,7 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
       style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
     >
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'stretch' }}>
-        <Title icon="flame" color="var(--accent)">
+        <Title icon="flame" color="rgba(255,255,255,0.2)">
           Calories
         </Title>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4, minWidth: 0 }}>
@@ -348,7 +356,13 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0 }}>
                 <span
                   className="num"
-                  style={{ fontSize: w > 2 ? 20 : 17, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}
+                  style={{
+                    fontSize: w > 2 ? 20 : 17,
+                    fontWeight: 800,
+                    letterSpacing: '-0.03em',
+                    lineHeight: 1.1,
+                    color,
+                  }}
                 >
                   {Math.round(gramsNow)}
                 </span>

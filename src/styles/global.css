@@ -3180,3 +3180,111 @@ button.row:active {
   margin-top: -4px;
   font-variant-numeric: tabular-nums;
 }
+
+/* ------------------------------------------------------ colour on the page -- */
+
+/* The study the user chose (2026-10-23, "Violet bold"): the accent stays the
+   one brand colour, but more of the page carries colour. The calorie card is
+   solid accent with white figures; each stat tile takes a wash of its own
+   colour with a solid icon disc; the macro figures are set in their colours;
+   the greeting, the streak, the week and the active tab are tinted. */
+
+/* The hero's colour is read off the board, not the card: the card redefines
+   --accent for its own contents below, and a property set on an element is
+   what that element's own background would otherwise see. */
+.wgrid {
+  --hero-bg: var(--accent);
+}
+
+.widget--calories {
+  background: var(--hero-bg);
+  box-shadow: 0 10px 28px var(--accent-ring);
+  /* Everything inside reads the tokens, so the card flips them to white. */
+  --text: #ffffff;
+  --text-2: rgba(255, 255, 255, 0.78);
+  --text-3: rgba(255, 255, 255, 0.6);
+  --accent: #ffffff;
+  --surface-3: rgba(255, 255, 255, 0.26);
+  --danger: #ffe08a;
+}
+
+.widget--fasting {
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+
+.widget--water {
+  background: color-mix(in srgb, var(--water) 11%, var(--surface));
+}
+
+.widget--sleep {
+  background: color-mix(in srgb, var(--sleep) 9%, var(--surface));
+}
+
+.widget--steps {
+  background: color-mix(in srgb, var(--steps) 11%, var(--surface));
+}
+
+.widget--weight {
+  background: color-mix(in srgb, var(--fat) 9%, var(--surface));
+}
+
+.widget--exercise {
+  background: color-mix(in srgb, var(--carbs) 10%, var(--surface));
+}
+
+/* A tinted card needs a track that is not the grey of a white card. */
+.widget .tile__bar,
+.widget .progress {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.insight {
+  background: var(--accent-soft);
+  box-shadow: none;
+}
+
+.insight__mark {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.insight--good .insight__mark {
+  background: var(--positive);
+  color: #ffffff;
+}
+
+.insight--warn .insight__mark {
+  background: var(--warning);
+  color: #ffffff;
+}
+
+.insight__text {
+  color: color-mix(in srgb, var(--text) 72%, var(--accent));
+}
+
+.pill {
+  background: color-mix(in srgb, var(--warning) 16%, var(--surface));
+  color: color-mix(in srgb, var(--warning) 55%, var(--text));
+  box-shadow: none;
+}
+
+.pill--icon {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.week__circle--logged {
+  background: var(--accent-soft);
+}
+
+.tabbar__item--active {
+  background: var(--accent-soft);
+}
+
+.meal__icon {
+  border-radius: var(--r-full);
+}
+
+.boardbar__btn {
+  color: var(--accent);
+}

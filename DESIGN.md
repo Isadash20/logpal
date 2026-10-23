@@ -103,3 +103,15 @@ things were added, each a pattern taken from a specific app:
 
 Plus a weight widget with a trend line, which every weight-loss app puts on
 its first screen.
+
+## The colour decision (2026-10-23)
+
+Five alternative accents (forest, navy, terracotta, teal, plum) and two
+violet studies were put on the real Home screen and judged with peers. The
+choice was **Violet bold**: the accent stays, and more of the page carries
+colour. In the app this is the block at the end of `global.css` headed
+"colour on the page": the calorie card is solid accent with white figures,
+each stat tile is washed in its own colour with a solid icon disc, the macro
+figures are set in their colours, and the greeting, streak, week and active
+tab are tinted. The rule from the first pass still holds: the ground is white
+and the accent is never a surface larger than one card.

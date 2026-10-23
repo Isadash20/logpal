@@ -138,7 +138,7 @@ export function WidgetGrid({
             <div
               key={spec.id}
               data-widget={spec.id}
-              className={`widget ${dragging === spec.id ? 'widget--dragging' : ''}`}
+              className={`widget widget--${spec.id} ${dragging === spec.id ? 'widget--dragging' : ''}`}
               style={{ gridColumn: `span ${spec.w}`, gridRow: `span ${spec.h}` }}
               onPointerDown={(e) => {
                 if (!editing || resizing) return
