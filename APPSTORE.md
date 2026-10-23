@@ -13,16 +13,30 @@ rules need code that is now in place but unverified.
 
 ---
 
-## 1. Done today (uncommitted, build and 98 tests pass)
+## 1. Done so far
 
-| What | Where | Why Apple needs it |
-|---|---|---|
-| App icon | `public/icons/icon.svg`, PNGs at 32/180/192/512/1024, `apple-touch-icon.png`, `favicon.png` | App Store requires a 1024×1024 icon with no transparency; the 1024 is flattened. It is a placeholder design (the calorie ring on the brand violet) — swap `icon.svg` and re-run the `sips` lines in this file's §6 if you want something else. |
-| Web manifest + Apple meta tags | `public/manifest.webmanifest`, `index.html` | Lets the Vercel site be added to an iPhone Home Screen full-screen today, before any native build. Theme colour now matches the wash in light and dark. |
-| Privacy policy page | `public/privacy.html`, served at `/privacy` by `vercel.json` | App Store Connect requires a privacy policy URL, and Review checks it says what the app does. **It has `CONTACT_EMAIL` as a placeholder in two places** — tell me the address to put there. |
-| Privacy link in the app | Settings → About → "Privacy policy" | Review expects it reachable in-app. |
-| Delete account | Settings → Account → "Delete my account" (signed in only), typed `DELETE` to confirm | **Guideline 5.1.1(v)**: an app with sign-up must offer in-app account deletion. Not the same as Clear all data, which empties the account and leaves it standing. |
-| SQL function behind it | `supabase/schema.sql`, bottom: `delete_own_account()` | The client cannot delete its own auth row; this runs as the definer and deletes exactly the caller. **Not yet run against the live project** — see §2 step 3. The button will fail with "function not found" until it is. |
+**2026-10-13:** app icon set, web manifest and Apple meta tags, the `/privacy`
+page (still carrying `CONTACT_EMAIL` as a placeholder in two places), a
+Privacy link on About, in-app account deletion with typed confirmation, and
+the `delete_own_account()` SQL at the bottom of `supabase/schema.sql`.
+
+**2026-10-23, the native shell.** Everything that does not need Xcode:
+
+| What | Where |
+|---|---|
+| Capacitor 8 installed, iOS project generated with **Swift Package Manager** (no CocoaPods on this Mac, none needed) | `capacitor.config.ts`, `ios/` |
+| The web build, food database included, copied into the app bundle on every `npm run ios`; the app searches fully offline, about 45 MB | `ios/App/App/public` (ignored by git, regenerated) |
+| Every iOS icon and splash size, light and dark, from `resources/` | `ios/App/App/Assets.xcassets` |
+| Camera permission text, the `logpal://` URL scheme, portrait-only on iPhone, the encryption question answered | `ios/App/App/Info.plist` |
+| Sign-in leaves the app through the system browser and returns by deep link (Google refuses embedded web views) | `src/lib/native.ts`, `src/lib/supabase.ts`, `src/screens/Auth.tsx` |
+| **Sign in with Apple** button, shown in the app only | `src/screens/Auth.tsx` |
+
+Two scripts: `npm run ios` builds the web app and syncs it into the iOS
+project; `npm run ios:open` opens that project in Xcode once Xcode exists.
+
+The bundle id is `com.logpal.app`, a placeholder. It must match the App ID
+you register in the developer portal and cannot change after the first
+upload, so decide it before step 7 below and tell me if it should differ.
 
 ## 2. Your side, in this order
 
@@ -62,15 +76,24 @@ It goes into `public/privacy.html` in place of `CONTACT_EMAIL`. Apple also needs
 ### Step 7 — Sign in with Apple (after Step 1 clears)
 **Guideline 4.8: because the app offers Google sign-in, it must also offer Sign in with Apple.** This is a hard rejection otherwise. It needs, in the Apple Developer portal: an App ID with the Sign in with Apple capability, a Services ID, and a private key. Then Supabase → Authentication → Sign In / Providers → **Apple** takes those three values. Supabase's walkthrough is at https://supabase.com/docs/guides/auth/social-login/auth-apple — do it when you reach it and I will add the button, which is a few lines.
 
-## 3. My side, once Xcode and the developer account exist
+## 3. Left for when Xcode and the developer account exist
 
-1. `npm install @capacitor/core @capacitor/cli @capacitor/ios` and `npx cap add ios`. The `dist` folder, food database included, is copied into the app bundle, so search works fully offline on the phone. App size will be about 45 MB.
-2. `Info.plist`: `NSCameraUsageDescription` for the barcode and meal scanners, or the camera prompt never appears.
-3. **Google sign-in has to leave the app.** Google refuses OAuth inside an embedded web view. The flow becomes: open the Supabase OAuth URL in the system browser, return via a `logpal://auth` deep link, and feed that URL to `consumeAuthFragment`. Also add `logpal://auth` to Supabase → URL Configuration → Redirect URLs. The current `redirectTo: window.location.origin` would be `capacitor://localhost`, which Supabase rejects.
-4. Sign in with Apple button in `Auth.tsx` (`provider: 'apple'`, same return path).
-5. `@capacitor/assets` to generate every icon and splash size from `icon-1024.png`.
-6. Status bar and safe areas checked in the real simulator, the thing this Mac could never run before — including the keyboard-and-sheet bug class from HANDOFF §5.
-7. Archive in Xcode → upload to App Store Connect → TestFlight on your phone first.
+1. **Supabase → Authentication → URL Configuration → Redirect URLs:** add
+   `logpal://auth`. Without it the phone's sign-in completes at Google and
+   never comes back. (Yours; it needs your login.)
+2. **Supabase → Sign In / Providers → Apple:** paste the Services ID, Team
+   ID, Key ID and the key from the developer portal (step 7). The button is
+   already in the app and errors with "unsupported provider" until this is
+   done.
+3. **Open the project** with `npm run ios:open` (or open
+   `ios/App/App.xcodeproj`), select the App target → Signing & Capabilities,
+   tick Automatically manage signing and pick your Team. Add the
+   **Sign in with Apple** capability there too.
+4. Run it in the Simulator from Xcode, then on your phone over the cable.
+   The barcode decode loop, never verified on a real camera, gets its first
+   real test here.
+5. Product → Archive → Distribute → App Store Connect → TestFlight on your
+   phone first, then submit.
 
 ## 4. The App Store Connect listing, so you can draft it meanwhile
 

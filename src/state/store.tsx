@@ -34,7 +34,7 @@ import { findRecipe, resolveRecipe } from '../services/recipes'
 import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredients'
 import type { Session } from '@supabase/supabase-js'
 import { defaultData, localAdapter } from '../lib/storage'
-import { cloudEnabled, consumeAuthFragment, supabase } from '../lib/supabase'
+import { cloudEnabled, consumeAuthFragment, installNativeAuthListener, supabase } from '../lib/supabase'
 import {
   deleteAccount as deleteAccountRemote,
   deleteAll,
@@ -419,6 +419,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     /* The fragment has to be consumed before the first getSession, or an OAuth
        return resolves as "signed out" and paints the sign-in screen over a
        session that actually exists. */
+    installNativeAuthListener()
     void consumeAuthFragment().then(() =>
       client.auth.getSession().then(({ data: d }) => {
         setSession(d.session)

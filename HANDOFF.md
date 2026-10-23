@@ -3,6 +3,12 @@
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
 current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
+**The native shell exists as of 2026-10-23:** Capacitor 8 with Swift Package
+Manager, `ios/` generated, icons and splash in place, Info.plist configured,
+OAuth through the system browser with a `logpal://auth` deep link, and a
+Sign in with Apple button shown only in the app. `npm run ios` rebuilds and
+syncs. What remains needs Xcode and the developer account; `APPSTORE.md` §3.
+
 **App Store work started 2026-10-13** — see `APPSTORE.md` for the route
 (Capacitor), what blocks on the user (developer account, Xcode, Sign in with
 Apple), and what landed that day: icon set, web manifest and Apple meta tags,

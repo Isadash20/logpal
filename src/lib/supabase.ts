@@ -1,4 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { App as CapApp } from '@capacitor/app'
+import { Browser } from '@capacitor/browser'
+import { NATIVE_AUTH_REDIRECT, isNative } from './native'
 
 /**
  * Supabase client, or `null` when the app has not been given credentials.
@@ -64,11 +67,25 @@ export function takeAuthError(): { code: string; description: string } | null {
   return authError
 }
 
-export async function consumeAuthFragment(): Promise<boolean> {
+export async function consumeAuthFragment(href?: string): Promise<boolean> {
   if (!supabase) return false
 
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
-  const query = new URLSearchParams(window.location.search)
+  /* On the web the return lands on the page itself. In the app it arrives as
+     a deep link, handed in here as a string; `URL` parses the custom scheme
+     well enough to give back its query and fragment. */
+  let hashText = window.location.hash
+  let queryText = window.location.search
+  if (href) {
+    try {
+      const u = new URL(href)
+      hashText = u.hash
+      queryText = u.search
+    } catch {
+      return false
+    }
+  }
+  const hash = new URLSearchParams(hashText.replace(/^#/, ''))
+  const query = new URLSearchParams(queryText)
 
   const errorCode = hash.get('error') ?? query.get('error')
   if (errorCode) {
@@ -76,7 +93,7 @@ export async function consumeAuthFragment(): Promise<boolean> {
       code: errorCode,
       description: hash.get('error_description') ?? query.get('error_description') ?? '',
     }
-    window.history.replaceState({}, '', window.location.pathname)
+    if (!href) window.history.replaceState({}, '', window.location.pathname)
   }
 
   const access_token = hash.get('access_token')
@@ -84,7 +101,9 @@ export async function consumeAuthFragment(): Promise<boolean> {
   const code = query.get('code')
   if (!access_token && !code) return false
 
-  const clear = () => window.history.replaceState({}, '', window.location.pathname)
+  const clear = () => {
+    if (!href) window.history.replaceState({}, '', window.location.pathname)
+  }
 
   try {
     if (access_token && refresh_token) {
@@ -107,6 +126,24 @@ export async function consumeAuthFragment(): Promise<boolean> {
     // address bar stops displaying a credential.
     clear()
   }
+}
+
+/**
+ * In the app, finishes a sign-in that went out through the system browser.
+ *
+ * iOS opens the app with the `logpal://auth…` URL Supabase redirected to;
+ * the tokens on it are consumed exactly as a web return would be, and the
+ * browser sheet is closed. Does nothing in a browser build. The session
+ * then arrives through `onAuthStateChange` like any other.
+ */
+export function installNativeAuthListener(): void {
+  if (!supabase || !isNative()) return
+  void CapApp.addListener('appUrlOpen', ({ url }) => {
+    if (!url.startsWith(NATIVE_AUTH_REDIRECT)) return
+    void consumeAuthFragment(url).finally(() => {
+      void Browser.close().catch(() => undefined)
+    })
+  })
 }
 
 export function cloudEnabled(): boolean {
