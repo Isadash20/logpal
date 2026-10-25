@@ -65,6 +65,12 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 This Mac currently has only the Command Line Tools, which cannot build an app or run the simulator.
 
+**Done 2026-10-25, through the browser together:** steps 3, 4 and 5 below.
+The deletion function exists, `logpal://auth` is on the redirect list,
+Confirm email is on, and the Google consent screen is in production (its
+branding now carries the home page and `/privacy` links, which the live site
+serves only after the next push). Steps 1, 2 and 6 remain; Xcode is done.
+
 ### Step 3 — Run the account-deletion SQL (blocks the Delete button)
 1. https://supabase.com/dashboard → project **egqetljdvslvfdmnecfk** (LogPal, not Daily Planner).
 2. Left sidebar → **SQL Editor** → **New query**.

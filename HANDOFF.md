@@ -816,12 +816,10 @@ js.includes('<short-sha>')   // must be true before drawing conclusions
 - **No Sign in with Apple.** It needs a paid Apple Developer account, a service
   ID and a key. The account-setup flow already handles "provider gave us an
   address and nothing else", so adding it is small once those exist.
-- **Email confirmation is currently OFF** in Supabase — switched off during
-  testing so accounts could be created without an inbox round trip. Turn it back
-  on before anyone else uses the app, or people can register with addresses they
-  do not own. Authentication → Sign In / Providers → Email → Confirm email.
-- **Google consent screen is in Testing mode**, so only listed test users can
-  sign in with Google.
+- ~~Email confirmation off~~ **Back on since 2026-10-25.** Sign-ups now wait
+  for the confirmation email, which the account-setup gate already handles.
+- ~~Google consent screen in Testing~~ **In production since 2026-10-25**;
+  anyone with a Google account can sign in.
 
 ---
 
