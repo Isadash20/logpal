@@ -41,9 +41,22 @@ Simulator (verified 2026-10-23):** sign-in screen with the Apple button, the
 system-browser sign-in sheet opening to Google, onboarding, and Home with
 the status bar and home indicator cleared.
 
-The bundle id is `com.logpal.app`, a placeholder. It must match the App ID
-you register in the developer portal and cannot change after the first
-upload, so decide it before step 7 below and tell me if it should differ.
+The bundle id is `com.logpal.app`, final: it is the App ID registered on
+the developer team (below) and cannot change after the first upload.
+
+**Done 2026-10-30, through the browser as the Account Holder:** steps 1 and
+7. The developer team is Phillip Gallego's **Individual** membership (Team ID
+`BEVVQ898R9`, Account Holder phillip@erealgroup.com). Isabella's Apple ID
+(isadash20@icloud.com) is an Admin on it in App Store Connect, which covers
+the app listing and uploads, but on an Individual team only the Account
+Holder can open Certificates, Identifiers & Profiles, so anything in that
+portal needs Phillip's login. What exists there now: App ID `com.logpal.app`
+with Sign In with Apple, Services ID `com.logpal.app.signin` with the
+Supabase callback registered, and key `75XV537V74` (saved at
+`secrets/AuthKey_75XV537V74.p8`, gitignored, downloadable only once).
+`scripts/apple-secret.mjs` turns that key into the client secret Supabase
+wants; the Apple provider is enabled with it and expires **2027-04-28**, so
+re-run the script and paste the new secret before then.
 
 ## 2. Your side, in this order
 
@@ -91,13 +104,8 @@ It goes into `public/privacy.html` in place of `CONTACT_EMAIL`. Apple also needs
 
 ## 3. Left for when Xcode and the developer account exist
 
-1. **Supabase → Authentication → URL Configuration → Redirect URLs:** add
-   `logpal://auth`. Without it the phone's sign-in completes at Google and
-   never comes back. (Yours; it needs your login.)
-2. **Supabase → Sign In / Providers → Apple:** paste the Services ID, Team
-   ID, Key ID and the key from the developer portal (step 7). The button is
-   already in the app and errors with "unsupported provider" until this is
-   done.
+1. ~~Redirect URL~~ done 2026-10-25.
+2. ~~Supabase Apple provider~~ done 2026-10-30.
 3. **Open the project** with `npm run ios:open` (or open
    `ios/App/App.xcodeproj`), select the App target → Signing & Capabilities,
    tick Automatically manage signing and pick your Team. Add the
