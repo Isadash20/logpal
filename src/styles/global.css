@@ -3189,29 +3189,18 @@ button.row:active {
 
 /* ------------------------------------------------------ colour on the page -- */
 
-/* The study the user chose (2026-10-23, "Violet bold"): the accent stays the
-   one brand colour, but more of the page carries colour. The calorie card is
-   solid accent with white figures; each stat tile takes a wash of its own
-   colour with a solid icon disc; the macro figures are set in their colours;
-   the greeting, the streak, the week and the active tab are tinted. */
-
-/* The hero's colour is read off the board, not the card: the card redefines
-   --accent for its own contents below, and a property set on an element is
-   what that element's own background would otherwise see. */
-.wgrid {
-  --hero-bg: var(--accent);
-}
+/* The study the user chose (2026-10-30, "Violet soft", after a week on
+   "bold"): the accent stays the one brand colour, and more of the page
+   carries colour. The calorie card sits in a pale violet wash so nothing on
+   the page is louder than the number itself, which stays black; each stat
+   tile takes a wash of its own colour with a solid icon disc; the macro
+   figures are set in their colours; the greeting, the streak, the week and
+   the active tab are tinted. Cards carry a visible shadow so they lift off
+   the ground, which the user asked for by name. */
 
 .widget--calories {
-  background: var(--hero-bg);
-  box-shadow: 0 10px 28px var(--accent-ring);
-  /* Everything inside reads the tokens, so the card flips them to white. */
-  --text: #ffffff;
-  --text-2: rgba(255, 255, 255, 0.78);
-  --text-3: rgba(255, 255, 255, 0.6);
-  --accent: #ffffff;
-  --surface-3: rgba(255, 255, 255, 0.26);
-  --danger: #ffe08a;
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  box-shadow: 0 2px 6px var(--accent-ring), 0 12px 32px var(--accent-ring);
 }
 
 .widget--fasting {

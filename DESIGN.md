@@ -115,3 +115,14 @@ each stat tile is washed in its own colour with a solid icon disc, the macro
 figures are set in their colours, and the greeting, streak, week and active
 tab are tinted. The rule from the first pass still holds: the ground is white
 and the accent is never a surface larger than one card.
+
+## Softened, and lifted (2026-10-30)
+
+After a day on Mulberry (tried, reverted the same morning) the user settled
+on **Violet soft** from the same board: everything the bold study added, but
+the calorie card in a pale violet wash instead of solid, so the hero figure
+stays black and nothing on the page is louder than it. The same request
+asked for the cards to "pop out" with shading around them, so `--shadow-card`
+went from a whisper to a visible lift (a 2px contact shadow plus a 12px/32px
+wide one at 12%), and the hero carries the same lift in violet. Still no hard
+edges, no borders, no glow.

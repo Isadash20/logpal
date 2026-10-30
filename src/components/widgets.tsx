@@ -217,7 +217,7 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
       style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
     >
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignSelf: 'stretch' }}>
-        <Title icon="flame" color="rgba(255,255,255,0.2)">
+        <Title icon="flame" color="var(--accent)">
           Calories
         </Title>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4, minWidth: 0 }}>
