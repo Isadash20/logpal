@@ -3,6 +3,13 @@
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
 current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
+**2026-10-30, later: the Home widgets redrawn per shape.** Every widget now
+has a layout for each of the eight sizes it can be resized to (see
+`formOf` in `components/widgets.tsx` and the DESIGN.md entry), the default
+board is a mix of shapes, and the layout storage key is `logpal.widgets.v2`,
+so existing devices get the new default once and keep their edits from then
+on.
+
 **2026-10-30, a batch of pre-launch edits from the user**, each small enough
 to live in the code's own comments, listed here so nobody looks for them:
 - **Your plan is editable.** `screens/Goals.tsx` (reached from the calorie

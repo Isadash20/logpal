@@ -82,26 +82,35 @@ export const MIN_WIDTH: Record<WidgetId, WidgetWidth> = {
   exercise: 2,
 }
 
-/** What Home looked like before it was arrangeable, to the pixel. */
+/**
+ * The board as shipped: a deliberate mix of shapes, so the page has a rhythm
+ * rather than a stack of identical cards. Two wide cards with dials, two
+ * half-width cards, a full-width strip, two half strips, and a wide chart.
+ * Every shape here is one the widgets are drawn for, see `formOf` in
+ * components/widgets.tsx.
+ */
 export function defaultLayout(): WidgetLayout {
   return {
     shown: [
       { id: 'calories', w: 4, h: 2 },
       { id: 'macros', w: 4, h: 2 },
-      { id: 'fasting', w: 2, h: 2 },
       { id: 'water', w: 2, h: 2 },
-      { id: 'sleep', w: 2, h: 2 },
-      { id: 'steps', w: 2, h: 2 },
-      /* The trend and the record sit together at the bottom: both are about
-         what happened rather than a target to work towards. */
-      { id: 'weight', w: 2, h: 2 },
-      { id: 'exercise', w: 2, h: 2 },
+      { id: 'fasting', w: 2, h: 2 },
+      { id: 'steps', w: 4, h: 1 },
+      { id: 'sleep', w: 2, h: 1 },
+      { id: 'exercise', w: 2, h: 1 },
+      /* The trend at the bottom: it is about what happened rather than a
+         target to work towards. */
+      { id: 'weight', w: 4, h: 2 },
     ],
     hidden: [],
   }
 }
 
-const KEY = 'logpal.widgets.v1'
+/* v2: the widgets were redrawn for each shape and the default board became a
+   mix of them. Boards saved under v1 were arranged around the old, awkward
+   shapes, so everyone starts from the new default once. */
+const KEY = 'logpal.widgets.v2'
 
 export function loadLayout(): WidgetLayout {
   try {

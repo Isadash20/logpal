@@ -126,3 +126,23 @@ asked for the cards to "pop out" with shading around them, so `--shadow-card`
 went from a whisper to a visible lift (a 2px contact shadow plus a 12px/32px
 wide one at 12%), and the hero carries the same lift in violet. Still no hard
 edges, no borders, no glow.
+
+## Widgets drawn for their shape (2026-10-30)
+
+The user's complaint, with a screenshot: some widget sizes were "really
+awkward", a one-row Fasting with its timer squashed into the corner and the
+rest of the band empty, a two-row Sleep that was mostly air. The widgets
+trimmed their content to fit a size; they did not change their layout for it.
+
+Now every widget is drawn for each of eight shapes, named in `formOf` in
+`components/widgets.tsx`: tiny (1×1), half strip (2×1), strip (4×1), column
+(1×2+), card (2×2), tall (2×3), wide (4×2), big (4×3). A strip is laid out
+sideways, disc then title over figure then bar then note. A card puts a small
+dial in the top-right corner where the title does not reach. Wide puts the
+dial beside the figures; tall puts it underneath. Exercise, which has no
+goal to dial towards, fills that half with the calories burned instead. Long
+figures ("6h 50m") shrink to fit the narrow shapes rather than clip.
+
+The default board is a mix on purpose: two wide cards with dials, two
+half-width cards, a full strip, two half strips, and a wide weight chart.
+Saved boards moved to a new storage key so everyone starts from it once.

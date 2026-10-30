@@ -2391,10 +2391,68 @@ button.row:active {
   white-space: nowrap;
 }
 
+/* The sideways shapes: a one-row strip is laid out left to right, the icon
+   disc first, then a stacked title and figure, then whatever fills the rest. */
+.widget__body--row {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.widget__col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.widget__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  line-height: 1.2;
+}
+
+/* One column wide: the icon, a label, the figure and a bar, nothing beside
+   them because nothing fits beside them. */
+.widget__body--column {
+  padding: 12px 11px;
+  gap: 2px;
+}
+
+.widget__body--column .widget__value {
+  margin-top: 2px;
+}
+
+/* One cell: the icon over the figure, centred, and that is all. */
+.widget__body--tiny {
+  padding: 9px 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.widget__body--tiny .widget__value {
+  margin-top: 0;
+}
+
 /* Room for the remove badge while the board is being arranged, so it never
    sits on top of the widget's own title. */
 .wgrid--editing .widget__body > :first-child {
   padding-left: 22px;
+}
+
+.wgrid--editing .widget__body--row > :first-child,
+.wgrid--editing .widget__body--tiny > :first-child,
+.wgrid--editing .widget__body--column > :first-child {
+  padding-left: 0;
+}
+
+.wgrid--editing .widget__body--row,
+.wgrid--editing .widget__body--column {
+  padding-left: 30px;
 }
 
 /* --------------------------------------------------- segmented control -- */
