@@ -52,7 +52,7 @@ export const FOOD_KIND_COLOR: Record<FoodKind, string> = {
   drink: '#0ea5e9',
   sweet: '#ec4899',
   fast: '#ef4444',
-  meal: '#7a2e5a',
+  meal: '#5b5bd6',
   seafood: '#0891b2',
   meat: '#c2410c',
   egg: '#f59e0b',
