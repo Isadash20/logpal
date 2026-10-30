@@ -2,6 +2,7 @@ import type {
   ActivityLevel,
   BodyType,
   BodyTypeDef,
+  CustomPlan,
   GoalKind,
   MacroSplit,
   Nutrients,
@@ -143,7 +144,7 @@ export function calorieMinimum(profile: Profile): number {
  * plainly. The choice stays theirs.
  */
 export function calorieGoal(profile: Profile, age: number): number {
-  if (profile.planMode === 'custom') return profile.customPlan.calories
+  if (profile.planMode === 'custom') return customPlanTargets(profile.customPlan).calories
   const maintenance = tdee(profile, age)
   const dailyDelta = (profile.goal.rate * KCAL_PER_LB) / 7
   return Math.max(800, Math.round(maintenance + dailyDelta))
@@ -432,9 +433,7 @@ export function resolvePlan(
   if (profile.planMode === 'custom') {
     const c = profile.customPlan
     return {
-      calories: c.calories,
-      macros: macroGrams(c.calories, c.macroSplit),
-      split: c.macroSplit,
+      ...customPlanTargets(c),
       waterMl: c.waterMl,
       maintenance,
       bmr: base,
@@ -486,6 +485,36 @@ export function resolvePlan(
     maintenance,
     bmr: base,
     belowMinimum: calories < calorieMinimum(profile),
+  }
+}
+
+/**
+ * Calories, grams and split for a custom plan. In percent mode the calories
+ * are the user's and the grams follow; in grams mode it is the other way
+ * round, the grams are the user's and calories are what those grams add up to,
+ * so the two can never disagree on screen.
+ */
+export function customPlanTargets(c: CustomPlan): {
+  calories: number
+  macros: { carbs: number; protein: number; fat: number }
+  split: MacroSplit
+} {
+  if (c.macroMode === 'grams' && c.macroGrams) {
+    const macros = {
+      carbs: Math.max(0, Math.round(c.macroGrams.carbs)),
+      protein: Math.max(0, Math.round(c.macroGrams.protein)),
+      fat: Math.max(0, Math.round(c.macroGrams.fat)),
+    }
+    return {
+      calories: Math.round(caloriesFromMacros(macros)),
+      macros,
+      split: macroPercents({ ...emptyNutrients(), ...macros }),
+    }
+  }
+  return {
+    calories: c.calories,
+    macros: macroGrams(c.calories, c.macroSplit),
+    split: c.macroSplit,
   }
 }
 

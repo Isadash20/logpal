@@ -3283,3 +3283,115 @@ button.row:active {
 .boardbar__btn {
   color: var(--accent);
 }
+
+/* ------------------------------------------------------------- add sheet -- */
+
+/* The tiles behind the "+". Four scans and shortcuts in a 2×2, then search
+   across the full width: it is where most food gets logged, so it is the
+   wide door. */
+.addtile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 14px;
+  border-radius: 14px;
+  background: var(--surface-3);
+  text-align: left;
+}
+
+.addtile--wide {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  background: var(--accent-soft);
+}
+
+.addtile__icon {
+  color: var(--accent);
+  display: flex;
+  flex: none;
+}
+
+.addtile__label {
+  display: block;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.addtile__sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ------------------------------------------------------- plan editor -- */
+
+/* The macro sliders. The browser's own track and thumb, coloured per macro
+   through accent-color, which every phone browser since 2022 honours; a
+   hand-drawn slider would be more code and would not match the OS. */
+.range {
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+}
+
+/* ------------------------------------------------------ profile photo -- */
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+.avatarpick {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 16px 6px;
+}
+
+.avatarpick__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.btn--sm {
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+  width: auto;
+}
+
+.field--stack {
+  flex-wrap: wrap;
+}
+
+.field--stack .field__control {
+  flex-basis: 100%;
+  margin-top: 6px;
+}
+
+.field--stack .textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: none;
+  text-align: left;
+  font-family: var(--font);
+  line-height: 1.4;
+  padding: 8px 10px;
+}
+
+.field__count {
+  flex-basis: 100%;
+  text-align: right;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 4px;
+}

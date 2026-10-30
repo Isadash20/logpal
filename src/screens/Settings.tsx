@@ -14,6 +14,7 @@ import {
 import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
 import { displayNameFrom } from '../lib/storage'
+import { fileToAvatar } from '../lib/avatar'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
 import { pendingRequestCount } from '../services/social'
@@ -52,25 +53,28 @@ export function More() {
           }}
         >
           <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 999,
-              background: 'var(--accent-soft)',
-              color: 'var(--accent)',
-              display: 'grid',
-              placeContent: 'center',
-              fontWeight: 800,
-              fontSize: 21,
-              flex: 'none',
-            }}
+            className="avatar"
+            style={{ width: 52, height: 52, fontSize: 21, overflow: 'hidden' }}
           >
-            {(profile.name || 'You').slice(0, 1).toUpperCase()}
+            {profile.avatar ? (
+              <img src={profile.avatar} alt="" />
+            ) : (
+              (profile.name || 'You').slice(0, 1).toUpperCase()
+            )}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 18, fontWeight: 700 }}>{profile.name || 'Your profile'}</div>
-            <div style={{ color: 'var(--text-2)', fontSize: 13.5 }}>
-              {syncError
+            <div
+              style={{
+                color: 'var(--text-2)',
+                fontSize: 13.5,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {profile.bio ||
+                (syncError
                 ? 'Sync problem, tap for details'
                 : session
                   ? syncing
@@ -78,7 +82,7 @@ export function More() {
                     : (session.user.email ?? 'Signed in')
                   : cloudEnabled()
                     ? 'Not signed in. This device only'
-                    : `${cal(plan.calories)} cal/day · ${data.foodEntries.length} entries logged`}
+                    : `${cal(plan.calories)} cal/day · ${data.foodEntries.length} entries logged`)}
             </div>
           </div>
           <span style={{ color: 'var(--text-3)', flex: 'none', display: 'flex' }}>
@@ -257,11 +261,14 @@ export function PlanHub() {
 
         <div className="section-label">Daily targets</div>
         <div className="card">
-          <Row title="Calories" value={cal(plan.calories)} />
-          <Row title="Carbohydrates" value={`${plan.macros.carbs} g`} />
-          <Row title="Fat" value={`${plan.macros.fat} g`} />
-          <Row title="Protein" value={`${plan.macros.protein} g`} />
-          <Row title="Water" value={`${shownWater} ${waterUnitLabel(unit)}`} />
+          <Row title="Calories" value={cal(plan.calories)} chevron onClick={() => push({ name: 'goals' })} />
+          <Row title="Carbohydrates" value={`${plan.macros.carbs} g`} chevron onClick={() => push({ name: 'goals' })} />
+          <Row title="Fat" value={`${plan.macros.fat} g`} chevron onClick={() => push({ name: 'goals' })} />
+          <Row title="Protein" value={`${plan.macros.protein} g`} chevron onClick={() => push({ name: 'goals' })} />
+          <Row title="Water" value={`${shownWater} ${waterUnitLabel(unit)}`} chevron onClick={() => push({ name: 'goals' })} />
+        </div>
+        <div className="hint">
+          Tap any target to edit it, or to switch between the recommended plan and your own.
         </div>
 
         <div className="section-label">Water</div>
@@ -356,6 +363,9 @@ export function PrefsProfile() {
      directly would leave the parts it came from disagreeing with it. */
   const [firstName, setFirstName] = useState(profile.firstName ?? profile.name)
   const [lastName, setLastName] = useState(profile.lastName ?? '')
+  const [avatar, setAvatar] = useState<string | undefined>(profile.avatar)
+  const [bio, setBio] = useState(profile.bio ?? '')
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [birthDate, setBirthDate] = useState(profile.birthDate)
   const [heightIn, setHeightIn] = useState(profile.heightIn)
@@ -479,6 +489,58 @@ export function PrefsProfile() {
 
         <div className="section-label">About you</div>
         <div className="card">
+          <div className="avatarpick">
+            <div className="avatar avatar--lg" style={{ overflow: 'hidden' }}>
+              {avatar ? (
+                <img src={avatar} alt="" />
+              ) : (
+                (firstName || profile.name || 'You').slice(0, 1).toUpperCase()
+              )}
+            </div>
+            <div className="avatarpick__actions">
+              <label className="btn btn--ghost btn--sm" style={{ cursor: 'pointer' }}>
+                {avatar ? 'Change photo' : 'Add a photo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ''
+                    if (!f) return
+                    setPhotoError(null)
+                    fileToAvatar(f)
+                      .then(setAvatar)
+                      .catch(() => setPhotoError('That photo could not be read. Try another.'))
+                  }}
+                />
+              </label>
+              {avatar && (
+                <button className="textbtn" onClick={() => setAvatar(undefined)}>
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+          {photoError && (
+            <div className="hint" style={{ color: 'var(--danger)' }}>
+              {photoError}
+            </div>
+          )}
+          <label className="field field--stack">
+            <span className="field__label">Bio</span>
+            <span className="field__control">
+              <textarea
+                className="input textarea"
+                rows={2}
+                maxLength={160}
+                placeholder="A line about you"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+              />
+            </span>
+            <span className="field__count">{bio.length}/160</span>
+          </label>
           <label className="field">
             <span className="field__label">First name</span>
             <span className="field__control">
@@ -574,6 +636,8 @@ export function PrefsProfile() {
             firstName: firstName.trim(),
             lastName: lastName.trim() || undefined,
             name: displayNameFrom(firstName, lastName),
+            avatar,
+            bio: bio.trim() || undefined,
             sex,
             birthDate,
             heightIn,

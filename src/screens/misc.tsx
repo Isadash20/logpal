@@ -496,8 +496,10 @@ export function AddSheetContent({
     fn()
   }
 
-  /* The four ways in, as tiles rather than a list, they're peers, and a grid
-     says that better than stacked rows do. */
+  /* The four scans and shortcuts as tiles, they're peers, and a grid says
+     that better than stacked rows do. Search gets a tile of its own across
+     the full width underneath: it is the way most food gets logged, so it
+     reads as the big door rather than one of four small ones. */
   const tiles: { icon: IconName; label: string; sub: string; onClick(): void }[] = [
     {
       icon: 'barcode',
@@ -517,6 +519,12 @@ export function AddSheetContent({
       sub: 'Calories only',
       onClick: go(() => push({ name: 'quickAdd', date })),
     },
+    {
+      icon: 'nutriscan',
+      label: 'NutriScan',
+      sub: 'Scan the nutrition facts',
+      onClick: go(() => push({ name: 'nutriScan', date })),
+    },
   ]
 
   return (
@@ -530,42 +538,30 @@ export function AddSheetContent({
         }}
       >
         {tiles.map((t) => (
-          <button
-            key={t.label}
-            onClick={t.onClick}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: 8,
-              padding: '16px 14px',
-              borderRadius: 14,
-              background: 'var(--surface-3)',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ color: 'var(--accent)', display: 'flex' }}>
+          <button key={t.label} className="addtile" onClick={t.onClick}>
+            <span className="addtile__icon">
               <Icon name={t.icon} size={24} />
             </span>
             <span>
-              <span style={{ display: 'block', fontWeight: 700, fontSize: 15 }}>{t.label}</span>
-              <span style={{ display: 'block', fontSize: 12, color: 'var(--text-2)' }}>
-                {t.sub}
-              </span>
+              <span className="addtile__label">{t.label}</span>
+              <span className="addtile__sub">{t.sub}</span>
             </span>
           </button>
         ))}
-      </div>
 
-      <Row
-        title="Search the food database"
-        left={
-          <span style={{ color: 'var(--accent)', display: 'flex' }}>
-            <Icon name="search" size={20} />
+        <button
+          className="addtile addtile--wide"
+          onClick={go(() => push({ name: 'foodSearch', date }))}
+        >
+          <span className="addtile__icon">
+            <Icon name="search" size={24} />
           </span>
-        }
-        onClick={go(() => push({ name: 'foodSearch', date }))}
-      />
+          <span>
+            <span className="addtile__label">Search the food database</span>
+            <span className="addtile__sub">Hundreds of thousands of foods, works offline</span>
+          </span>
+        </button>
+      </div>
       <Row
         title="Exercise"
         left={

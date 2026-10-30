@@ -3,6 +3,36 @@
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
 current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
+**2026-10-30, a batch of pre-launch edits from the user**, each small enough
+to live in the code's own comments, listed here so nobody looks for them:
+- **Your plan is editable.** `screens/Goals.tsx` (reached from the calorie
+  card's "Your plan" and from Settings → Plan) has a Recommended/Custom switch
+  at the top. Custom edits calories, the macros as either percent sliders
+  (`lib/planEditor.ts` rebalances the other two) or grams (calories then
+  follow the grams), and water; it is a draft until Save. `CustomPlan` grew
+  `macroMode` and `macroGrams`; `customPlanTargets()` in `lib/nutrition.ts`
+  resolves either mode. Old saves have no mode and are read as percent.
+- **The concentric macro rings are gone** from onboarding and the plan
+  screen; `components/PlanSummary.tsx` (calorie figure plus three coloured
+  bars) replaced both the `TriRing` and the `Donut` there. The user called the
+  rings ugly; the component is also the Home macro card's own device.
+- **Profile photo and bio**: `profile.avatar` (a 256 px JPEG data URL made by
+  `lib/avatar.ts`, so it syncs inside the profile JSON with no bucket) and
+  `profile.bio`, set under Settings → profile, shown on the Settings card.
+  Friends do not see either yet; the public profile table has no column.
+- **NutriScan, the label scanner**, under the "+" beside Barcode, Meal scan
+  and Quick add: `screens/NutriScan.tsx` photographs the Nutrition Facts
+  panel, `services/ocr.ts` reads it with Tesseract (WebAssembly, in a worker,
+  all three files bundled under `public/ocr/`, 6 MB, so it works offline and
+  never phones home), `lib/nutritionLabel.ts` parses the figures, and the
+  result opens `CreateFood` prefilled for the user to name and check. On the
+  FDA sample label it reads 12 figures in under a second; a glossy curved
+  packet will do worse, which is why nothing is saved without a look. **The
+  tab called NutriScan is a different thing** (the worth-it comparison in
+  `WorthIt.tsx`); the user named the scanner before noticing, and the clash
+  is theirs to resolve.
+- The "+" sheet's search row became a full-width tile under the 2×2.
+
 **The native shell exists as of 2026-10-23:** Capacitor 8 with Swift Package
 Manager, `ios/` generated, icons and splash in place, Info.plist configured,
 OAuth through the system browser with a `logpal://auth` deep link, and a

@@ -6,6 +6,7 @@ import { Today } from './screens/Today'
 import { Diary } from './screens/Diary'
 import { Plan } from './screens/Plan'
 import { MealScan } from './screens/MealScan'
+import { NutriScan } from './screens/NutriScan'
 import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
 import {
   About,
@@ -177,7 +178,7 @@ function Shell() {
         )
 
       case 'createFood':
-        return <CreateFood barcode={route.barcode} returnTo={route.returnTo} />
+        return <CreateFood barcode={route.barcode} returnTo={route.returnTo} prefill={route.prefill} />
 
       case 'quickAdd':
         return <QuickAdd date={route.date} meal={route.meal} />
@@ -190,6 +191,9 @@ function Shell() {
 
       case 'mealScan':
         return <MealScan date={route.date} />
+
+      case 'nutriScan':
+        return <NutriScan date={route.date} />
 
       case 'exerciseSearch':
         return <ExerciseSearch date={route.date} kind={route.kind} />

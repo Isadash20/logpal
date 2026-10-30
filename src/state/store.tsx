@@ -57,6 +57,7 @@ import {
 } from '../lib/nutrition'
 import { SEED_BY_ID } from '../data/seedFoods'
 import { targetHoursFor } from '../lib/fasting'
+import type { LabelPrefill } from '../lib/nutritionLabel'
 
 /* ------------------------------------------------------- planning helpers -- */
 
@@ -168,7 +169,8 @@ export type Route =
       servings?: number
       servingLabel?: string
     }
-  | { name: 'createFood'; barcode?: string; returnTo?: { date: string } }
+  | { name: 'createFood'; barcode?: string; returnTo?: { date: string }; prefill?: LabelPrefill }
+  | { name: 'nutriScan'; date: string }
   | { name: 'quickAdd'; date: string; meal?: MealKey }
   /* `mode` decides where a scan lands: the diary, or the worth-it screen. The
      camera and the lookup are identical either way, so they are not duplicated. */

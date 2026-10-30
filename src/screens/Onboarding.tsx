@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { ActivityLevel, BodyType, GoalKind, Profile, Sex } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { TriRing } from '../components/charts'
+import { PlanSummary } from '../components/PlanSummary'
 import {
   ACTIVITY_DESCRIPTIONS,
   ACTIVITY_LABELS,
@@ -143,6 +143,7 @@ export function Onboarding() {
         calories: finalCals,
         macroSplit: plan.split,
         waterMl: plan.waterMl,
+        macroMode: 'percent',
       },
     })
     addWeight(today(), weightLb)
@@ -478,33 +479,13 @@ export function Onboarding() {
               <div style={{ color: 'var(--text-2)', fontSize: 14 }}>calories per day</div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-              <TriRing
-                size={150}
-                rings={[
-                  { label: 'Carbs', value: plan.macros.carbs, goal: plan.macros.carbs, color: 'var(--carbs)' },
-                  { label: 'Fat', value: plan.macros.fat, goal: plan.macros.fat, color: 'var(--fat)' },
-                  { label: 'Protein', value: plan.macros.protein, goal: plan.macros.protein, color: 'var(--protein)' },
-                ]}
-                center={
-                  <>
-                    <div className="num" style={{ fontSize: 20, fontWeight: 800 }}>
-                      {plan.split.carbs}/{plan.split.fat}/{plan.split.protein}
-                    </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-2)' }}>C / F / P</div>
-                  </>
-                }
-              />
-            </div>
-
-            <div className="card card--inset" style={{ margin: '0 0 12px' }}>
-              <PlanRow color="var(--carbs)" label="Carbohydrates" value={`${plan.macros.carbs} g`} />
-              <PlanRow color="var(--fat)" label="Fat" value={`${plan.macros.fat} g`} />
-              <PlanRow color="var(--protein)" label="Protein" value={`${plan.macros.protein} g`} />
-              <PlanRow
-                color="var(--water)"
-                label="Water"
-                value={`${Math.round(mlToDisplay(plan.waterMl, 'ml'))} ml`}
+            <div className="card card--inset" style={{ margin: '0 0 12px', padding: '16px 16px 18px' }}>
+              <PlanSummary
+                showCalories={false}
+                calories={plan.calories}
+                macros={plan.macros}
+                split={plan.split}
+                water={`${Math.round(mlToDisplay(plan.waterMl, 'ml'))} ml`}
               />
             </div>
 
@@ -599,16 +580,6 @@ export function Onboarding() {
           </button>
         )}
       </div>
-    </div>
-  )
-}
-
-function PlanRow({ color, label, value }: { color: string; label: string; value: string }) {
-  return (
-    <div className="row">
-      <span className="dot" style={{ background: color }} />
-      <span className="row__main row__title">{label}</span>
-      <span className="row__value">{value}</span>
     </div>
   )
 }

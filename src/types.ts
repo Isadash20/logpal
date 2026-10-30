@@ -316,10 +316,17 @@ export interface GoalSpec {
  */
 export type PlanMode = 'standard' | 'custom'
 
+/** How a custom plan's macros were set: as shares of calories, or in grams. */
+export type MacroMode = 'percent' | 'grams'
+
 export interface CustomPlan {
   calories: number
   macroSplit: MacroSplit
   waterMl: number
+  /** Absent on saves from before grams could be set directly; those are percent. */
+  macroMode?: MacroMode
+  /** Gram targets, consulted only in 'grams' mode, where calories follow them. */
+  macroGrams?: { carbs: number; protein: number; fat: number }
 }
 
 export type ActivityLevel =
@@ -347,6 +354,10 @@ export interface Profile {
   firstName?: string
   /** Optional. A display name is the first name alone when this is absent. */
   lastName?: string
+  /** A small square JPEG as a data URL, a few tens of KB, so it syncs with the profile. */
+  avatar?: string
+  /** A line about yourself, 160 characters at most. */
+  bio?: string
   sex: Sex
   birthDate: string // YYYY-MM-DD
   heightIn: number

@@ -6,6 +6,7 @@ import { NUTRIENTS, SHORT_LABELS } from '../data/nutrients'
 import { caloriesFromMacros, emptyNutrients, scaleNutrients } from '../lib/nutrition'
 import { uid } from '../lib/id'
 import { cal } from '../lib/format'
+import type { LabelPrefill } from '../lib/nutritionLabel'
 
 /**
  * Two-step create-food wizard: identity and serving first, then the nutrition
@@ -15,18 +16,29 @@ import { cal } from '../lib/format'
 export function CreateFood({
   barcode,
   returnTo,
+  prefill,
 }: {
   barcode?: string
   returnTo?: { date: string }
+  /** Figures read off a label by NutriScan; the form opens with them filled in. */
+  prefill?: LabelPrefill
 }) {
   const { pop, push, saveCustomFood } = useApp()
   const [step, setStep] = useState<1 | 2>(1)
 
   const [brand, setBrand] = useState('')
   const [name, setName] = useState('')
-  const [servingLabel, setServingLabel] = useState('1 serving')
-  const [servingGrams, setServingGrams] = useState('')
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [servingLabel, setServingLabel] = useState(prefill?.servingLabel ?? '1 serving')
+  const [servingGrams, setServingGrams] = useState(
+    prefill?.servingGrams ? String(prefill.servingGrams) : '',
+  )
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    const out: Record<string, string> = {}
+    for (const [k, v] of Object.entries(prefill?.values ?? {})) {
+      if (v != null) out[k] = String(v)
+    }
+    return out
+  })
 
   const set = (k: NutrientKey, v: string) => setValues((p) => ({ ...p, [k]: v }))
   const num = (k: NutrientKey) => parseFloat(values[k] ?? '') || 0
@@ -102,6 +114,12 @@ export function CreateFood({
               <div className="hint">
                 Barcode <strong>{barcode}</strong> wasn&apos;t found online. Fill in the
                 label and it will be saved to your foods.
+              </div>
+            )}
+            {prefill && (
+              <div className="hint">
+                The figures from the label are filled in on the next step. Give the food
+                a name here, then check them before saving.
               </div>
             )}
             <div className="card" style={{ marginTop: 0 }}>
