@@ -8,9 +8,8 @@ import type { CapacitorConfig } from '@capacitor/cli'
  * network. Supabase and Open Food Facts are the only calls that leave the
  * device, the same as on the web.
  *
- * The bundle id is a placeholder until the Apple Developer account exists;
- * it has to match the App ID registered there, and it cannot change after
- * the first App Store upload.
+ * The bundle id is final: it is the App ID registered on the developer team
+ * (see APPSTORE.md), and it cannot change after the first App Store upload.
  */
 const config: CapacitorConfig = {
   appId: 'com.logpal.app',
@@ -18,7 +17,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   /* Painted behind the web view until the page draws, so launch goes from
      the splash to the app's own ground rather than through a black frame. */
-  backgroundColor: '#f4f4f7',
+  backgroundColor: '#f5f3f5',
   ios: {
     /* The web app draws its own safe areas (viewport-fit=cover and the
        env() insets), so the WebView runs edge to edge. */

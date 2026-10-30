@@ -20,14 +20,16 @@
 
 :root {
   /* Brand */
-  --accent: #5b5bd6;
-  --accent-press: #4a4ac2;
-  --accent-soft: #ecebfb;
-  --accent-ring: rgba(91, 91, 214, 0.2);
+  /* Mulberry (2026-10-30): the violet moved toward wine, chosen from the
+     palette studies. Still cool, still one colour, used sparingly. */
+  --accent: #7a2e5a;
+  --accent-press: #662549;
+  --accent-soft: #f4e8ef;
+  --accent-ring: rgba(122, 46, 90, 0.2);
 
   /* Chrome. The near-black that carries the premium feel */
-  --ink: #111118;
-  --ink-2: #26262f;
+  --ink: #1b1219;
+  --ink-2: #2e2229;
   --on-ink: #ffffff;
   --on-ink-2: #a3a3b3;
 
@@ -35,15 +37,15 @@
      accent: coral for protein, amber for carbohydrate, blue for fat. The same
      mapping Cal AI uses, and the pairing (red/orange against blue) survives
      red-green colourblindness. */
-  --protein: #e5533d;
-  --carbs: #f2a33a;
-  --fat: #3b82f6;
+  --protein: #e06a4c;
+  --carbs: #e2a93a;
+  --fat: #2f7fd1;
   /* Water is cyan, a clear step from fat's blue. Steps are green, the colour
-     every pedometer uses. Sleep is the one purple, far enough from the violet
-     accent to stay its own thing. */
-  --water: #06b6d4;
-  --steps: #10b981;
-  --sleep: #a855f7;
+     every pedometer uses. Sleep is a night-sky navy so nothing on the page
+     but the accent is purple. */
+  --water: #2fa6c2;
+  --steps: #4faf6f;
+  --sleep: #3f4f8c;
 
   /* Status */
   --positive: #16a34a;
@@ -53,18 +55,18 @@
 
   /* Surfaces. Neutral, cool, near white. Cards are pure white on it and are
      separated from it by a shadow, not a border. */
-  --bg: #f4f4f7;
-  --bg-top: #f4f4f7;
+  --bg: #f5f3f5;
+  --bg-top: #f5f3f5;
   --surface: #ffffff;
-  --surface-2: #f7f7fa;
-  --surface-3: #ededf2;
-  --border: #ebebf0;
-  --border-strong: #d9d9e2;
+  --surface-2: #f8f6f8;
+  --surface-3: #efeaee;
+  --border: #ece6ea;
+  --border-strong: #dcd4da;
 
   /* Text */
-  --text: #111118;
-  --text-2: #6b6b7b;
-  --text-3: #9a9aaa;
+  --text: #1b1219;
+  --text-2: #6f6470;
+  --text-3: #9d939d;
   --on-accent: #ffffff;
 
   /* Shape */
@@ -100,10 +102,10 @@
 }
 
 :root[data-theme='dark'] {
-  --accent: #8d8dff;
-  --accent-press: #a3a3ff;
-  --accent-soft: #24244a;
-  --accent-ring: rgba(141, 141, 255, 0.25);
+  --accent: #d07ab0;
+  --accent-press: #dc90c0;
+  --accent-soft: #3a1f32;
+  --accent-ring: rgba(208, 122, 176, 0.25);
 
   /* Ink flips: the one committing button on a screen is white on dark, the
      way it is in every dark-mode tracker studied. */
@@ -112,12 +114,12 @@
   --on-ink: #111118;
   --on-ink-2: #55556a;
 
-  --protein: #f0705c;
-  --carbs: #f5b24f;
-  --fat: #60a5fa;
-  --water: #22d3ee;
-  --steps: #34d399;
-  --sleep: #c084fc;
+  --protein: #f08a6a;
+  --carbs: #f0bd55;
+  --fat: #5e9ff0;
+  --water: #4fc0db;
+  --steps: #6ccb8a;
+  --sleep: #8a9bd8;
 
   --positive: #3ddc84;
   --warning: #ffb340;

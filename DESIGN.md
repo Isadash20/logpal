@@ -115,3 +115,15 @@ each stat tile is washed in its own colour with a solid icon disc, the macro
 figures are set in their colours, and the greeting, streak, week and active
 tab are tinted. The rule from the first pass still holds: the ground is white
 and the accent is never a surface larger than one card.
+
+## The accent moved to Mulberry (2026-10-30)
+
+A week on, the user asked for the **Mulberry** study from the same board in
+place of the violet: `#7A2E5A`, the violet moved toward wine. The layout and
+the "colour on the page" block are untouched; only `tokens.css` changed, in
+both themes. With it came the study's macro set (coral `#E06A4C`, gold
+`#E2A93A`, blue `#2F7FD1`), cyan water, green steps, and sleep moved to a
+night-sky navy `#3F4F8C` so the accent is the only purple on the page. The
+ground warmed a hair to `#F5F3F5` and ink to `#1B1219`, both still cool. The
+icon, splash, favicon, manifest and privacy page carry the same colour, so
+nothing outside the app still says violet.
