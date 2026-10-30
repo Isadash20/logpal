@@ -27,7 +27,9 @@ to live in the code's own comments, listed here so nobody looks for them:
   `lib/avatar.ts`, so it syncs inside the profile JSON with no bucket) and
   `profile.bio`, set under Settings → profile, shown on the Settings card.
   Friends do not see either yet; the public profile table has no column.
-- **NutriScan, the label scanner**, under the "+" beside Barcode, Meal scan
+- **Label scan, the label scanner** (shown as "NutriScan" until 2026-10-30,
+  when the clash with the tab was resolved by renaming the tile; the file
+  kept its name), under the "+" beside Barcode, Meal scan
   and Quick add: `screens/NutriScan.tsx` photographs the Nutrition Facts
   panel, `services/ocr.ts` reads it with Tesseract (WebAssembly, in a worker,
   all three files bundled under `public/ocr/`, 6 MB, so it works offline and
@@ -36,8 +38,7 @@ to live in the code's own comments, listed here so nobody looks for them:
   FDA sample label it reads 12 figures in under a second; a glossy curved
   packet will do worse, which is why nothing is saved without a look. **The
   tab called NutriScan is a different thing** (the worth-it comparison in
-  `WorthIt.tsx`); the user named the scanner before noticing, and the clash
-  is theirs to resolve.
+  `WorthIt.tsx`), which is why the tile was renamed.
 - The "+" sheet's search row became a full-width tile under the 2×2.
 
 **The native shell exists as of 2026-10-23:** Capacitor 8 with Swift Package

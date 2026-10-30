@@ -9,7 +9,7 @@ import { ocrSupported, prepareForOcr, recogniseText } from '../services/ocr'
 import { parseNutritionLabel, type LabelReading } from '../lib/nutritionLabel'
 
 /**
- * NutriScan: photograph the Nutrition Facts panel and the figures are read
+ * Label scan (screen file kept as NutriScan): photograph the Nutrition Facts panel and the figures are read
  * off it, on the phone, with no server.
  *
  * The reading is never logged straight away. It lands in the create-food
@@ -98,7 +98,7 @@ export function NutriScan({ date }: { date: string }) {
 
   return (
     <>
-      <TopBar title="NutriScan" onBack={pop} solid />
+      <TopBar title="Label scan" onBack={pop} solid />
       <div className="scroll">
         {phase === 'camera' && (
           <>

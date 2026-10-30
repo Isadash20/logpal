@@ -521,8 +521,8 @@ export function AddSheetContent({
     },
     {
       icon: 'nutriscan',
-      label: 'NutriScan',
-      sub: 'Scan the nutrition facts',
+      label: 'Label scan',
+      sub: 'Photograph the nutrition facts',
       onClick: go(() => push({ name: 'nutriScan', date })),
     },
   ]

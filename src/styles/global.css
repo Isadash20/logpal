@@ -2576,7 +2576,7 @@ button.row:active {
 
 /* ------------------------------------------------------- the two ways in -- */
 
-/* NutriScan asks how before it asks what. Two targets, both large enough to
+/* Label scan (NutriScan.tsx) asks how before it asks what. Two targets, both large enough to
    hit without looking, stacked so neither reads as the secondary one. */
 .pickways {
   display: grid;

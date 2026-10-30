@@ -20,7 +20,7 @@ export function CreateFood({
 }: {
   barcode?: string
   returnTo?: { date: string }
-  /** Figures read off a label by NutriScan; the form opens with them filled in. */
+  /** Figures read off a label by Label scan; the form opens with them filled in. */
   prefill?: LabelPrefill
 }) {
   const { pop, push, saveCustomFood } = useApp()
