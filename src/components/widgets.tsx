@@ -348,11 +348,11 @@ function Stat({ form, s, onOpen }: { form: Form; s: StatSpec; onOpen: () => void
           {s.title}
         </span>
         <Figure value={s.value} size={fit(s.value, 22)} color={s.valueColor} />
-        {/* The note is too long for one column; the percentage says the same. */}
-        <span className="num widget__sub" style={{ marginTop: 'auto', fontSize: 11.5, fontWeight: 600 }}>
-          {Math.round(s.ratio * 100)}%
+        {/* The note is too long for one column. A dial takes the rest of the
+            height instead, with the percentage inside it. */}
+        <span style={{ display: 'flex', flex: 1, minHeight: 0, paddingTop: 8 }}>
+          <Ring value={s.ratio} color={tone} over={s.over} stroke={9} />
         </span>
-        <Bar value={s.ratio} color={tone} height={5} style={{ marginTop: 6 }} />
       </button>
     )
   }
@@ -939,7 +939,15 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
           Weight
         </span>
         <Figure value={value} size={fit(value, 22)} />
-        <Sparkline values={trend} color={color} height={28} style={{ marginTop: 'auto' }} />
+        <span className="widget__sub" style={{ fontSize: 11, color, fontWeight: 600, ...ellipsis }}>
+          {short}
+        </span>
+        {/* The trend takes whatever height is left, so a one-column weight
+            widget is a chart with a figure over it rather than a figure with
+            a hole under it. */}
+        <span style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 8 }}>
+          <Sparkline values={trend} color={color} height={999} style={{ height: '100%' }} />
+        </span>
       </button>
     )
   }
@@ -1050,10 +1058,11 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
         <span className="widget__label" style={{ marginTop: 8 }}>
           Exercise
         </span>
-        <Figure value={workouts.length ? minutes : '–'} unit={workouts.length ? 'min' : undefined} size={22} />
-        <span className="widget__sub" style={{ marginTop: 'auto', fontSize: 11.5, ...ellipsis }}>
-          {workouts.length ? `${cal(burned)} cal` : 'None yet'}
-        </span>
+        <Figure value={workouts.length ? minutes : '0'} unit="min" size={22} />
+        {/* The second figure sits at the bottom so the column reads as two
+            stats, minutes and calories, rather than one with a gap. */}
+        <span style={{ marginTop: 'auto' }} />
+        <Figure value={cal(burned)} unit="cal" size={18} color={workouts.length ? 'var(--text)' : 'var(--text-2)'} />
       </button>
     )
   }
