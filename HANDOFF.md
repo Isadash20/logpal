@@ -3,6 +3,25 @@
 Everything needed to pick this up cold in a new session. Started 2026-08-05,
 current as of **2026-09-06**, commit `66e0323` on `main`, 68 commits, deployed.
 
+**2026-10-31: first build uploaded to App Store Connect.** The app record
+is Apple ID 6829268972, store name "LogPal: Calorie Tracker" (plain "LogPal"
+was taken), SKU `logpal-ios`. Build 1.0 (1) was archived and uploaded from
+the command line (`xcodebuild archive` then `-exportArchive` with
+`build/ExportOptions.plist`, destination upload) using the Xcode account
+phillip@erealgroup.com. Two things the archive needed that the GUI hides:
+`DEVELOPMENT_TEAM`/`CODE_SIGN_ENTITLEMENTS` in the pbxproj
+(`App/App.entitlements` carries Sign in with Apple), and at least one
+registered device for the development profile, which a `build` for "My Mac
+(Designed for iPad)" with `-allowProvisioningDeviceRegistration` supplies
+without a phone. `ITSAppUsesNonExemptEncryption=false` is in Info.plist.
+Listing text, categories, review notes and the demo user name are in App
+Store Connect; the demo password is in `secrets/review-account.txt`. Store
+screenshots come from the simulators via `?seed=demo` on the dev server
+(`src/dev/seedDemo.ts`, dev-only) with `server.url` temporarily set in
+`capacitor.config.ts`, never committed that way. Still on Phillip's side:
+accept the updated Program License Agreement, EU trader status, phone
+number and demo password on the version page, confirm the demo email.
+
 **2026-10-30, later: the Home widgets redrawn per shape.** Every widget now
 has a layout for each of the eight sizes it can be resized to (see
 `formOf` in `components/widgets.tsx` and the DESIGN.md entry), the default
