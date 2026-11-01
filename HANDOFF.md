@@ -22,6 +22,16 @@ screenshots come from the simulators via `?seed=demo` on the dev server
 accept the updated Program License Agreement, EU trader status, phone
 number and demo password on the version page, confirm the demo email.
 
+**2026-11-01: the real icon.** The violet ring was a placeholder; the mark
+Phillip chose (black L, green leaf, black fork, on white) replaced it in
+every size: `public/icons/*`, `favicon.png`, `apple-touch-icon.png`, the
+Xcode `AppIcon` set and both splash tiles. There is no vector; the source
+is a 1254px raster, so regenerate from the largest PNG if sizes are ever
+needed again (the generator was a throwaway AppKit script: white square,
+logo inset 10%, splash tile 400px with a 22% corner radius on the app's
+background colours). Build number went to 2 and that archive was uploaded
+the same way as build 1.
+
 **2026-10-30, later: the Home widgets redrawn per shape.** Every widget now
 has a layout for each of the eight sizes it can be resized to (see
 `formOf` in `components/widgets.tsx` and the DESIGN.md entry), the default
