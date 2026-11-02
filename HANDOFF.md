@@ -110,8 +110,8 @@ you are on, then read §3 for what is verified and what is not.
 
 ## 1. What this is
 
-**LogPal** — a calorie and nutrition tracker for the web, built as a functional
-replica of MyFitnessPal and then pushed past it. Originally called *FitLog*,
+**LogPal** — a calorie and nutrition tracker for the web, modelled on the
+leading calorie trackers and then pushed past them. Originally called *FitLog*,
 renamed 2026-08-04.
 
 - **Location:** `~/Documents/Projects/logpal` (was `~/Documents/Projects/fitness_app`)
