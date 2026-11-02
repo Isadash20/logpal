@@ -32,6 +32,14 @@ logo inset 10%, splash tile 400px with a 22% corner radius on the app's
 background colours). Build number went to 2 and that archive was uploaded
 the same way as build 1.
 
+**2026-11-01, later: guest mode is a button.** The sign-in screen's quiet
+"Continue without an account" link became a "Continue as guest" button
+(`screens/Auth.tsx`), so App Review can try the app without the demo
+account; the demo account still exists for the friends features. Build 3
+uploaded with it. In App Store Connect the version's "Sign-in required"
+box can therefore be unticked, with the review note pointing at the guest
+button.
+
 **2026-10-30, later: the Home widgets redrawn per shape.** Every widget now
 has a layout for each of the eight sizes it can be resized to (see
 `formOf` in `components/widgets.tsx` and the DESIGN.md entry), the default
