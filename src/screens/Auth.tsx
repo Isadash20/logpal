@@ -34,11 +34,12 @@ function GoogleMark() {
  * Sign in / create account.
  *
  * Shown instead of the app when cloud sync is configured and nobody is signed
- * in. "Continue without an account" is deliberately kept: LogPal was a purely
- * local app before this, and someone who does not want an account should not
- * lose the app. They get exactly the old behaviour, on this device only. It is
- * a quiet link rather than a button, though, because it is the last resort
- * rather than a peer of signing in.
+ * in. "Continue as guest" is deliberately kept: LogPal was a purely local app
+ * before this, and someone who does not want an account should not lose the
+ * app. They get exactly the old behaviour, on this device only. It was a quiet
+ * link until 2026-11-01; it became a full button so that nobody, App Review
+ * included, needs an account to try the app, and Settings → "Sign in to sync"
+ * upgrades a guest later.
  */
 export function Auth({ onSkip }: { onSkip(): void }) {
   const [mode, setMode] = useState<Mode>('in')
@@ -243,11 +244,13 @@ export function Auth({ onSkip }: { onSkip(): void }) {
           </div>
         )}
 
-        <button className="linkbtn linkbtn--quiet" onClick={onSkip}>
-          Continue without an account
-        </button>
+        <div className="btn-wrap" style={{ paddingTop: 0 }}>
+          <button className="btn btn--ghost" onClick={onSkip} disabled={busy}>
+            Continue as guest
+          </button>
+        </div>
         <div className="auth__foot">
-          Your diary stays on this device only, and clearing site data erases it.
+          As a guest your diary stays on this device only. You can sign in later from Settings to keep it everywhere.
         </div>
       </div>
     </div>
