@@ -91,6 +91,13 @@ default.
   decorates with `com.apple.FinderInfo`. Build and archive with
   `-derivedDataPath` and `-archivePath` outside `~/Documents` (a `/tmp`
   path is fine); `xattr -cr` on the sources is not enough.
+- *Second way in (build 6).* The Steps screen (`screens/wellness.tsx`)
+  ends with a "Link with Apple Health" card in the iOS app while
+  `settings.healthSync` is off; it calls the same `connectHealth` as the
+  Settings toggle. Once linked it becomes a "Linked with Apple Health" row
+  that opens the Health page and says a typed count is replaced at the next
+  sync. Phillip asked for it so first-time users find the link where the
+  number is, not under Settings.
 - Verified in the iPhone 17 Pro Max simulator on 2026-11-02: the system
   Health Access sheet appears with all nine topics, five cups logged in
   LogPal show up in Health as 1,183 mL, and 7,432 steps typed into Health

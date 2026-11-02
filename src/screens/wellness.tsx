@@ -196,8 +196,37 @@ export function SleepScreen({ date }: { date: string }) {
 /* --------------------------------------------------------------- steps ---- */
 
 export function StepsScreen({ date }: { date: string }) {
-  const { pop, dayLog, setSteps, profile, saveProfile } = useApp()
+  const {
+    pop,
+    push,
+    dayLog,
+    setSteps,
+    profile,
+    saveProfile,
+    settings,
+    healthSupported,
+    healthBusy,
+    connectHealth,
+  } = useApp()
   const [typed, setTyped] = useState('')
+  const [linking, setLinking] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
+
+  /* The first time someone opens Steps in the iOS app, the thing they most
+     want is for the number to fill itself in, so the offer sits here at the
+     bottom rather than only in Settings. Once linked it collapses to a row
+     that opens the Health page. */
+  const link = async () => {
+    setLinkError(null)
+    setLinking(true)
+    try {
+      await connectHealth()
+    } catch (err) {
+      setLinkError((err as Error).message)
+    } finally {
+      setLinking(false)
+    }
+  }
   const log = dayLog(date)
   const goal = profile.stepGoal
   const walked = log.steps ?? 0
@@ -354,6 +383,44 @@ export function StepsScreen({ date }: { date: string }) {
             }
           />
         </div>
+
+        {healthSupported && !settings.healthSync && (
+          <>
+            <div className="section-label">Apple Health</div>
+            <div className="card" style={{ padding: '14px 16px 16px' }}>
+              <div style={{ fontSize: 13.5, color: 'var(--text-2)', marginBottom: 12 }}>
+                Link once and your iPhone or Watch fills this in for you, every day,
+                nothing to type.
+              </div>
+              <button
+                className="btn btn--ink"
+                disabled={linking || healthBusy}
+                onClick={() => void link()}
+              >
+                <Icon name="apple" size={18} strokeWidth={2} />
+                {linking ? 'Linking…' : 'Link with Apple Health'}
+              </button>
+              {linkError && (
+                <div style={{ color: 'var(--danger)', fontSize: 13, marginTop: 10 }}>
+                  Could not reach Health: {linkError}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        {healthSupported && settings.healthSync && (
+          <>
+            <div className="section-label">Apple Health</div>
+            <div className="card">
+              <Row
+                title="Linked with Apple Health"
+                sub="Steps come from your phone. A number typed here is replaced at the next sync."
+                chevron
+                onClick={() => push({ name: 'prefsHealth' })}
+              />
+            </div>
+          </>
+        )}
 
         <div style={{ height: 24 }} />
       </div>
