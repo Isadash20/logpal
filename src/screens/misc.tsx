@@ -157,12 +157,36 @@ export function WaterScreen({ date }: { date: string }) {
   const filled = Math.round(log.water / ML_PER_CUP)
   const exMin = totalsFor(date).exerciseMinutes
 
-  const quickAmounts = unit === 'ml' ? [250, 500, 750] : [1, 2, 3]
+  /* Two presets, a small one and a big one, then "type a number and tap it as
+     many times as you need". Someone drinking 50 oz bottles should not have
+     to tap +1 fifty times, and a bare "set exact amount" field made every
+     refill a sum you had to do in your head. */
+  const quickAmounts: [number, number] =
+    unit === 'ml' ? [250, 500] : unit === 'floz' ? [8, 16] : [1, 5]
   const fmt = (v: number) => (unit === 'ml' ? Math.round(v) : Math.round(v * 10) / 10)
+
+  const [custom, setCustom] = useState('')
+  const customValue = parseFloat(custom)
+  const customOk = Number.isFinite(customValue) && customValue > 0
+  /* Bumped on every change so the "Saved" flash re-runs its animation. */
+  const [savedAt, setSavedAt] = useState(0)
+  const commit = (ml: number) => {
+    setWater(date, ml)
+    setSavedAt(Date.now())
+  }
+  const add = (display: number) => commit(log.water + displayToMl(display, unit))
 
   return (
     <>
-      <TopBar title="Water" onBack={pop} />
+      <TopBar
+        title="Water"
+        onBack={pop}
+        right={
+          <button className="textbtn" onClick={pop}>
+            Done
+          </button>
+        }
+      />
       <div className="scroll">
         {/* A bottle that actually fills, far more motivating than a number. */}
         <div
@@ -240,49 +264,62 @@ export function WaterScreen({ date }: { date: string }) {
           {Array.from({ length: Math.max(8, glasses) }).map((_, i) => (
             <button
               key={i}
-              onClick={() =>
-                setWater(date, filled === i + 1 ? i * ML_PER_CUP : (i + 1) * ML_PER_CUP)
-              }
+              onClick={() => commit(filled === i + 1 ? i * ML_PER_CUP : (i + 1) * ML_PER_CUP)}
               style={{ color: i < filled ? 'var(--water)' : 'var(--border-strong)', display: 'flex' }}
               aria-label={`Set to ${i + 1} glasses`}
             >
-              <Icon name="water" size={30} strokeWidth={i < filled ? 0 : 1.8} />
+              <Icon name="water" size={30} strokeWidth={1.8} fill={i < filled} />
             </button>
           ))}
         </div>
 
-        <div className="chips" style={{ justifyContent: 'center' }}>
-          {quickAmounts.map((a) => (
-            <button
-              key={a}
-              className="chip"
-              onClick={() => setWater(date, log.water + displayToMl(a, unit))}
-            >
-              +{a} {waterUnitLabel(unit, a)}
-            </button>
-          ))}
-          <button className="chip" onClick={() => setWater(date, 0)}>
-            Reset
-          </button>
-        </div>
-
-        <div className="card">
-          <label className="field">
-            <span className="field__label">Set exact amount</span>
-            <span className="field__control">
+        <div className="section-label">Add a drink</div>
+        <div className="card water-add">
+          <div className="water-add__row">
+            {quickAmounts.map((a) => (
+              <button key={a} className="btn btn--ghost water-add__quick" onClick={() => add(a)}>
+                +{a} {waterUnitLabel(unit, a)}
+              </button>
+            ))}
+          </div>
+          <div className="water-add__row">
+            <label className="water-add__custom">
               <input
                 className="input"
                 type="number"
                 inputMode="decimal"
-                value={fmt(shown)}
-                onChange={(e) => {
-                  const v = parseFloat(e.target.value)
-                  setWater(date, Number.isFinite(v) ? displayToMl(v, unit) : 0)
+                min={0}
+                placeholder="Custom"
+                value={custom}
+                onChange={(e) => setCustom(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && customOk) add(customValue)
                 }}
               />
-              <span className="unit">{waterUnitLabel(unit)}</span>
-            </span>
-          </label>
+              <span className="unit">{waterUnitLabel(unit, customOk ? customValue : 2)}</span>
+            </label>
+            <button
+              className="btn btn--ink water-add__go"
+              disabled={!customOk}
+              onClick={() => add(customValue)}
+            >
+              +{customOk ? fmt(customValue) : ''} Add
+            </button>
+          </div>
+          <div className="water-add__foot">
+            <button className="chip" onClick={() => commit(0)}>
+              Reset to 0
+            </button>
+            {savedAt > 0 && (
+              <span key={savedAt} className="water-add__saved" role="status">
+                <Icon name="check" size={14} strokeWidth={2.4} /> Saved
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="hint">
+          Type an amount once, then tap Add every time you finish one. Everything on
+          this screen saves as you tap it.
         </div>
 
         <div className="section-label">How your goal is set</div>

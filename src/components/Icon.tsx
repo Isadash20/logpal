@@ -146,13 +146,16 @@ export function Icon({
   size = 22,
   strokeWidth = 1.9,
   className,
+  fill,
 }: {
   name: IconName
   size?: number
   strokeWidth?: number
   className?: string
+  /** Solid rather than outlined; a filled glass in the water row, for one. */
+  fill?: boolean
 }) {
-  const filled = name === 'star-filled'
+  const filled = fill || name === 'star-filled'
   return (
     <svg
       width={size}

@@ -32,6 +32,23 @@ logo inset 10%, splash tile 400px with a 22% corner radius on the app's
 background colours). Build number went to 2 and that archive was uploaded
 the same way as build 1.
 
+**2026-11-02 (later): water "doesn't save", and the water screen redone.**
+Phillip logged water on the phone and it was gone next launch. The cause is
+not in the app: the live `logpal_days` table never got the two
+`add column if not exists` lines for `sleep_min` and `steps` from
+`supabase/schema.sql`, so every upsert of a day row is rejected (Postgres
+42703) and the cloud copy, still at 0, wins on the next sign-in reconcile.
+Water, sleep and steps were all affected; nothing else, every other table
+and column probed clean against the live project. **Run those two lines in
+the Supabase SQL editor** (the Supabase MCP and raw REST writes are both
+blocked from this session). Separately, `screens/misc.tsx` `WaterScreen`
+got the controls Phillip asked for: two presets (`+1 / +5` cups, `+8 / +16`
+fl oz, `+250 / +500` ml), a custom box you type once and tap `+N Add` as
+often as needed, a `Done` button, and a "Saved" flash on every change. The
+old "set exact amount" field is gone. Also fixed in passing: filled glasses
+in the tap-to-set row were invisible (stroke 0 on an unfilled icon); `Icon`
+now takes a `fill` prop.
+
 **2026-11-02: languages, time zone, and a widget board you can actually
 rearrange.** Two pre-launch requests from Phillip.
 

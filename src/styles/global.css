@@ -3485,3 +3485,74 @@ button.row:active {
   color: var(--text-3);
   margin-top: 4px;
 }
+
+/* ---------------------------------------------------------------- water -- */
+
+/* "Add a drink": two presets, then a typed amount you tap as often as you
+   need. The amount stays in the box after each tap on purpose. */
+.water-add {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.water-add__row {
+  display: flex;
+  gap: 10px;
+}
+
+.water-add__quick {
+  padding: 13px 12px;
+  font-size: 15px;
+}
+
+.water-add__custom {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  background: var(--surface);
+}
+
+.water-add__custom .input {
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.water-add__go {
+  flex: none;
+  width: auto;
+  padding: 13px 20px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.water-add__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+}
+
+.water-add__saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  animation: water-saved 1.8s ease forwards;
+}
+
+@keyframes water-saved {
+  0% { opacity: 0; transform: translateY(3px); }
+  12% { opacity: 1; transform: none; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
