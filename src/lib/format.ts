@@ -1,4 +1,5 @@
 /** Display formatting. Nutrition figures round the way a food label does. */
+import { currentTimeZone, intlLocale } from '../i18n'
 
 export function round(n: number, places = 0): number {
   const f = 10 ** places
@@ -7,7 +8,7 @@ export function round(n: number, places = 0): number {
 
 /** Whole numbers for calories. No decimals anywhere in the UI. */
 export function cal(n: number): string {
-  return Math.round(n).toLocaleString('en-US')
+  return Math.round(n).toLocaleString(intlLocale())
 }
 
 /**
@@ -30,7 +31,7 @@ export function pct(n: number): string {
 }
 
 export function weight(n: number, places = 1): string {
-  return round(n, places).toLocaleString('en-US', {
+  return round(n, places).toLocaleString(intlLocale(), {
     minimumFractionDigits: places,
     maximumFractionDigits: places,
   })
@@ -57,11 +58,15 @@ export function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s
 }
 
-/** "7:42 am". The trailing timestamp on a logged entry. */
+/** "7:42 am". The trailing timestamp on a logged entry, in the chosen zone and language. */
 export function timeOfDay(ts: number): string {
-  return new Date(ts)
-    .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    .toLowerCase()
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' }
+  const zone = currentTimeZone()
+  try {
+    return new Date(ts).toLocaleTimeString(intlLocale(), zone ? { ...opts, timeZone: zone } : opts).toLowerCase()
+  } catch {
+    return new Date(ts).toLocaleTimeString('en-US', opts).toLowerCase()
+  }
 }
 
 /** "Chobani, 1 container (150 g)". The subtitle under a diary food row. */

@@ -637,7 +637,14 @@ button.row:active {
   direction: rtl;
   outline: none;
   color: var(--text);
+  /* A select is as wide as its widest option by default, and the time zone
+     list has four hundred of them. It yields to the row instead. */
   max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   appearance: none;
   padding-right: 2px;
 }
@@ -2241,12 +2248,37 @@ button.row:active {
   animation-delay: -0.8s;
 }
 
+/* Lifted and riding under the finger: the transform is set inline by the
+   grid, and the widget drops out of hit-testing so the one beneath it is what
+   `elementFromPoint` finds. */
 .widget--dragging {
   animation: none;
-  transform: scale(1.04);
   box-shadow: 0 12px 28px rgb(15 23 42 / 0.22);
   z-index: 5;
   opacity: 0.94;
+  pointer-events: none;
+  transition: none;
+}
+
+/* One place up or down, beside the remove button, for anyone who would
+   rather not drag. */
+.widget__moves {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+
+.widget__move {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--on-ink);
 }
 
 @keyframes widget-wobble {

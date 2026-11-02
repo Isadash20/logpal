@@ -399,6 +399,13 @@ export interface Settings {
   energyUnit: 'kcal' | 'kJ'
   waterUnit: 'cup' | 'ml' | 'floz'
   theme: 'light' | 'dark' | 'system'
+  /**
+   * `auto` follows the device; otherwise one of the languages in `i18n`.
+   * The time zone decides which calendar day an entry lands on; `auto` is
+   * the device's and is right for nearly everyone.
+   */
+  language: 'auto' | 'en' | 'es' | 'fr' | 'de' | 'pt' | 'it' | 'zh' | 'ja'
+  timeZone: 'auto' | string
   /** Add exercise calories back to the daily budget. */
   exerciseAddsCalories: boolean
   /** Search live Open Food Facts alongside the built-in database. */

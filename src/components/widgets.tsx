@@ -4,6 +4,7 @@ import { Icon, type IconName } from './Icon'
 import { cal } from '../lib/format'
 import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import { addDays, shortDate } from '../lib/dates'
+import { useT } from '../i18n'
 import { formatSleep } from '../screens/wellness'
 import {
   activeFast,
@@ -441,6 +442,7 @@ function Stat({ form, s, onOpen }: { form: Form; s: StatSpec; onOpen: () => void
  */
 function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
   const { totalsFor, settings } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const totals = totalsFor(date)
   const credit = settings.exerciseAddsCalories ? totals.exerciseCalories : 0
@@ -455,12 +457,12 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
       <span className="num" style={{ color: 'var(--text)', fontWeight: 600 }}>
         {cal(consumed)}
       </span>{' '}
-      eaten
+      {t('w.eaten')}
       <span style={{ color: 'var(--text-3)' }}> · </span>
       <span className="num" style={{ color: 'var(--text)', fontWeight: 600 }}>
         {cal(goal)}
       </span>{' '}
-      goal
+      {t('w.goal')}
     </>
   )
 
@@ -471,23 +473,23 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
       s={{
         icon: 'flame',
         color: 'var(--accent)',
-        title: 'Calories',
+        title: t('widget.calories'),
         value: cal(Math.abs(left)),
-        unit: left < 0 ? 'over' : 'left',
+        unit: left < 0 ? t('w.over') : t('w.left'),
         valueColor: left < 0 ? 'var(--danger)' : undefined,
         ratio,
         over: true,
         sub:
           form === 'strip'
-            ? `${cal(consumed)} eaten`
+            ? `${cal(consumed)} ${t('w.eaten')}`
             : form === 'card' || form === 'tall'
-              ? `${cal(consumed)} eaten · ${cal(goal)} goal`
+              ? `${cal(consumed)} ${t('w.eaten')} · ${cal(goal)} ${t('w.goal')}`
               : undefined,
         detail: form === 'wide' || form === 'big' ? eatenGoal : undefined,
         action:
           form === 'wide' || form === 'big' ? (
             <span className="textbtn" style={{ padding: 0, alignSelf: 'flex-start', fontSize: 13.5 }}>
-              Your plan
+              {t('w.yourPlan')}
             </span>
           ) : undefined,
       }}
@@ -504,13 +506,14 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
  */
 function MacrosWidget({ date, w, h }: WidgetProps) {
   const { totalsFor, macroTargets } = useApp()
+  const t = useT()
   const n = totalsFor(date).nutrients
   const form = formOf(w, h)
 
   const rows: [string, number, number, string][] = [
-    ['Protein', n.protein, macroTargets.protein, 'var(--protein)'],
-    ['Carbs', n.carbs, macroTargets.carbs, 'var(--carbs)'],
-    ['Fat', n.fat, macroTargets.fat, 'var(--fat)'],
+    [t('w.protein'), n.protein, macroTargets.protein, 'var(--protein)'],
+    [t('w.carbs'), n.carbs, macroTargets.carbs, 'var(--carbs)'],
+    [t('w.fat'), n.fat, macroTargets.fat, 'var(--fat)'],
   ]
   const pct = (now: number, target: number) => (target > 0 ? now / target : 0)
   const dot = (color: string, size = 7) => (
@@ -651,7 +654,9 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
               </span>
             </div>
             <span className="widget__sub" style={{ fontSize: 12 }}>
-              {now > target ? `${Math.round(now - target)} g over` : `${Math.round(target - now)} g left`}
+              {now > target
+                ? `${Math.round(now - target)} g ${t('w.over')}`
+                : `${Math.round(target - now)} g ${t('w.left')}`}
             </span>
             <Bar value={pct(now, target)} color={color} height={6} />
           </div>
@@ -665,6 +670,7 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
 
 function FastingWidget({ w, h, editing }: WidgetProps) {
   const { data } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const fast = activeFast(data.fasts)
   const [now, setNow] = useState(() => Date.now())
@@ -685,13 +691,15 @@ function FastingWidget({ w, h, editing }: WidgetProps) {
         icon: 'clock',
         color: 'var(--sleep)',
         tone: progress >= 1 ? 'var(--positive)' : 'var(--sleep)',
-        title: 'Fasting',
+        title: t('widget.fasting'),
         value: fast ? formatDuration(fastElapsedMs(fast, now)) : '0:00',
         unit: fast ? `/ ${fast.targetHours}h` : undefined,
-        sub: fast ? `of ${fast.targetHours}h target` : `Not fasting · ${targetHoursFor(data.fasting)}h plan`,
-        short: fast ? `${fast.targetHours}h target` : 'Not fasting',
+        sub: fast
+          ? t('w.ofTargetHours', { h: fast.targetHours })
+          : t('w.notFastingPlan', { h: targetHoursFor(data.fasting) }),
+        short: fast ? t('w.targetHours', { h: fast.targetHours }) : t('w.notFasting'),
         ratio: progress,
-        caption: 'of target',
+        caption: t('w.ofTarget'),
       }}
     />
   )
@@ -701,6 +709,7 @@ function FastingWidget({ w, h, editing }: WidgetProps) {
 
 function WaterWidget({ date, w, h, editing }: WidgetProps) {
   const { dayLog, waterTarget, settings } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const log = dayLog(date)
   const fmt = (ml: number) => {
@@ -716,12 +725,15 @@ function WaterWidget({ date, w, h, editing }: WidgetProps) {
       s={{
         icon: 'water',
         color: 'var(--water)',
-        title: 'Water',
+        title: t('widget.water'),
         value: String(fmt(log.water)),
         unit: `/ ${fmt(waterTarget)} ${waterUnitLabel(settings.waterUnit)}`,
-        sub: log.water >= waterTarget ? 'Goal reached' : `${fmt(Math.max(0, waterTarget - log.water))} to go`,
+        sub:
+          log.water >= waterTarget
+            ? t('w.goalReached')
+            : t('w.toGo', { amount: fmt(Math.max(0, waterTarget - log.water)) }),
         ratio,
-        caption: 'of goal',
+        caption: t('w.ofGoal'),
       }}
     />
   )
@@ -731,6 +743,7 @@ function WaterWidget({ date, w, h, editing }: WidgetProps) {
 
 function SleepWidget({ date, w, h, editing }: WidgetProps) {
   const { dayLog, profile } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const log = dayLog(date)
   const goal = profile.sleepGoalMin
@@ -743,17 +756,17 @@ function SleepWidget({ date, w, h, editing }: WidgetProps) {
       s={{
         icon: 'moon',
         color: 'var(--sleep)',
-        title: 'Sleep',
+        title: t('widget.sleep'),
         value: log.sleepMin == null ? '–' : formatSleep(log.sleepMin),
         unit: `/ ${formatSleep(goal)}`,
         sub:
           log.sleepMin == null
-            ? 'Not logged'
+            ? t('common.notLogged')
             : log.sleepMin >= goal
-              ? 'Target met'
-              : `${formatSleep(goal - log.sleepMin)} short`,
+              ? t('w.targetMet')
+              : t('w.short', { amount: formatSleep(goal - log.sleepMin) }),
         ratio,
-        caption: 'of target',
+        caption: t('w.ofTarget'),
       }}
     />
   )
@@ -763,6 +776,7 @@ function SleepWidget({ date, w, h, editing }: WidgetProps) {
 
 function StepsWidget({ date, w, h, editing }: WidgetProps) {
   const { dayLog, profile } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const log = dayLog(date)
   const goal = profile.stepGoal
@@ -775,17 +789,17 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
       s={{
         icon: 'steps',
         color: 'var(--steps)',
-        title: 'Steps',
-        value: log.steps == null ? '–' : log.steps.toLocaleString(),
-        unit: `/ ${goal.toLocaleString()}`,
+        title: t('widget.steps'),
+        value: log.steps == null ? '–' : cal(log.steps),
+        unit: `/ ${cal(goal)}`,
         sub:
           log.steps == null
-            ? 'Not logged'
+            ? t('common.notLogged')
             : log.steps >= goal
-              ? 'Goal reached'
-              : `${(goal - log.steps).toLocaleString()} to go`,
+              ? t('w.goalReached')
+              : t('w.toGo', { amount: cal(goal - log.steps) }),
         ratio,
-        caption: 'of goal',
+        caption: t('w.ofGoal'),
       }}
     />
   )
@@ -859,6 +873,7 @@ function Sparkline({
  */
 function WeightWidget({ date, w, h, editing }: WidgetProps) {
   const { data, settings } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const unit = settings.weightUnit
   const disp = (lb: number) => Math.round(lbToDisplay(lb, unit) * 10) / 10
@@ -875,16 +890,16 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
   const color = delta != null && delta < 0 ? 'var(--positive)' : 'var(--accent)'
 
   const sub = !latest
-    ? 'Tap to log a weigh-in'
+    ? t('w.tapWeighIn')
     : delta == null
-      ? `Logged ${shortDate(latest.date)}`
+      ? t('w.loggedOn', { date: shortDate(latest.date) })
       : Math.abs(disp(delta)) < 0.05
-        ? 'No change this week'
-        : `${delta < 0 ? 'Down' : 'Up'} ${Math.abs(disp(delta))} ${unit} this week`
+        ? t('w.noChangeWeek')
+        : t(delta < 0 ? 'w.downWeek' : 'w.upWeek', { amount: Math.abs(disp(delta)), unit })
   const short = !latest
-    ? 'Not logged'
+    ? t('common.notLogged')
     : delta == null || Math.abs(disp(delta)) < 0.05
-      ? 'No change'
+      ? t('w.noChange')
       : `${delta < 0 ? '↓' : '↑'} ${Math.abs(disp(delta))} ${unit}`
   const value = latest ? String(disp(latest.weight)) : '–'
   const onOpen = () => open({ name: 'weightEntry' })
@@ -903,7 +918,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--row" onClick={onOpen}>
         <Disc icon="scale" color="var(--accent)" size={34} />
         <span className="widget__col">
-          <span className="widget__label">Weight</span>
+          <span className="widget__label">{t('widget.weight')}</span>
           <Figure value={value} unit={latest ? unit : undefined} size={21} />
           {/* Under the figure rather than beside it: "178.4 lb" and "↓ 2.4 lb"
               do not both fit on one line of a half-width strip. */}
@@ -920,7 +935,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--row" onClick={onOpen}>
         <Disc icon="scale" color="var(--accent)" size={36} />
         <span className="widget__col" style={{ flex: 'none' }}>
-          <span className="widget__label">Weight</span>
+          <span className="widget__label">{t('widget.weight')}</span>
           <Figure value={value} unit={latest ? unit : undefined} size={22} />
         </span>
         <Sparkline values={trend} color={color} height={40} style={{ flex: 1, minWidth: 40, width: 'auto' }} />
@@ -936,7 +951,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--column" onClick={onOpen}>
         <Disc icon="scale" color="var(--accent)" size={26} />
         <span className="widget__label" style={{ marginTop: 8 }}>
-          Weight
+          {t('widget.weight')}
         </span>
         <Figure value={value} size={fit(value, 22)} />
         <span className="widget__sub" style={{ fontSize: 11, color, fontWeight: 600, ...ellipsis }}>
@@ -956,7 +971,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
     return (
       <button className="widget__body widget__body--tap" onClick={onOpen}>
         <Title icon="scale" color="var(--accent)">
-          Weight
+          {t('widget.weight')}
         </Title>
         <Figure value={value} unit={latest ? unit : undefined} size={32} style={{ marginTop: 6 }} />
         <span className="widget__sub">{sub}</span>
@@ -975,7 +990,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
     >
       <span className="widget__col" style={{ flex: 'none', minWidth: '40%', gap: 3 }}>
         <Title icon="scale" color="var(--accent)">
-          Weight
+          {t('widget.weight')}
         </Title>
         <Figure value={value} unit={latest ? unit : undefined} size={large ? 44 : 36} style={{ marginTop: large ? 14 : 8 }} />
         <span className="widget__sub" style={{ fontSize: 13, marginTop: 2 }}>
@@ -983,7 +998,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
         </span>
         <span style={{ marginTop: 'auto' }} />
         <span className="widget__sub" style={{ fontSize: 12, color: 'var(--text-3)' }}>
-          {trend.length >= 2 ? `Last ${trend.length} weigh-ins` : 'Trend appears after two weigh-ins'}
+          {trend.length >= 2 ? t('w.lastWeighIns', { n: trend.length }) : t('w.trendAfterTwo')}
         </span>
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'flex-end', paddingTop: 10 }}>
@@ -997,6 +1012,7 @@ function WeightWidget({ date, w, h, editing }: WidgetProps) {
 
 function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
   const { data, totalsFor } = useApp()
+  const t = useT()
   const open = useOpen(editing)
   const totals = totalsFor(date)
   const workouts = data.exerciseEntries.filter((e) => e.date === date)
@@ -1021,11 +1037,13 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--row" onClick={onOpen}>
         <Disc icon="dumbbell" color={color} size={34} />
         <span className="widget__col">
-          <span className="widget__label">Exercise</span>
+          <span className="widget__label">{t('widget.exercise')}</span>
           {workouts.length ? (
-            <Figure value={minutes} unit="min" size={21} />
+            <Figure value={minutes} unit={t('w.min')} size={21} />
           ) : (
-            <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-2)', ...ellipsis }}>Nothing logged</span>
+            <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--text-2)', ...ellipsis }}>
+              {t('common.nothingLogged')}
+            </span>
           )}
         </span>
       </button>
@@ -1037,15 +1055,15 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--row" onClick={onOpen}>
         <Disc icon="dumbbell" color={color} size={36} />
         <span className="widget__col" style={{ flex: 'none' }}>
-          <span className="widget__label">Exercise</span>
+          <span className="widget__label">{t('widget.exercise')}</span>
           {workouts.length ? (
-            <Figure value={minutes} unit="min" size={22} />
+            <Figure value={minutes} unit={t('w.min')} size={22} />
           ) : (
-            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)' }}>Nothing logged</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)' }}>{t('common.nothingLogged')}</span>
           )}
         </span>
         <span className="widget__sub" style={{ ...ellipsis, flex: 1, textAlign: 'right' }}>
-          {workouts.length ? `${names} · ${cal(burned)} cal` : 'Tap to add a workout'}
+          {workouts.length ? `${names} · ${cal(burned)} ${t('common.cal')}` : t('w.tapWorkout')}
         </span>
       </button>
     )
@@ -1056,13 +1074,13 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
       <button className="widget__body widget__body--tap widget__body--column" onClick={onOpen}>
         <Disc icon="dumbbell" color={color} size={26} />
         <span className="widget__label" style={{ marginTop: 8 }}>
-          Exercise
+          {t('widget.exercise')}
         </span>
-        <Figure value={workouts.length ? minutes : '0'} unit="min" size={22} />
+        <Figure value={workouts.length ? minutes : '0'} unit={t('w.min')} size={22} />
         {/* The second figure sits at the bottom so the column reads as two
             stats, minutes and calories, rather than one with a gap. */}
         <span style={{ marginTop: 'auto' }} />
-        <Figure value={cal(burned)} unit="cal" size={18} color={workouts.length ? 'var(--text)' : 'var(--text-2)'} />
+        <Figure value={cal(burned)} unit={t('common.cal')} size={18} color={workouts.length ? 'var(--text)' : 'var(--text-2)'} />
       </button>
     )
   }
@@ -1071,19 +1089,19 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
     return (
       <button className="widget__body widget__body--tap" onClick={onOpen}>
         <Title icon="dumbbell" color={color}>
-          Exercise
+          {t('widget.exercise')}
         </Title>
-        <Figure value={workouts.length ? minutes : '0'} unit="min" size={32} style={{ marginTop: 6 }} />
+        <Figure value={workouts.length ? minutes : '0'} unit={t('w.min')} size={32} style={{ marginTop: 6 }} />
         <span className="widget__sub" style={ellipsis}>
-          {workouts.length ? names : 'Nothing logged'}
+          {workouts.length ? names : t('common.nothingLogged')}
         </span>
         <span style={{ marginTop: 'auto' }} />
         {/* The second figure fills the half of the card a dial would take in
             the other widgets: there is no goal for exercise to dial towards. */}
-        <Figure value={cal(burned)} unit="cal burned" size={20} color={workouts.length ? 'var(--text)' : 'var(--text-2)'} />
+        <Figure value={cal(burned)} unit={t('w.calBurnedUnit')} size={20} color={workouts.length ? 'var(--text)' : 'var(--text-2)'} />
         {!workouts.length && (
           <span className="widget__sub" style={{ fontSize: 12 }}>
-            Tap to add a workout
+            {t('w.tapWorkout')}
           </span>
         )}
       </button>
@@ -1098,18 +1116,22 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
           <span key={e.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, minWidth: 0 }}>
             <span style={{ fontWeight: 600, ...ellipsis }}>{e.name}</span>
             <span className="num" style={{ color: 'var(--text-2)', flex: 'none' }}>
-              {e.minutes != null ? `${e.minutes} min` : e.sets != null ? `${e.sets} × ${e.reps ?? '–'}` : cal(e.caloriesBurned ?? 0) + ' cal'}
+              {e.minutes != null
+                ? `${e.minutes} ${t('w.min')}`
+                : e.sets != null
+                  ? `${e.sets} × ${e.reps ?? '–'}`
+                  : `${cal(e.caloriesBurned ?? 0)} ${t('common.cal')}`}
             </span>
           </span>
         ))
       ) : (
         <span className="widget__sub" style={{ fontSize: 13 }}>
-          Nothing logged yet. Tap to add a workout, and the calories it burns can count towards today.
+          {t('w.nothingLoggedTap')}
         </span>
       )}
       {workouts.length > (form === 'wide' ? 3 : 5) && (
         <span className="widget__sub" style={{ fontSize: 12 }}>
-          and {workouts.length - (form === 'wide' ? 3 : 5)} more
+          {t('w.andMore', { n: workouts.length - (form === 'wide' ? 3 : 5) })}
         </span>
       )}
     </span>
@@ -1119,10 +1141,12 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
     return (
       <button className="widget__body widget__body--tap" onClick={onOpen}>
         <Title icon="dumbbell" color={color}>
-          Exercise
+          {t('widget.exercise')}
         </Title>
-        <Figure value={workouts.length ? minutes : '0'} unit="min" size={32} style={{ marginTop: 6 }} />
-        <span className="widget__sub">{workouts.length ? `${cal(burned)} cal burned` : 'No calories burned yet'}</span>
+        <Figure value={workouts.length ? minutes : '0'} unit={t('w.min')} size={32} style={{ marginTop: 6 }} />
+        <span className="widget__sub">
+          {workouts.length ? t('w.calBurned', { cal: cal(burned) }) : t('w.noCalBurned')}
+        </span>
         <span style={{ marginTop: 12 }} />
         {list}
       </button>
@@ -1138,11 +1162,11 @@ function ExerciseWidget({ date, w, h, editing }: WidgetProps) {
     >
       <span className="widget__col" style={{ flex: 'none', minWidth: '40%', gap: 3 }}>
         <Title icon="dumbbell" color={color}>
-          Exercise
+          {t('widget.exercise')}
         </Title>
-        <Figure value={workouts.length ? minutes : '0'} unit="min" size={large ? 44 : 36} style={{ marginTop: large ? 14 : 8 }} />
+        <Figure value={workouts.length ? minutes : '0'} unit={t('w.min')} size={large ? 44 : 36} style={{ marginTop: large ? 14 : 8 }} />
         <span className="widget__sub" style={{ fontSize: 13, marginTop: 2 }}>
-          {workouts.length ? `${cal(burned)} cal burned` : 'No calories burned yet'}
+          {workouts.length ? t('w.calBurned', { cal: cal(burned) }) : t('w.noCalBurned')}
         </span>
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: 4 }}>

@@ -44,6 +44,7 @@ import {
 } from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
 import { addDays, today } from '../lib/dates'
+import { applyRegion } from '../i18n'
 
 /** Set when someone declines an account; keeps them out of the auth screen. */
 const LOCAL_ONLY_KEY = 'logpal.localOnly'
@@ -204,6 +205,7 @@ export type Route =
   | { name: 'prefsProfile' }
   | { name: 'prefsUnits' }
   | { name: 'prefsAppearance' }
+  | { name: 'prefsRegion' }
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
@@ -379,8 +381,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
      account. It is synchronous, so the app paints real data immediately
      instead of a spinner, and it keeps working with no connection. The cloud
      copy is reconciled in behind it. */
-  const [data, setData] = useState<AppData>(() => localAdapter.load() ?? defaultData())
+  const [data, setData] = useState<AppData>(() => {
+    const loaded = localAdapter.load() ?? defaultData()
+    /* Before the first render, so `today()` and every `t()` below already
+       speak the saved language and zone. */
+    applyRegion(loaded.settings)
+    return loaded
+  })
   const [date, setDate] = useState(today())
+
+  /* Settings can change from any screen, and from a sync merge. */
+  useEffect(() => {
+    applyRegion(data.settings)
+  }, [data.settings.language, data.settings.timeZone])
   const [activeTab, setActiveTab] = useState<TabKey>('today')
   const [stack, setStack] = useState<Route[]>([{ name: 'tab', tab: 'today' }])
 

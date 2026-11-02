@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon, type IconName } from './Icon'
 import { useApp } from '../state/store'
 import {
-  WEEKDAY_INITIALS,
+  weekdayInitials,
   addMonths,
   fromKey,
   isSameMonth,
@@ -652,7 +652,7 @@ export function CalendarSheet({
           padding: '0 10px 6px',
         }}
       >
-        {WEEKDAY_INITIALS.map((w, i) => (
+        {weekdayInitials().map((w, i) => (
           <div
             key={i}
             style={{

@@ -1,4 +1,5 @@
 import type { Settings } from '../types'
+import { t } from '../i18n'
 
 /** Canonical storage units: weight in lb, length in inches, volume in ml. */
 
@@ -36,7 +37,7 @@ export function displayToMl(v: number, unit: Settings['waterUnit']): number {
 }
 
 export function waterUnitLabel(unit: Settings['waterUnit'], n = 2): string {
-  if (unit === 'cup') return n === 1 ? 'cup' : 'cups'
+  if (unit === 'cup') return n === 1 ? t('unit.cup') : t('unit.cups')
   if (unit === 'floz') return 'fl oz'
   return 'ml'
 }

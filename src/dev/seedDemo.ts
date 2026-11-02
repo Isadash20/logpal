@@ -45,7 +45,6 @@ function entry(date: string, meal: MealKey, query: string, servings: number, hou
 
 export function seedDemo(): void {
   const d: AppData = defaultData()
-  const today = isoDaysAgo(0)
 
   d.profile.onboarded = true
   d.profile.name = 'Sam'

@@ -35,6 +35,7 @@ export type IconName =
   | 'bookmark'
   | 'chart'
   | 'info'
+  | 'globe'
   | 'dots'
   | 'mic'
   | 'mealscan'
@@ -98,6 +99,7 @@ const PATHS: Record<IconName, string> = {
   bookmark: 'M6 3h12v18l-6-4.5L6 21z',
   chart: 'M3 3v18h18M7 15l4-5 3 3 5-7',
   info: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 16v-5M12 8h.01',
+  globe: 'M12 21a9 9 0 100-18 9 9 0 000 18zM3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18',
   dots: 'M6 12h.01M12 12h.01M18 12h.01',
   mic: 'M12 15a3 3 0 003-3V6a3 3 0 00-6 0v6a3 3 0 003 3zM19 11a7 7 0 01-14 0M12 18v3',
   mealscan:

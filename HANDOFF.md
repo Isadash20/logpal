@@ -32,6 +32,36 @@ logo inset 10%, splash tile 400px with a 22% corner radius on the app's
 background colours). Build number went to 2 and that archive was uploaded
 the same way as build 1.
 
+**2026-11-02: languages, time zone, and a widget board you can actually
+rearrange.** Two pre-launch requests from Phillip.
+
+- *Widgets.* Dragging one a long way (fasting from the bottom to the top)
+  used to flip back and forth, because the grid re-flowed under a still
+  finger and the widget beneath changed. `components/WidgetGrid.tsx` now
+  lifts the dragged widget as a ghost that rides under the finger
+  (`pointer-events: none`, so hit-testing finds the one beneath), swaps only
+  once the finger is past the target's midpoint in the direction of travel,
+  and scrolls the page when the finger is held near either edge. Every
+  widget also has ▲ ▼ arrows in edit mode that move it one place. The drag
+  state is mirrored in a ref because the first move can arrive before the
+  pointerdown state has rendered.
+- *Language and region.* `src/i18n/` is a hand-rolled layer: `t(key, vars)`
+  with English fallback, `useT()` to re-render on change, dictionaries in
+  `strings.ts` for en, es, fr, de, pt, it, zh and ja. Settings → **Language
+  & region** picks a language (`settings.language`, `auto` follows the
+  device) and a time zone (`settings.timeZone`; every IANA zone the runtime
+  knows, with its offset). The zone decides what `today()` returns
+  (`lib/dates.ts`) and how `timeOfDay()` prints; the language drives
+  `Intl` dates, number grouping (`cal()`), weekday initials and the strings.
+  The store calls `applyRegion()` before first render and whenever settings
+  change. **Coverage is partial on purpose:** the tab bar, Home and its
+  widgets, the add sheet, sign-in, and the Settings pages are translated.
+  The insight sentence on Home (`lib/dayInsight.ts`), onboarding, the diary,
+  food search, recipes, friends, progress and the rest still read in
+  English in every language. Adding a screen means wrapping its strings in
+  `t()` and adding keys to each dictionary; a missing key falls back to
+  English rather than blank.
+
 **2026-11-01, later: guest mode is a button.** The sign-in screen's quiet
 "Continue without an account" link became a "Continue as guest" button
 (`screens/Auth.tsx`), so App Review can try the app without the demo

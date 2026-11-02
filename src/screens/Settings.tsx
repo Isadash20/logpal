@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
@@ -18,6 +18,16 @@ import { fileToAvatar } from '../lib/avatar'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
 import { pendingRequestCount } from '../services/social'
+import {
+  LOCALES,
+  deviceLocale,
+  deviceTimeZone,
+  formatOffset,
+  offsetMinutes,
+  resolveTimeZone,
+  timeZoneOptions,
+  useT,
+} from '../i18n'
 
 /* ------------------------------------------------------------------ hub -- */
 
@@ -27,12 +37,17 @@ import { pendingRequestCount } from '../services/social'
  */
 export function More() {
   const { push, profile, settings, data, plan, session, syncing, syncError } = useApp()
+  const t = useT()
+  const languageName =
+    LOCALES.find((l) => l.code === (settings.language === 'auto' ? deviceLocale() : settings.language))?.name ??
+    'English'
+  const zoneName = resolveTimeZone(settings.timeZone).replace(/_/g, ' ').split('/').pop() ?? ''
 
   return (
     <>
       <TopBar />
       <div className="scroll">
-        <div className="pagetitle">Settings</div>
+        <div className="pagetitle">{t('tabs.settings')}</div>
 
         {/* The summary card is the way in to the profile. It used to be inert,
             with "Account" and "Profile" banners below repeating the same idea in
@@ -59,11 +74,11 @@ export function More() {
             {profile.avatar ? (
               <img src={profile.avatar} alt="" />
             ) : (
-              (profile.name || 'You').slice(0, 1).toUpperCase()
+              (profile.name || t('settings.you')).slice(0, 1).toUpperCase()
             )}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{profile.name || 'Your profile'}</div>
+            <div style={{ fontSize: 18, fontWeight: 700 }}>{profile.name || t('settings.yourProfile')}</div>
             <div
               style={{
                 color: 'var(--text-2)',
@@ -75,14 +90,14 @@ export function More() {
             >
               {profile.bio ||
                 (syncError
-                ? 'Sync problem, tap for details'
+                ? t('settings.syncProblem')
                 : session
                   ? syncing
-                    ? 'Syncing…'
-                    : (session.user.email ?? 'Signed in')
+                    ? t('settings.syncing')
+                    : (session.user.email ?? t('settings.signedIn'))
                   : cloudEnabled()
-                    ? 'Not signed in. This device only'
-                    : `${cal(plan.calories)} cal/day · ${data.foodEntries.length} entries logged`)}
+                    ? t('settings.notSignedIn')
+                    : t('settings.summary', { cal: cal(plan.calories), n: data.foodEntries.length }))}
             </div>
           </div>
           <span style={{ color: 'var(--text-3)', flex: 'none', display: 'flex' }}>
@@ -97,42 +112,57 @@ export function More() {
 
         <Banner
           icon="bookmark"
-          title="Foods"
-          sub="Meals, recipes and your own foods"
+          title={t('settings.foods')}
+          sub={t('settings.foodsSub')}
           onClick={() => push({ name: 'foodsHub' })}
         />
         <Banner
           icon="chart"
-          title="Plan"
-          sub="Goals, targets, exercise and water"
+          title={t('settings.plan')}
+          sub={t('settings.planSub')}
           onClick={() => push({ name: 'planHub' })}
         />
         <Banner
           icon="clock"
-          title="Intermittent fasting"
+          title={t('settings.fasting')}
           sub={
             data.fasts.length
-              ? `${PROTOCOL_BY_KEY[data.fasting.protocol].label} · ${data.fasts.length} logged`
-              : 'Not started yet'
+              ? t('settings.fastingSub', {
+                  protocol: PROTOCOL_BY_KEY[data.fasting.protocol].label,
+                  n: data.fasts.length,
+                })
+              : t('settings.notStarted')
           }
           onClick={() => push({ name: 'fasting' })}
         />
         <Banner
           icon="ruler"
-          title="Units"
+          title={t('settings.units')}
           sub={`${settings.weightUnit} · ${settings.heightUnit} · ${waterUnitLabel(settings.waterUnit)}`}
           onClick={() => push({ name: 'prefsUnits' })}
         />
         <Banner
+          icon="globe"
+          title={t('settings.region')}
+          sub={t('settings.regionSub', { language: languageName, zone: zoneName })}
+          onClick={() => push({ name: 'prefsRegion' })}
+        />
+        <Banner
           icon="star"
-          title="Appearance"
-          sub={settings.theme === 'system' ? 'Match system' : settings.theme}
+          title={t('settings.appearance')}
+          sub={
+            settings.theme === 'system'
+              ? t('settings.matchSystem')
+              : settings.theme === 'dark'
+                ? t('settings.dark')
+                : t('settings.light')
+          }
           onClick={() => push({ name: 'prefsAppearance' })}
         />
         <Banner
           icon="info"
-          title="About"
-          sub="Version and data sources"
+          title={t('settings.about')}
+          sub={t('settings.aboutSub')}
           onClick={() => push({ name: 'about' })}
         />
       </div>
@@ -151,6 +181,7 @@ export function More() {
  */
 function FriendsBanner() {
   const { push, session } = useApp()
+  const t = useT()
   const [pending, setPending] = useState(0)
 
   useEffect(() => {
@@ -167,13 +198,9 @@ function FriendsBanner() {
   return (
     <Banner
       icon="user"
-      title="Friends"
-      sub={
-        session
-          ? 'Find people, follow their streaks, choose what you share'
-          : 'Sign in to follow people'
-      }
-      value={pending ? <span className="badge">{pending} waiting</span> : undefined}
+      title={t('tabs.friends')}
+      sub={session ? t('settings.friendsSub') : t('settings.friendsSignIn')}
+      value={pending ? <span className="badge">{t('settings.waiting', { n: pending })}</span> : undefined}
       onClick={() => push({ name: 'friends' })}
     />
   )
@@ -653,50 +680,49 @@ export function PrefsProfile() {
 
 export function PrefsUnits() {
   const { pop, settings, saveSettings } = useApp()
+  const t = useT()
   const [weightUnit, setWeightUnit] = useState(settings.weightUnit)
   const [heightUnit, setHeightUnit] = useState(settings.heightUnit)
   const [waterUnit, setWaterUnit] = useState(settings.waterUnit)
 
   return (
     <>
-      <TopBar title="Units" onBack={pop} solid />
+      <TopBar title={t('settings.units')} onBack={pop} solid />
       <div className="scroll">
         <div className="card" style={{ marginTop: 12 }}>
           <SelectField
-            label="Weight"
+            label={t('settings.weight')}
             value={weightUnit}
             onChange={setWeightUnit}
             options={[
-              { value: 'lb', label: 'Pounds (lb)' },
-              { value: 'kg', label: 'Kilograms (kg)' },
+              { value: 'lb', label: t('settings.pounds') },
+              { value: 'kg', label: t('settings.kilograms') },
             ]}
           />
           <SelectField
-            label="Height"
+            label={t('settings.height')}
             value={heightUnit}
             onChange={setHeightUnit}
             options={[
-              { value: 'in', label: 'Feet and inches' },
-              { value: 'cm', label: 'Centimetres' },
+              { value: 'in', label: t('settings.feetInches') },
+              { value: 'cm', label: t('settings.centimetres') },
             ]}
           />
           <SelectField
-            label="Water"
+            label={t('settings.water')}
             value={waterUnit}
             onChange={setWaterUnit}
             options={[
-              { value: 'cup', label: 'Cups' },
-              { value: 'floz', label: 'Fluid ounces' },
-              { value: 'ml', label: 'Millilitres' },
+              { value: 'cup', label: t('settings.cups') },
+              { value: 'floz', label: t('settings.flOz') },
+              { value: 'ml', label: t('settings.millilitres') },
             ]}
           />
         </div>
-        <div className="hint">
-          Your water target is shown in whichever unit you pick here, everywhere in the
-          app.
-        </div>
+        <div className="hint">{t('settings.unitsHint')}</div>
       </div>
       <SaveBar
+        label={t('common.save')}
         onSave={() => {
           saveSettings({ weightUnit, heightUnit, waterUnit })
           pop()
@@ -706,36 +732,110 @@ export function PrefsUnits() {
   )
 }
 
+/* --------------------------------------------------------------- region -- */
 
+/**
+ * Language and time zone.
+ *
+ * Both default to the device and both can be pinned. The language list is
+ * the languages the app has strings for; the zone list is every zone the
+ * runtime knows, with its current offset, so a traveller can find "their"
+ * zone without knowing its IANA name. A clock under the picker shows the
+ * time there right now, which is the quickest way to confirm the choice.
+ */
+export function PrefsRegion() {
+  const { pop, settings, saveSettings } = useApp()
+  const t = useT()
+  const [language, setLanguage] = useState(settings.language)
+  const [timeZone, setTimeZone] = useState(settings.timeZone)
+  const zones = useMemo(() => timeZoneOptions(), [])
+
+  const deviceLang = LOCALES.find((l) => l.code === deviceLocale())?.name ?? 'English'
+  const deviceZone = deviceTimeZone()
+  const effectiveZone = resolveTimeZone(timeZone)
+  let localTime = ''
+  try {
+    localTime = new Intl.DateTimeFormat(undefined, {
+      timeZone: effectiveZone,
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date())
+  } catch {
+    localTime = ''
+  }
+
+  return (
+    <>
+      <TopBar title={t('settings.region')} onBack={pop} solid />
+      <div className="scroll">
+        <div className="card" style={{ marginTop: 12 }}>
+          <SelectField
+            label={t('settings.language')}
+            value={language}
+            onChange={setLanguage}
+            options={[
+              { value: 'auto' as const, label: t('settings.automatic', { value: deviceLang }) },
+              ...LOCALES.map((l) => ({ value: l.code, label: l.name })),
+            ]}
+          />
+          <SelectField
+            label={t('settings.timeZone')}
+            value={timeZone}
+            onChange={setTimeZone}
+            options={[
+              {
+                value: 'auto',
+                label: t('settings.automatic', {
+                  value: `${deviceZone.replace(/_/g, ' ').split('/').pop()}, ${formatOffset(offsetMinutes(deviceZone))}`,
+                }),
+              },
+              ...zones,
+            ]}
+          />
+        </div>
+        {localTime && <div className="hint">{t('settings.localTime', { time: localTime })}</div>}
+        <div className="hint">{t('settings.regionHint')}</div>
+      </div>
+      <SaveBar
+        label={t('common.save')}
+        disabled={language === settings.language && timeZone === settings.timeZone}
+        onSave={() => {
+          saveSettings({ language, timeZone })
+          pop()
+        }}
+      />
+    </>
+  )
+}
 
 /* ----------------------------------------------------------- appearance -- */
 
 export function PrefsAppearance() {
   const { pop, settings, saveSettings } = useApp()
+  const t = useT()
   const [theme, setTheme] = useState(settings.theme)
 
   return (
     <>
-      <TopBar title="Appearance" onBack={pop} solid />
+      <TopBar title={t('settings.appearance')} onBack={pop} solid />
       <div className="scroll">
         <div className="card" style={{ marginTop: 12 }}>
           <SelectField
-            label="Theme"
+            label={t('settings.theme')}
             value={theme}
             onChange={setTheme}
             options={[
-              { value: 'system', label: 'Match system' },
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
+              { value: 'system', label: t('settings.matchSystem') },
+              { value: 'light', label: t('settings.light') },
+              { value: 'dark', label: t('settings.dark') },
             ]}
           />
         </div>
-        <div className="hint">
-          The theme changes when you save, so backing out leaves it as it was.
-        </div>
+        <div className="hint">{t('settings.themeHint')}</div>
       </div>
 
       <SaveBar
+        label={t('common.save')}
         disabled={theme === settings.theme}
         onSave={() => {
           saveSettings({ theme })
@@ -750,6 +850,7 @@ export function PrefsAppearance() {
 
 export function About() {
   const { pop, session } = useApp()
+  const t = useT()
 
   /* No "reset all data" button here any more, by request. It was a one-tap
      path to irreversibly deleting a diary, sitting on an otherwise harmless
@@ -758,12 +859,12 @@ export function About() {
      deleting an account is a deliberate enough act to belong elsewhere. */
   return (
     <>
-      <TopBar title="About" onBack={pop} solid />
+      <TopBar title={t('settings.about')} onBack={pop} solid />
       <div className="scroll">
         <div className="card" style={{ marginTop: 12 }}>
-          <Row title="Version" value={`0.1.0 · ${__BUILD_SHA__}`} />
-          <Row title="Food data" value="USDA + Open Food Facts" />
-          <Row title="Calorie equation" value="Mifflin-St Jeor" />
+          <Row title={t('settings.version')} value={`0.1.0 · ${__BUILD_SHA__}`} />
+          <Row title={t('settings.foodData')} value="USDA + Open Food Facts" />
+          <Row title={t('settings.calorieEquation')} value="Mifflin-St Jeor" />
         </div>
 
         <div className="hint">

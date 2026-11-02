@@ -7,7 +7,8 @@ import { WidgetGrid } from '../components/WidgetGrid'
 import { FoodMark } from '../components/FoodMark'
 import { Confetti, celebratedToday, markCelebrated } from '../components/Confetti'
 import { cal } from '../lib/format'
-import { addDays, longDate, today } from '../lib/dates'
+import { addDays, longDate, today, weekdayInitials } from '../lib/dates'
+import { useT } from '../i18n'
 import { mlToDisplay, waterUnitLabel } from '../lib/units'
 import { dayInsight, type InsightAction } from '../lib/dayInsight'
 import { catalogRecipes, catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
@@ -25,6 +26,7 @@ import { summarise } from '../services/recipes'
  */
 export function Today() {
   const app = useApp()
+  const t = useT()
   const {
     data,
     date,
@@ -78,10 +80,11 @@ export function Today() {
     const d0 = new Date(date + 'T00:00:00')
     const offset = (d0.getDay() + 6) % 7
     const realToday = today()
+    const initials = weekdayInitials('monday')
     for (let i = 0; i < 7; i++) {
       const d = addDays(date, i - offset)
       out.push({
-        label: ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i],
+        label: initials[i],
         logged: totalsFor(d).nutrients.calories > 0,
         date: d,
         selected: d === date,
@@ -90,7 +93,8 @@ export function Today() {
       })
     }
     return out
-  }, [date, totalsFor])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, totalsFor, t])
 
   /* Arranging the board. Not persisted: it is a mode, not a preference, and
      coming back to Home in edit mode would be a small trap. */
@@ -100,21 +104,25 @@ export function Today() {
      names the day in relation to now instead, which is the thing the date
      itself cannot tell you at a glance. */
   const relative = isToday
-    ? 'Today'
+    ? t('common.today')
     : date === addDays(today(), -1)
-      ? 'Yesterday'
+      ? t('common.yesterday')
       : date === addDays(today(), 1)
-        ? 'Tomorrow'
+        ? t('common.tomorrow')
         : null
 
-  const [weekday, monthDay] = longDate(date).split(', ')
+  const long = longDate(date)
+  const comma = long.indexOf(', ')
+  const weekday = comma > 0 ? long.slice(0, comma) : long
+  const monthDay = comma > 0 ? long.slice(comma + 2) : ''
   const dayTitle = relative ?? weekday
-  const dayEyebrow = relative ? `${weekday}, ${monthDay}` : monthDay
+  const dayEyebrow = relative ? long : monthDay
 
   /* ------------------------------------------------------------ insight -- */
 
   const firstName = profile.firstName || profile.name?.trim().split(' ')[0] || ''
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greeting =
+    hour < 12 ? t('home.goodMorning') : hour < 17 ? t('home.goodAfternoon') : t('home.goodEvening')
   const greetingLine = firstName ? `${greeting}, ${firstName}` : greeting
 
   const fmtWater = (ml: number) => {
@@ -131,7 +139,11 @@ export function Today() {
     proteinTarget: macroTargets.protein,
     water: log.water,
     waterTarget,
-    waterReadout: `${fmtWater(log.water)} of ${fmtWater(waterTarget)} ${waterUnitLabel(settings.waterUnit)}`,
+    waterReadout: t('home.waterReadout', {
+      have: fmtWater(log.water),
+      want: fmtWater(waterTarget),
+      unit: waterUnitLabel(settings.waterUnit),
+    }),
     streak: logStreak,
     entries: entriesFor(date).length,
     mealsLogged,
@@ -216,7 +228,8 @@ export function Today() {
     return [...fits.slice(seed), ...fits.slice(0, seed)].slice(0, 8)
   }, [catalogReady, isToday, goal, consumed, data.customFoods, data.foodCache, proteinBehind, date])
 
-  const ideasTitle = hour < 11 ? 'Ideas for today' : hour < 15 ? 'Ideas for lunch' : 'Ideas for dinner'
+  const ideasTitle =
+    hour < 11 ? t('home.ideasToday') : hour < 15 ? t('home.ideasLunch') : t('home.ideasDinner')
 
   return (
     <>
@@ -232,7 +245,7 @@ export function Today() {
             {/* Only from one day. A streak of zero is not worth a badge, and
                 showing "0" on day one is discouraging rather than motivating. */}
             {logStreak > 0 && (
-              <span className="pill" title={`${logStreak} days logged in a row`}>
+              <span className="pill" title={t('home.streak', { n: logStreak })}>
                 <span className="pill__flame">
                   <Icon name="flame" size={16} strokeWidth={2.2} />
                 </span>
@@ -242,7 +255,7 @@ export function Today() {
             <button
               className="pill pill--icon"
               onClick={() => setTab('more')}
-              aria-label="Settings"
+              aria-label={t('tabs.settings')}
             >
               <Icon name="settings" size={19} />
             </button>
@@ -276,7 +289,7 @@ export function Today() {
 
         <div className="boardbar">
           <button className="boardbar__btn" onClick={() => setEditing((v) => !v)}>
-            {editing ? 'Done' : 'Edit widgets'}
+            {editing ? t('common.done') : t('home.editWidgets')}
           </button>
         </div>
 
@@ -290,13 +303,13 @@ export function Today() {
         {recents.length >= 2 && (
           <>
             <div className="section-head" style={{ paddingTop: 14 }}>
-              <span>Log again</span>
+              <span>{t('home.logAgain')}</span>
               <button
                 className="textbtn"
                 style={{ padding: 0 }}
                 onClick={() => push({ name: 'foodSearch', date })}
               >
-                Search
+                {t('common.search')}
               </button>
             </div>
             <div className="qrail">
@@ -305,15 +318,17 @@ export function Today() {
                   key={e.id}
                   className="qcard"
                   onClick={() => relog(e)}
-                  aria-label={`Log ${e.name} again`}
+                  aria-label={t('home.logAgainAria', { name: e.name })}
                 >
                   <FoodMark name={e.name} brand={e.brand} size={34} round />
                   <span className="qcard__name">{e.name}</span>
-                  <span className="qcard__meta">{cal(e.nutrients.calories)} cal</span>
+                  <span className="qcard__meta">
+                    {cal(e.nutrients.calories)} {t('common.cal')}
+                  </span>
                   {justLogged === e.id && (
                     <span className="qcard__done" aria-live="polite">
                       <Icon name="check" size={20} strokeWidth={2.6} />
-                      Logged
+                      {t('home.logged')}
                     </span>
                   )}
                 </button>
@@ -324,9 +339,9 @@ export function Today() {
 
         {/* ---------------------------------------------------------- meals -- */}
         <div className="section-head">
-          <span>Meals</span>
+          <span>{t('home.meals')}</span>
           <button className="textbtn" style={{ padding: 0 }} onClick={() => push({ name: 'diary' })}>
-            Open diary
+            {t('home.openDiary')}
           </button>
         </div>
 
@@ -335,7 +350,7 @@ export function Today() {
             const items = entriesFor(date, period)
             const kcal = totals.byMeal[period].calories
             const tint = PERIOD_TINT[period]
-            const label = PERIOD_LABELS[period]
+            const label = t(`meal.${period}`, undefined, PERIOD_LABELS[period])
             return (
               <div className="meal" key={period}>
                 {/* The row body opens the diary once something is in it and
@@ -348,7 +363,9 @@ export function Today() {
                       ? push({ name: 'diary' })
                       : push({ name: 'foodSearch', date, meal: period })
                   }
-                  aria-label={items.length ? `${label} in the diary` : `Log ${label}`}
+                  aria-label={
+                    items.length ? t('home.inDiary', { meal: label }) : t('home.logMeal', { meal: label })
+                  }
                 >
                   <span
                     className="meal__icon"
@@ -362,20 +379,20 @@ export function Today() {
                   <span className="meal__main">
                     <span className="meal__name">{label}</span>
                     <span className="meal__sub">
-                      {items.length ? items.map((i) => i.name).join(', ') : 'Nothing logged yet'}
+                      {items.length ? items.map((i) => i.name).join(', ') : t('home.nothingYet')}
                     </span>
                   </span>
                   {items.length > 0 && (
                     <span className="meal__cal num">
                       {cal(kcal)}
-                      <small>cal</small>
+                      <small>{t('common.cal')}</small>
                     </span>
                   )}
                 </button>
                 <button
                   className="meal__add"
                   onClick={() => push({ name: 'foodSearch', date, meal: period })}
-                  aria-label={`Add to ${label}`}
+                  aria-label={t('home.addTo', { meal: label })}
                 >
                   <Icon name="plus" size={18} strokeWidth={2.4} />
                 </button>
@@ -390,13 +407,13 @@ export function Today() {
             <div className="section-head" style={{ paddingTop: 14 }}>
               <span>{ideasTitle}</span>
               <button className="textbtn" style={{ padding: 0 }} onClick={() => setTab('plan')}>
-                All recipes
+                {t('home.allRecipes')}
               </button>
             </div>
             <div className="hint" style={{ paddingTop: 0, paddingBottom: 10 }}>
-              {proteinBehind
-                ? `High in protein and under ${cal(Math.max(350, goal - consumed))} calories, which is what is left today.`
-                : `Each one fits inside the ${cal(Math.max(350, goal - consumed))} calories left today.`}
+              {t(proteinBehind ? 'home.ideasHintProtein' : 'home.ideasHint', {
+                cal: cal(Math.max(350, goal - consumed)),
+              })}
             </div>
             <div className="qrail">
               {ideas.map(({ recipe, calories, protein }) => (
@@ -408,7 +425,7 @@ export function Today() {
                   <img className="idea__img" src={recipe.imageUrl} alt="" loading="lazy" />
                   <span className="idea__name">{recipe.name}</span>
                   <span className="idea__meta">
-                    {cal(calories)} cal · {Math.round(protein)} g protein
+                    {t('home.ideaMeta', { cal: cal(calories), protein: Math.round(protein) })}
                   </span>
                 </button>
               ))}
@@ -422,7 +439,7 @@ export function Today() {
             onClick={() => app.setCompleted(date, !log.completed)}
           >
             {log.completed && <Icon name="check" size={18} strokeWidth={2.4} />}
-            {log.completed ? 'Day complete' : 'Complete diary'}
+            {log.completed ? t('home.dayComplete') : t('home.completeDiary')}
           </button>
         </div>
       </div>

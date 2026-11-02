@@ -1,4 +1,5 @@
 import type { FastProtocol, FastProtocolDef, FastSession, FastingSettings } from '../types'
+import { timeOfDay } from './format'
 
 /**
  * Intermittent fasting.
@@ -88,9 +89,7 @@ export function formatDuration(ms: number): string {
 }
 
 export function formatClock(ts: number): string {
-  return new Date(ts)
-    .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    .toLowerCase()
+  return timeOfDay(ts)
 }
 
 /** Completed fasts only. An in-progress one hasn't earned a result yet. */

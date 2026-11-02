@@ -203,6 +203,8 @@ export function defaultSettings(): Settings {
     energyUnit: 'kcal',
     waterUnit: 'cup',
     theme: 'system',
+    language: 'auto',
+    timeZone: 'auto',
     exerciseAddsCalories: true,
     useOpenFoodFacts: true,
     /* Name and streak are what make a followers list worth opening at all, and

@@ -7,6 +7,7 @@ import { emptyNutrients } from '../lib/nutrition'
 import { uid } from '../lib/id'
 import { cal } from '../lib/format'
 import { ML_PER_CUP, displayToMl, mlToDisplay, waterUnitLabel } from '../lib/units'
+import { useT } from '../i18n'
 import { barcodeScanSupported, getBarcodeDetector, lookupBarcode } from '../services/openFoodFacts'
 
 /* ------------------------------------------------------------- quick add -- */
@@ -491,6 +492,7 @@ export function AddSheetContent({
   onClose(): void
 }) {
   const { push } = useApp()
+  const t = useT()
   const go = (fn: () => void) => () => {
     onClose()
     fn()
@@ -503,26 +505,26 @@ export function AddSheetContent({
   const tiles: { icon: IconName; label: string; sub: string; onClick(): void }[] = [
     {
       icon: 'barcode',
-      label: 'Barcode scan',
-      sub: 'Point at a package',
+      label: t('add.barcode'),
+      sub: t('add.barcodeSub'),
       onClick: go(() => push({ name: 'scan', date })),
     },
     {
       icon: 'mealscan',
-      label: 'Meal scan',
-      sub: 'Photograph a plate',
+      label: t('add.mealScan'),
+      sub: t('add.mealScanSub'),
       onClick: go(() => push({ name: 'mealScan', date })),
     },
     {
       icon: 'plus',
-      label: 'Quick add',
-      sub: 'Calories only',
+      label: t('add.quickAdd'),
+      sub: t('add.quickAddSub'),
       onClick: go(() => push({ name: 'quickAdd', date })),
     },
     {
       icon: 'nutriscan',
-      label: 'Label scan',
-      sub: 'Scan the nutrition facts',
+      label: t('add.labelScan'),
+      sub: t('add.labelScanSub'),
       onClick: go(() => push({ name: 'nutriScan', date })),
     },
   ]
@@ -557,13 +559,13 @@ export function AddSheetContent({
             <Icon name="search" size={24} />
           </span>
           <span>
-            <span className="addtile__label">Search the food database</span>
-            <span className="addtile__sub">Hundreds of thousands of foods, works offline</span>
+            <span className="addtile__label">{t('add.searchDb')}</span>
+            <span className="addtile__sub">{t('add.searchDbSub')}</span>
           </span>
         </button>
       </div>
       <Row
-        title="Exercise"
+        title={t('add.exercise')}
         left={
           <span style={{ color: 'var(--accent)', display: 'flex' }}>
             <Icon name="dumbbell" size={20} />
@@ -572,7 +574,7 @@ export function AddSheetContent({
         onClick={go(() => push({ name: 'exerciseSearch', date, kind: 'cardio' }))}
       />
       <Row
-        title="Weight"
+        title={t('add.weight')}
         left={
           <span style={{ color: 'var(--accent)', display: 'flex' }}>
             <Icon name="scale" size={20} />
@@ -581,7 +583,7 @@ export function AddSheetContent({
         onClick={go(() => push({ name: 'weightEntry' }))}
       />
       <Row
-        title="Water"
+        title={t('add.water')}
         left={
           <span style={{ color: 'var(--accent)', display: 'flex' }}>
             <Icon name="water" size={20} />

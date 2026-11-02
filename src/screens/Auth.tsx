@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { requireClient, takeAuthError } from '../lib/supabase'
 import { Browser } from '@capacitor/browser'
 import { NATIVE_AUTH_REDIRECT, isNative } from '../lib/native'
+import { useT } from '../i18n'
 
 type Mode = 'in' | 'up'
 
@@ -42,6 +43,7 @@ function GoogleMark() {
  * upgrades a guest later.
  */
 export function Auth({ onSkip }: { onSkip(): void }) {
+  const t = useT()
   const [mode, setMode] = useState<Mode>('in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -98,7 +100,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
         // session to write them under; with email confirmation on there is not
         // one yet, so that happens after the first sign-in instead.
         if (!data.session) {
-          setNotice('Check your email to confirm the address, then sign in.')
+          setNotice(t('auth.checkEmail'))
         }
       } else {
         /* Either identifier works. Anything without an "@" is treated as a
@@ -110,7 +112,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
             handle: address,
           })
           if (rpcError) throw rpcError
-          if (!resolved) throw new Error('No account with that username.')
+          if (!resolved) throw new Error(t('auth.noUsername'))
           address = resolved as string
         }
         const { error } = await db.auth.signInWithPassword({ email: address, password })
@@ -120,11 +122,11 @@ export function Auth({ onSkip }: { onSkip(): void }) {
       const m = (err as Error).message
       setError(
         /invalid login/i.test(m)
-          ? 'That email and password do not match.'
+          ? t('auth.badLogin')
           : /already registered/i.test(m)
-            ? 'That email already has an account. Try signing in.'
+            ? t('auth.exists')
             : /password/i.test(m) && /6/.test(m)
-              ? 'Passwords need to be at least six characters.'
+              ? t('auth.shortPassword')
               : m,
       )
     } finally {
@@ -165,17 +167,13 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   return (
     <div className="scroll">
       <div className="auth">
-        <div className="auth__head">{signingUp ? 'Create account' : 'LogPal'}</div>
-        <div className="auth__sub">
-          {signingUp
-            ? 'Your diary on this device moves across automatically.'
-            : 'Sign in to keep your diary on every device.'}
-        </div>
+        <div className="auth__head">{signingUp ? t('auth.createAccount') : t('auth.title')}</div>
+        <div className="auth__sub">{signingUp ? t('auth.subUp') : t('auth.subIn')}</div>
 
         <form onSubmit={submit}>
           <label className="authfield">
             <span className="authfield__label">
-              {signingUp ? 'Email' : 'Email or username'}
+              {signingUp ? t('auth.email') : t('auth.emailOrUsername')}
             </span>
             <input
               className="authinput"
@@ -186,7 +184,7 @@ export function Auth({ onSkip }: { onSkip(): void }) {
               inputMode={signingUp ? 'email' : 'text'}
               autoCapitalize="none"
               spellCheck={false}
-              placeholder={signingUp ? 'you@example.com' : 'you@example.com or yourname'}
+              placeholder={signingUp ? t('auth.emailPlaceholder') : t('auth.emailOrUsernamePlaceholder')}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -196,12 +194,12 @@ export function Auth({ onSkip }: { onSkip(): void }) {
 
 
           <label className="authfield">
-            <span className="authfield__label">Password</span>
+            <span className="authfield__label">{t('auth.password')}</span>
             <input
               className="authinput"
               type="password"
               autoComplete={signingUp ? 'new-password' : 'current-password'}
-              placeholder={signingUp ? 'At least 6 characters' : ''}
+              placeholder={signingUp ? t('auth.atLeast6') : ''}
               required
               minLength={6}
               value={password}
@@ -214,21 +212,21 @@ export function Auth({ onSkip }: { onSkip(): void }) {
 
           <div className="btn-wrap" style={{ paddingTop: 4 }}>
             <button className="btn" type="submit" disabled={busy}>
-              {busy ? 'One moment…' : signingUp ? 'Create account' : 'Sign in'}
+              {busy ? t('auth.oneMoment') : signingUp ? t('auth.createAccount') : t('auth.signIn')}
             </button>
           </div>
         </form>
 
         <button className="linkbtn" onClick={swapMode}>
-          {signingUp ? 'I already have an account' : 'Create an account'}
+          {signingUp ? t('auth.haveAccount') : t('auth.createAnAccount')}
         </button>
 
-        <div className="auth__or">or</div>
+        <div className="auth__or">{t('auth.or')}</div>
 
         <div className="btn-wrap" style={{ paddingTop: 0 }}>
           <button className="btn btn--ghost" onClick={google} disabled={busy}>
             <GoogleMark />
-            Continue with Google
+            {t('auth.google')}
           </button>
         </div>
 
@@ -239,19 +237,17 @@ export function Auth({ onSkip }: { onSkip(): void }) {
           <div className="btn-wrap" style={{ paddingTop: 0 }}>
             <button className="btn btn--ink" onClick={() => void oauth('apple')} disabled={busy}>
               <AppleMark />
-              Continue with Apple
+              {t('auth.apple')}
             </button>
           </div>
         )}
 
         <div className="btn-wrap" style={{ paddingTop: 0 }}>
           <button className="btn btn--ghost" onClick={onSkip} disabled={busy}>
-            Continue as guest
+            {t('auth.guest')}
           </button>
         </div>
-        <div className="auth__foot">
-          As a guest your diary stays on this device only. You can sign in later from Settings to keep it everywhere.
-        </div>
+        <div className="auth__foot">{t('auth.guestFoot')}</div>
       </div>
     </div>
   )

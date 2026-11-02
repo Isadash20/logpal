@@ -15,6 +15,7 @@ import {
   PlanHub,
   PrefsAppearance,
   PrefsProfile,
+  PrefsRegion,
   PrefsUnits,
 } from './screens/Settings'
 import { NutritionScreen } from './screens/NutritionScreen'
@@ -41,32 +42,36 @@ import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
+import { useT, type StringKey } from './i18n'
 
 type TabDef = { key: TabKey; label: string; icon: IconName }
 
 /* Split either side of the add button, which now sits in the middle of the bar
    rather than riding beside it. Three and three: adding a seventh tab means
    deciding which half it joins, and the halves have to stay even or the plus
-   stops being centred. */
-const TABS_LEFT: TabDef[] = [
-  { key: 'today', label: 'Home', icon: 'home' },
+   stops being centred. Labels are looked up at render so they follow the
+   language setting. */
+const TABS_LEFT: { key: TabKey; label: StringKey; icon: IconName }[] = [
+  { key: 'today', label: 'tabs.home', icon: 'home' },
   /* Beside Home, because it is used before eating rather than after: the rest
      of the app records what happened, this one is consulted first. */
-  { key: 'nutriscan', label: 'NutriScan', icon: 'nutriscan' },
-  { key: 'plan', label: 'Plan', icon: 'plan' },
+  { key: 'nutriscan', label: 'tabs.nutriscan', icon: 'nutriscan' },
+  { key: 'plan', label: 'tabs.plan', icon: 'plan' },
 ]
 
-const TABS_RIGHT: TabDef[] = [
-  { key: 'progress', label: 'Progress', icon: 'progress' },
-  { key: 'friends', label: 'Friends', icon: 'user' },
-  { key: 'more', label: 'Settings', icon: 'settings' },
+const TABS_RIGHT: typeof TABS_LEFT = [
+  { key: 'progress', label: 'tabs.progress', icon: 'progress' },
+  { key: 'friends', label: 'tabs.friends', icon: 'user' },
+  { key: 'more', label: 'tabs.settings', icon: 'settings' },
 ]
 
 function Shell() {
   const app = useApp()
+  const t = useT()
   const { route, activeTab, setTab, profile, settings, date } = app
   const { session, authReady, localOnly, setLocalOnly, username } = app
   const [addOpen, setAddOpen] = useState(false)
+  const tabDefs = (defs: typeof TABS_LEFT): TabDef[] => defs.map((d) => ({ ...d, label: t(d.label) }))
 
   /* Theme is applied to <html> so the tokens cascade everywhere, including
      portalled sheets. `system` follows the OS and updates live. */
@@ -117,16 +122,16 @@ function Shell() {
 
       <div className="navdock">
         <nav className="tabbar">
-          {TABS_LEFT.map((t) => (
-            <TabButton key={t.key} tab={t} active={activeTab} onSelect={setTab} />
+          {tabDefs(TABS_LEFT).map((tab) => (
+            <TabButton key={tab.key} tab={tab} active={activeTab} onSelect={setTab} />
           ))}
           {/* In the flow, not positioned over it: the middle grid column is the
               button's own, so the tabs either side can never slide under it. */}
-          <button className="fab" onClick={() => setAddOpen(true)} aria-label="Add entry">
+          <button className="fab" onClick={() => setAddOpen(true)} aria-label={t('tabs.add')}>
             <Icon name="plus" size={25} strokeWidth={2.6} />
           </button>
-          {TABS_RIGHT.map((t) => (
-            <TabButton key={t.key} tab={t} active={activeTab} onSelect={setTab} />
+          {tabDefs(TABS_RIGHT).map((tab) => (
+            <TabButton key={tab.key} tab={tab} active={activeTab} onSelect={setTab} />
           ))}
         </nav>
       </div>
@@ -256,6 +261,9 @@ function Shell() {
 
       case 'prefsUnits':
         return <PrefsUnits />
+
+      case 'prefsRegion':
+        return <PrefsRegion />
 
       case 'friends':
         return <Friends />
