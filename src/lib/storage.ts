@@ -223,6 +223,7 @@ export function defaultSettings(): Settings {
     shareMacros: 'percent',
     shareWorkouts: 'off',
     sharingAsked: false,
+    healthSync: false,
   }
 }
 

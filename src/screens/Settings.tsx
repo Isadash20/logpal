@@ -11,7 +11,7 @@ import {
   splitFeetInches,
   waterUnitLabel,
 } from '../lib/units'
-import { cal } from '../lib/format'
+import { cal, timeOfDay } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
 import { displayNameFrom } from '../lib/storage'
 import { fileToAvatar } from '../lib/avatar'
@@ -36,7 +36,8 @@ import {
  * screen holds one decision comfortably and about forty badly.
  */
 export function More() {
-  const { push, profile, settings, data, plan, session, syncing, syncError } = useApp()
+  const { push, profile, settings, data, plan, session, syncing, syncError, healthSupported } =
+    useApp()
   const t = useT()
   const languageName =
     LOCALES.find((l) => l.code === (settings.language === 'auto' ? deviceLocale() : settings.language))?.name ??
@@ -147,6 +148,15 @@ export function More() {
           sub={t('settings.regionSub', { language: languageName, zone: zoneName })}
           onClick={() => push({ name: 'prefsRegion' })}
         />
+        {/* Only the iOS app has a Health store to talk to. */}
+        {healthSupported && (
+          <Banner
+            icon="apple"
+            title={t('settings.health')}
+            sub={settings.healthSync ? t('settings.healthOn') : t('settings.healthSub')}
+            onClick={() => push({ name: 'prefsHealth' })}
+          />
+        )}
         <Banner
           icon="star"
           title={t('settings.appearance')}
@@ -804,6 +814,121 @@ export function PrefsRegion() {
           pop()
         }}
       />
+    </>
+  )
+}
+
+/* --------------------------------------------------------------- health -- */
+
+/**
+ * Apple Health. The toggle is the whole connection: turning it on shows the
+ * system permission sheet, then pulls the last month. Turning it off stops
+ * LogPal reading and writing but cannot revoke anything on Apple's side,
+ * which only the Health app can do, hence the hint.
+ */
+export function PrefsHealth() {
+  const {
+    pop,
+    settings,
+    saveSettings,
+    healthBusy,
+    healthLast,
+    healthWrites,
+    connectHealth,
+    syncHealth,
+  } = useApp()
+  const t = useT()
+  const [error, setError] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState(false)
+
+  const toggle = async (on: boolean) => {
+    setError(null)
+    if (!on) {
+      saveSettings({ healthSync: false })
+      return
+    }
+    setConnecting(true)
+    try {
+      await connectHealth()
+    } catch (err) {
+      setError(t('settings.healthFailed', { error: (err as Error).message }))
+    } finally {
+      setConnecting(false)
+    }
+  }
+
+  const writeLabel: Record<string, string> = {
+    waterMl: t('settings.healthWater'),
+    weightKg: t('settings.healthWeight'),
+    calories: t('settings.healthNutrition'),
+    proteinG: t('settings.healthNutrition'),
+    carbsG: t('settings.healthNutrition'),
+    fatG: t('settings.healthNutrition'),
+  }
+  const deniedWrites = [
+    ...new Set(
+      Object.entries(healthWrites ?? {})
+        .filter(([, s]) => s === 'denied')
+        .map(([k]) => writeLabel[k] ?? k),
+    ),
+  ]
+
+  let lastLine = t('settings.healthNever')
+  if (healthLast?.error) lastLine = t('settings.healthFailed', { error: healthLast.error })
+  else if (healthLast)
+    lastLine = `${t('settings.healthLast', { time: timeOfDay(healthLast.at) })} · ${t(
+      'settings.healthImported',
+      { steps: healthLast.steps, weights: healthLast.weights, workouts: healthLast.workouts },
+    )}`
+
+  return (
+    <>
+      <TopBar title={t('settings.health')} onBack={pop} solid />
+      <div className="scroll">
+        <div className="card" style={{ marginTop: 12 }}>
+          <Toggle
+            label={t('settings.healthToggle')}
+            sub={t('settings.healthToggleSub')}
+            checked={settings.healthSync}
+            onChange={(v) => void toggle(v)}
+          />
+        </div>
+        {error && (
+          <div className="hint" style={{ color: 'var(--danger)' }}>
+            {error}
+          </div>
+        )}
+        {settings.healthSync && (
+          <>
+            <div className="section-label">{t('settings.healthReads')}</div>
+            <div className="card">
+              <Row title={t('settings.healthSteps')} />
+              <Row title={t('settings.healthWeight')} />
+              <Row title={t('settings.healthWorkouts')} />
+            </div>
+            <div className="section-label">{t('settings.healthWrites')}</div>
+            <div className="card">
+              <Row title={t('settings.healthWater')} />
+              <Row title={t('settings.healthWeight')} />
+              <Row title={t('settings.healthNutrition')} />
+            </div>
+            {deniedWrites.length > 0 && (
+              <div className="hint">{t('settings.healthWriteOff', { types: deniedWrites.join(', ') })}</div>
+            )}
+            <div className="btn-wrap">
+              <button
+                className="btn btn--ghost"
+                disabled={healthBusy || connecting}
+                onClick={() => void syncHealth()}
+              >
+                {healthBusy || connecting ? t('settings.healthSyncing') : t('settings.healthSyncNow')}
+              </button>
+            </div>
+            <div className="hint">{lastLine}</div>
+          </>
+        )}
+        <div className="hint">{t('settings.healthHint')}</div>
+      </div>
     </>
   )
 }

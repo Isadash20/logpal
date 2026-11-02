@@ -44,7 +44,25 @@ import {
 } from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
 import { addDays, today } from '../lib/dates'
-import { applyRegion } from '../i18n'
+import { applyRegion, resolveTimeZone } from '../i18n'
+import { App as CapApp } from '@capacitor/app'
+import { LB_PER_KG } from '../lib/units'
+import {
+  healthSupported,
+  loadHealthLast,
+  mergeHealth,
+  readHealth,
+  requestHealthAccess,
+  saveHealthLast,
+  writeHealthDay,
+  type DayWrite,
+  type HealthMerge,
+  type HealthSyncResult,
+  type WriteStatus,
+} from '../services/health'
+
+/** How far back a Health sync looks. Enough to fill a fresh connection. */
+const HEALTH_WINDOW_DAYS = 30
 
 /** Set when someone declines an account; keeps them out of the auth screen. */
 const LOCAL_ONLY_KEY = 'logpal.localOnly'
@@ -206,6 +224,7 @@ export type Route =
   | { name: 'prefsUnits' }
   | { name: 'prefsAppearance' }
   | { name: 'prefsRegion' }
+  | { name: 'prefsHealth' }
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
@@ -287,6 +306,14 @@ interface Ctx {
   addMeasurement(m: MeasurementEntry): void
   saveProfile(p: Partial<Profile>): void
   saveSettings(s: Partial<Settings>): void
+  /* Apple Health. `healthSupported` is false outside the iOS app. */
+  healthSupported: boolean
+  healthBusy: boolean
+  healthLast: HealthSyncResult | null
+  healthWrites: WriteStatus | null
+  /** Shows the system permission sheet, turns the setting on, syncs once. */
+  connectHealth(): Promise<void>
+  syncHealth(): Promise<void>
   saveCustomFood(f: Food): void
   deleteCustomFood(id: string): void
   /** Persist a barcode-scanned product so it becomes searchable offline. */
@@ -540,6 +567,147 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return next
     })
   }, [])
+
+  /* --------------------------------------------------------- Apple Health -- */
+
+  const healthOn = healthSupported() && data.settings.healthSync
+  const [healthBusy, setHealthBusy] = useState(false)
+  const [healthLast, setHealthLast] = useState<HealthSyncResult | null>(loadHealthLast)
+  const [healthWrites, setHealthWrites] = useState<WriteStatus | null>(null)
+  const dataRef = useRef(data)
+  dataRef.current = data
+  /* Set by an import so the write effect below does not echo weigh-ins that
+     came *from* Health straight back into it as LogPal's own. */
+  const importedWeightsRef = useRef(false)
+
+  const syncHealth = useCallback(async () => {
+    if (!healthSupported()) return
+    setHealthBusy(true)
+    try {
+      const end = today()
+      const zone = resolveTimeZone(dataRef.current.settings.timeZone)
+      const reading = await readHealth(addDays(end, -HEALTH_WINDOW_DAYS), end, zone)
+      /* Merged inside the updater so an edit made while Health was being
+         read is not lost under a stale snapshot. */
+      const merged = await new Promise<HealthMerge>((resolve) => {
+        setData((prev) => {
+          const next: AppData = structuredClone(prev)
+          const m = mergeHealth(next, reading, end)
+          if (m.weights) importedWeightsRef.current = true
+          resolve(m)
+          return next
+        })
+      })
+      const result: HealthSyncResult = { at: Date.now(), ...merged }
+      setHealthLast(result)
+      saveHealthLast(result)
+    } catch (err) {
+      setHealthLast({ at: Date.now(), steps: 0, weights: 0, workouts: 0, error: (err as Error).message })
+    } finally {
+      setHealthBusy(false)
+    }
+  }, [])
+
+  const connectHealth = useCallback(async () => {
+    const writes = await requestHealthAccess()
+    setHealthWrites(writes)
+    update((d) => {
+      d.settings.healthSync = true
+    })
+    await syncHealth()
+  }, [syncHealth, update])
+
+  /* Pull on launch and whenever the app comes back to the front. On launch
+     only once the cloud copy has landed, or the import would be replaced by
+     it a moment later. */
+  const healthReady = healthOn && (!userId || reconciledFor === userId)
+  useEffect(() => {
+    if (!healthReady) return
+    void syncHealth()
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) void syncHealth()
+    })
+    return () => {
+      void sub.then((h) => h.remove())
+    }
+  }, [healthReady, syncHealth])
+
+  /* Push: diff each change against the last one, collect the days whose
+     water, food or weight moved, and write those days' totals a moment
+     later. The cloud landing is skipped (hydratingRef), since that is not
+     an edit, just this device catching up. */
+  const prevDataRef = useRef<AppData | null>(null)
+  const pendingTotals = useRef(new Set<string>())
+  const pendingWeights = useRef(new Set<string>())
+  const writeTimer = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    const prev = prevDataRef.current
+    prevDataRef.current = data
+    const skipWeights = importedWeightsRef.current
+    importedWeightsRef.current = false
+    if (!healthOn || !prev || hydratingRef.current) return
+
+    for (const d of new Set([...Object.keys(prev.days), ...Object.keys(data.days)])) {
+      if ((prev.days[d]?.water ?? 0) !== (data.days[d]?.water ?? 0)) pendingTotals.current.add(d)
+    }
+    if (prev.foodEntries !== data.foodEntries) {
+      const byDate = (list: FoodEntry[]) => {
+        const m = new Map<string, string>()
+        for (const e of list) {
+          const n = e.nutrients
+          m.set(e.date, `${m.get(e.date) ?? ''}${e.id}:${n.calories}:${n.protein}:${n.carbs}:${n.fat}|`)
+        }
+        return m
+      }
+      const a = byDate(prev.foodEntries)
+      const b = byDate(data.foodEntries)
+      for (const d of new Set([...a.keys(), ...b.keys()])) if (a.get(d) !== b.get(d)) pendingTotals.current.add(d)
+    }
+    if (!skipWeights && prev.weights !== data.weights) {
+      const a = new Map(prev.weights.map((w) => [w.date, w.weight]))
+      const b = new Map(data.weights.map((w) => [w.date, w.weight]))
+      for (const d of new Set([...a.keys(), ...b.keys()])) if (a.get(d) !== b.get(d)) pendingWeights.current.add(d)
+    }
+    if (!pendingTotals.current.size && !pendingWeights.current.size) return
+
+    window.clearTimeout(writeTimer.current)
+    writeTimer.current = window.setTimeout(() => {
+      const cur = dataRef.current
+      const zone = resolveTimeZone(cur.settings.timeZone)
+      const limit = today()
+      const totals = new Set(pendingTotals.current)
+      const weights = new Set(pendingWeights.current)
+      pendingTotals.current.clear()
+      pendingWeights.current.clear()
+      for (const date of new Set([...totals, ...weights])) {
+        if (date > limit) continue
+        const w: DayWrite = { date, timeZone: zone }
+        if (totals.has(date)) {
+          w.waterMl = cur.days[date]?.water ?? 0
+          let calories = 0
+          let proteinG = 0
+          let carbsG = 0
+          let fatG = 0
+          for (const e of cur.foodEntries) {
+            if (e.date !== date) continue
+            calories += e.nutrients.calories
+            proteinG += e.nutrients.protein
+            carbsG += e.nutrients.carbs
+            fatG += e.nutrients.fat
+          }
+          Object.assign(w, { calories, proteinG, carbsG, fatG })
+        }
+        if (weights.has(date)) {
+          const rec = cur.weights.find((x) => x.date === date)
+          w.weightKg = rec ? rec.weight / LB_PER_KG : 0
+        }
+        writeHealthDay(w).catch(() => {
+          /* Health refused or is unavailable; the diary is still right, and
+             the next change to this day tries again. */
+        })
+      }
+    }, 800)
+  }, [data, healthOn])
 
   /* ---------------------------------------------------------- navigation -- */
 
@@ -894,6 +1062,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dayLog,
     resolveFood,
     latestWeight,
+    healthSupported: healthSupported(),
+    healthBusy,
+    healthLast,
+    healthWrites,
+    connectHealth,
+    syncHealth,
     logStreak,
     lastLogged,
     update,

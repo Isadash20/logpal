@@ -26,6 +26,10 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>LogPal uses the camera to scan barcodes and photograph meals you are logging. Nothing is uploaded.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>LogPal reads your steps, weight and workouts from Health so they appear in your diary without typing them in.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>LogPal writes the water, weight and nutrition you log so Health has the full picture.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

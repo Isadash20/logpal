@@ -16,6 +16,7 @@ import {
   PrefsAppearance,
   PrefsProfile,
   PrefsRegion,
+  PrefsHealth,
   PrefsUnits,
 } from './screens/Settings'
 import { NutritionScreen } from './screens/NutritionScreen'
@@ -264,6 +265,8 @@ function Shell() {
 
       case 'prefsRegion':
         return <PrefsRegion />
+      case 'prefsHealth':
+        return <PrefsHealth />
 
       case 'friends':
         return <Friends />

@@ -32,6 +32,71 @@ logo inset 10%, splash tile 400px with a 22% corner radius on the app's
 background colours). Build number went to 2 and that archive was uploaded
 the same way as build 1.
 
+**2026-11-02 (evening): Apple Health sync, version 1.1, build 5.** Built
+while 1.0 (build 4) sits in App Review, and deliberately *not* submitted
+over it: a HealthKit entitlement, new usage strings and a privacy-policy
+change would have meant pulling build 4 and restarting the queue. Upload
+build 5 to TestFlight, let 1.0 land, then create 1.1 in App Store Connect
+and attach build 5. Before that submission: App Privacy needs the "Health &
+Fitness" data type added (collected, linked to the user, not used for
+tracking) and the review notes should say Health is optional and off by
+default.
+
+- *Native side.* `ios/App/App/HealthPlugin.swift` is a plugin written into
+  the app target rather than a package (the HealthKit plugin ecosystem is
+  thin and lags Capacitor majors). `MainViewController.swift` subclasses
+  `CAPBridgeViewController` to register it; `Main.storyboard` points at that
+  class. `App.entitlements` has `com.apple.developer.healthkit`; Info.plist
+  has `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription`;
+  `project.pbxproj` lists both files, the HealthKit `SystemCapabilities`
+  flag, `MARKETING_VERSION = 1.1`, `CURRENT_PROJECT_VERSION = 5`.
+- *Reads:* daily step totals (HKStatisticsCollectionQuery, so iPhone and
+  Watch are de-duplicated by Health itself), body mass, workouts. *Writes:*
+  dietary water, body mass, dietary energy, protein, carbs, fat. Every write
+  is "replace LogPal's sample for that day and type": delete what LogPal
+  wrote (predicate on `HKSource.default()`), save one sample at noon (or
+  now, if today and still morning: Health refuses future dates). Nothing
+  another app wrote is ever touched. Days are cut in the app's time zone
+  setting for reads of weights and workouts; the steps collection query
+  uses the device zone for its day boundaries, so a user logging for a
+  different zone could see a day's steps shifted. Noted, not fixed.
+- *JS side.* `src/services/health.ts` wraps the plugin, and `mergeHealth` is
+  the pure fold (tested in `health.test.ts`): steps from Health replace a
+  typed figure but a zero is ignored; weigh-ins fill only days LogPal has
+  none for, and ones LogPal itself wrote come back flagged `own` and are
+  skipped, which is what stops the loop; workouts are keyed `hk:<uuid>`.
+  The store (`store.tsx`, "Apple Health" section) pulls on launch once the
+  cloud copy has landed, and on every return to the foreground
+  (`@capacitor/app` `appStateChange`), 30 days back. It pushes by diffing
+  each state change for days whose water, food or weight moved, then writes
+  those days' totals 800 ms later. The cloud landing is skipped via
+  `hydratingRef`, and weigh-ins that an import just added are skipped via
+  `importedWeightsRef`, or they would be echoed back as LogPal's own.
+- *UI.* Settings → "Apple Health" banner (iOS app only; `healthSupported`)
+  → `PrefsHealth`: one toggle that shows the system sheet and syncs, the
+  reads/writes list, Sync now, last-synced line, and the hint that only the
+  Health app can revoke access (HealthKit never tells an app whether a
+  *read* was refused; it just returns nothing). Setting is
+  `settings.healthSync`, default false, synced with the other settings;
+  the last-sync summary is per device in `localStorage`.
+- `public/privacy.html` gained an "Apple Health" section, which Guideline
+  5.1.3 requires.
+- *Two things that cost time.* (1) `SceneDelegate.swift` builds the root
+  view controller in code, so the storyboard's custom class is never used;
+  the plugin only registers once the scene delegate says
+  `MainViewController()`. The symptom is the JS error `"Health" plugin is
+  not implemented on ios`. (2) Code signing failed with "resource fork,
+  Finder information, or similar detritus not allowed" when derived data
+  lived under `build/` inside `~/Documents`, which iCloud Drive syncs and
+  decorates with `com.apple.FinderInfo`. Build and archive with
+  `-derivedDataPath` and `-archivePath` outside `~/Documents` (a `/tmp`
+  path is fine); `xattr -cr` on the sources is not enough.
+- Verified in the iPhone 17 Pro Max simulator on 2026-11-02: the system
+  Health Access sheet appears with all nine topics, five cups logged in
+  LogPal show up in Health as 1,183 mL, and 7,432 steps typed into Health
+  appear on LogPal's steps widget after returning to the app. Build 5
+  (1.1) archived with the HealthKit entitlement under automatic signing.
+
 **2026-11-02 (later): water "doesn't save", and the water screen redone.**
 Phillip logged water on the phone and it was gone next launch. The cause is
 not in the app: the live `logpal_days` table never got the two

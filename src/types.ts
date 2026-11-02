@@ -458,6 +458,11 @@ export interface Settings {
    * privacy screen about a feature they have not used.
    */
   sharingAsked: boolean
+  /**
+   * Pull steps, weight and workouts from Apple Health and push water, weight
+   * and nutrition back. Only the iOS app acts on it; see services/health.ts.
+   */
+  healthSync: boolean
 }
 
 /* ---------------------------------------------------- intermittent fasting -- */
