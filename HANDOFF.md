@@ -104,6 +104,23 @@ default.
   appear on LogPal's steps widget after returning to the app. Build 5
   (1.1) archived with the HealthKit entitlement under automatic signing.
 
+**2026-11-03: 1.0 (build 4) rejected, Guideline 2.1 Information Needed.**
+Apple's message (yesterday 4:38 PM) asks for six things in the review
+Notes: a screen recording from a physical iPhone starting at launch and
+showing registration, login and account deletion; purpose and audience;
+setup instructions; the external services list; regional differences;
+regulated-content confirmation. Nothing about a crash or a bug. The notes
+field held one 256-character paragraph, which is why. A full draft covering
+items 2 to 6 is in `store/app-review-notes.md`, with a shot list for the
+recording (item 1, Phillip's phone, attached via the Attachment field on
+the version page). App Privacy already lists Health & Fitness, so the plan
+is to resubmit with build 7 (1.1, Apple Health) instead of build 4: set the
+Version field to 1.1, remove build 4 from the version, add build 7, paste
+the notes, attach the video, Resubmit. The classifier blocks me from
+editing the version page unless Phillip asks for it in so many words, and
+from clicking Resubmit at all. Resubmissions after a rejection usually
+come back within a day.
+
 **2026-11-02 (later): water "doesn't save", and the water screen redone.**
 Phillip logged water on the phone and it was gone next launch. The cause is
 not in the app: the live `logpal_days` table never got the two
