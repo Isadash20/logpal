@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { AppData, FoodEntry } from '../types'
 import { defaultData } from '../lib/storage'
 import { emptyNutrients } from '../lib/nutrition'
-import { days, diffCollection, foodEntries, measurements } from './cloud'
+import { days, diffCollection, foodEntries, measurements, missingColumn } from './cloud'
 
 /**
  * The differ decides what gets written to and deleted from a user's account.
@@ -185,5 +185,20 @@ describe('diffCollection', () => {
       expect(changed).toEqual([])
       expect(gone).toEqual([{ date: '2026-08-06 left', key: 'arm' }])
     })
+  })
+})
+
+describe('missingColumn', () => {
+  it('names the column from a PostgREST 42703 error', () => {
+    expect(
+      missingColumn({ code: '42703', message: 'column logpal_days.sleep_min does not exist' }),
+    ).toBe('sleep_min')
+    expect(missingColumn({ code: '42703', message: 'column "steps" does not exist' })).toBe('steps')
+  })
+
+  it('ignores every other error', () => {
+    expect(missingColumn({ code: '23505', message: 'duplicate key' })).toBeNull()
+    expect(missingColumn({ code: '42703', message: 'something else' })).toBeNull()
+    expect(missingColumn(null)).toBeNull()
   })
 })

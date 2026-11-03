@@ -121,6 +121,19 @@ old "set exact amount" field is gone. Also fixed in passing: filled glasses
 in the tap-to-set row were invisible (stroke 0 on an unfilled icon); `Icon`
 now takes a `fill` prop.
 
+*Night follow-up (build 7).* Phillip sent a screen recording: water still
+vanished on relaunch. Probed the live project again from the browser pane
+(the sandbox shell has no network): `logpal_days.sleep_min` and `.steps`
+were still missing, so the SQL above had not been run. Two changes so the
+app no longer depends on it. `services/cloud.ts` `upsert` now reads a 42703
+error, drops the named column from the batch and retries (`missingColumn`,
+tested), so water and `completed` reach the server even while the
+migration is pending; sleep and steps simply stay local until it runs, and
+the next edit after that pushes them. The console says
+`logpal_days.sleep_min is not on the server yet` when it happens. Build 7
+carries the fix to TestFlight. **The SQL still needs running** for sleep
+and steps to sync across devices; the two lines have not changed.
+
 **2026-11-02: languages, time zone, and a widget board you can actually
 rearrange.** Two pre-launch requests from Phillip.
 

@@ -41,11 +41,44 @@ import { defaultData } from '../lib/storage'
 /** Chunked so a first sync of a long history cannot exceed the request size. */
 const BATCH = 500
 
+/**
+ * The column named by a PostgREST "column t.c does not exist" error, or null.
+ *
+ * Exported for the test; the only caller is `upsert` below.
+ */
+export function missingColumn(
+  error: { code?: string; message?: string } | null | undefined,
+): string | null {
+  if (!error || error.code !== '42703') return null
+  const m = /column (?:"?\w+"?\.)?"?(\w+)"? does not exist/.exec(error.message ?? '')
+  return m ? m[1] : null
+}
+
 async function upsert(table: string, rows: Record<string, unknown>[]) {
   const db = requireClient()
-  for (let i = 0; i < rows.length; i += BATCH) {
-    const { error } = await db.from(table).upsert(rows.slice(i, i + BATCH))
-    if (error) throw error
+  let batch = rows
+  for (let i = 0; i < batch.length; i += BATCH) {
+    const { error } = await db.from(table).upsert(batch.slice(i, i + BATCH))
+    if (!error) continue
+
+    /* The client knows a column the live table does not: a migration in
+       supabase/schema.sql that has not been run against this project yet. The
+       day table hit this with sleep_min and steps, and the cost was not a
+       missing step count but the whole row, so water typed on the phone was
+       rejected, the cloud copy stayed empty, and the next launch hydrated that
+       emptiness back over the device. Drop the column and send the rest. */
+    const col = missingColumn(error)
+    if (col && batch.some((r) => col in r)) {
+      console.warn(`${table}.${col} is not on the server yet; saving without it`)
+      batch = batch.map((r) => {
+        const copy = { ...r }
+        delete copy[col]
+        return copy
+      })
+      i -= BATCH
+      continue
+    }
+    throw error
   }
 }
 
