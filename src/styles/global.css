@@ -1621,13 +1621,21 @@ button.row:active {
   bottom: 0;
   display: flex;
   gap: 10px;
-  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  padding: 18px 14px 6px;
+  /* It pins to the bottom of the scroller, which ends where the nav dock
+     begins, so it sits a dock's height above the screen edge with the page
+     still visible around it. A solid slab with a border there read as a
+     stray bar floating mid-screen. Fading from transparent, like the dock
+     below it, makes the page run out under the buttons and on into the dock
+     as one continuous fade. The dock already pays the safe-area inset, so
+     this must not add it again. */
+  background: linear-gradient(180deg, transparent, var(--bg) 45%);
+  z-index: 2;
 }
 
 .ractions .btn {
   margin: 0;
+  box-shadow: var(--shadow-2);
 }
 
 /* -------------------------------------------------------- health score -- */

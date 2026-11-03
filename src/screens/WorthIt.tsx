@@ -326,7 +326,7 @@ export function WorthIt({
         )}
 
         {/* The action bar is pinned, so the last card needs room to clear it. */}
-        <div style={{ height: 96 }} />
+        <div style={{ height: 8 }} />
 
         <div className="ractions">
           <button
