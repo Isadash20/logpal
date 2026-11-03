@@ -52,8 +52,19 @@ const NUTRIENT_ORDER: (keyof Nutrients)[] = [
 ]
 
 /** Nutrients are stored per 100 g; a Food carries them for `servings[0]`. */
+/**
+ * USDA's survey portions include dosing notes like "Guideline amount per fl
+ * oz of" (2.5 g of milk, for coffee) that read as nonsense in a serving
+ * picker and, as the first portion, made a glass of milk one calorie. They
+ * are dropped before anything else looks at the list.
+ */
+function isGuidelineNote(label: string): boolean {
+  return /^guideline amount/i.test(label)
+}
+
 export function unpackRow(p: PackedFood): Food {
-  const portions = p.p.length ? p.p : ([['100 g', 100]] as [string, number][])
+  const kept = p.p.filter(([label]) => !isGuidelineNote(label))
+  const portions = kept.length ? kept : ([['100 g', 100]] as [string, number][])
   const baseGrams = portions[0][1] > 0 ? portions[0][1] : 100
   const factor = baseGrams / 100
 
