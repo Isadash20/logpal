@@ -151,6 +151,20 @@ the next edit after that pushes them. The console says
 carries the fix to TestFlight. **The SQL still needs running** for sleep
 and steps to sync across devices; the two lines have not changed.
 
+*Morning, 2026-11-03 (build 8): build 7 did not fix it.* Phillip's second
+recording: 25 cups, Done, relaunch, 0. The retry never fired because a
+*write* with an unknown column is refused by PostgREST's schema cache with
+code `PGRST204` ("Could not find the 'sleep_min' column of 'logpal_days' in
+the schema cache"), not Postgres's `42703`, which only a *read* produces
+(that is what the probe used, so that is what the first fix matched).
+`missingColumn` now reads both. Second change, independent of the first:
+`store.tsx` keeps a `logpal.pushFailed` flag in localStorage, set when a
+push throws and cleared when one succeeds. At the sign-in reconcile, if it
+is set, the device wins: `pushChanges(remote, local)` sends its diff up and
+the local copy stays, instead of the cloud copy landing on top of edits the
+server never saw. Only after that push succeeds does the cloud win again.
+Any future rejected row, or an offline launch, now loses nothing.
+
 **2026-11-02: languages, time zone, and a widget board you can actually
 rearrange.** Two pre-launch requests from Phillip.
 

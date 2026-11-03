@@ -196,6 +196,15 @@ describe('missingColumn', () => {
     expect(missingColumn({ code: '42703', message: 'column "steps" does not exist' })).toBe('steps')
   })
 
+  it('names the column from the PGRST204 error a write gets', () => {
+    expect(
+      missingColumn({
+        code: 'PGRST204',
+        message: "Could not find the 'sleep_min' column of 'logpal_days' in the schema cache",
+      }),
+    ).toBe('sleep_min')
+  })
+
   it('ignores every other error', () => {
     expect(missingColumn({ code: '23505', message: 'duplicate key' })).toBeNull()
     expect(missingColumn({ code: '42703', message: 'something else' })).toBeNull()

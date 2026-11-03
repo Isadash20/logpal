@@ -64,6 +64,26 @@ import {
 /** How far back a Health sync looks. Enough to fill a fresh connection. */
 const HEALTH_WINDOW_DAYS = 30
 
+/* Set when a push to the cloud fails, cleared when one succeeds. Read at the
+   next sign-in reconcile, where it means "this device has edits the server
+   never saw", so the device wins instead of being overwritten. */
+const PUSH_FAILED_KEY = 'logpal.pushFailed'
+function pushFailed(): boolean {
+  try {
+    return localStorage.getItem(PUSH_FAILED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+function markPushFailed(failed: boolean) {
+  try {
+    if (failed) localStorage.setItem(PUSH_FAILED_KEY, '1')
+    else localStorage.removeItem(PUSH_FAILED_KEY)
+  } catch {
+    /* private mode; the next launch simply trusts the cloud */
+  }
+}
+
 /** Set when someone declines an account; keeps them out of the auth screen. */
 const LOCAL_ONLY_KEY = 'logpal.localOnly'
 import { uid } from '../lib/id'
@@ -497,6 +517,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const remote = await fetchAll()
         if (!live) return
+        if (remote && pushFailed()) {
+          /* The last push from this device failed (a rejected row, or no
+             network), so it holds edits the server never saw. Taking the cloud
+             copy now would erase them, which is exactly how water typed on the
+             phone kept vanishing at the next launch. The device wins: push its
+             diff against the cloud copy, and only trust the server again once
+             that goes through. */
+          const local = localAdapter.load()
+          if (local) {
+            try {
+              await pushChanges(remote, local)
+              markPushFailed(false)
+            } catch (err) {
+              if (live) setSyncError((err as Error).message)
+            }
+            if (!live) return
+            setData(local)
+            syncedRef.current = local
+            setReconciledFor(userId)
+            return
+          }
+        }
         if (remote) {
           hydratingRef.current = true
           /* The planner is not in any cloud collection yet, so the server has
@@ -554,8 +596,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .then(() => {
           syncedRef.current = data
           setSyncError(null)
+          markPushFailed(false)
         })
-        .catch((err) => setSyncError((err as Error).message))
+        .catch((err) => {
+          markPushFailed(true)
+          setSyncError((err as Error).message)
+        })
     }, 250)
     return () => window.clearTimeout(saveTimer.current)
   }, [data, userId])

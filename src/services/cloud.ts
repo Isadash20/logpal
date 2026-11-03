@@ -49,9 +49,21 @@ const BATCH = 500
 export function missingColumn(
   error: { code?: string; message?: string } | null | undefined,
 ): string | null {
-  if (!error || error.code !== '42703') return null
-  const m = /column (?:"?\w+"?\.)?"?(\w+)"? does not exist/.exec(error.message ?? '')
-  return m ? m[1] : null
+  if (!error) return null
+  const msg = error.message ?? ''
+  // A read that names the column: Postgres itself answers, 42703.
+  if (error.code === '42703') {
+    const m = /column (?:"?\w+"?\.)?"?(\w+)"? does not exist/.exec(msg)
+    return m ? m[1] : null
+  }
+  // A write whose body names the column: PostgREST rejects it against its
+  // schema cache before Postgres sees it, PGRST204. This is the one an
+  // upsert actually gets, and the one the first fix missed.
+  if (error.code === 'PGRST204') {
+    const m = /Could not find the '([^']+)' column/.exec(msg)
+    return m ? m[1] : null
+  }
+  return null
 }
 
 async function upsert(table: string, rows: Record<string, unknown>[]) {
