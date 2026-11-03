@@ -64,10 +64,13 @@ import {
 /** How far back a Health sync looks. Enough to fill a fresh connection. */
 const HEALTH_WINDOW_DAYS = 30
 
-/* Set when a push to the cloud fails, cleared when one succeeds. Read at the
-   next sign-in reconcile, where it means "this device has edits the server
-   never saw", so the device wins instead of being overwritten. */
+/* Set the moment a push to the cloud starts, cleared only once the server
+   confirms it, so a push that fails, or that is cut off by the app being
+   killed mid-request, leaves the flag behind. Read at the next sign-in
+   reconcile, where it means "this device has edits the server never saw", so
+   the device wins instead of being overwritten. */
 const PUSH_FAILED_KEY = 'logpal.pushFailed'
+let pushesInFlight = 0
 function pushFailed(): boolean {
   try {
     return localStorage.getItem(PUSH_FAILED_KEY) === '1'
@@ -579,9 +582,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Persist on every change. Debounced so rapid edits (sliders, steppers)
   // don't thrash localStorage or fire a request per keystroke.
   const saveTimer = useRef<number | undefined>(undefined)
+  const flushRef = useRef<(() => void) | null>(null)
   useEffect(() => {
     window.clearTimeout(saveTimer.current)
-    saveTimer.current = window.setTimeout(() => {
+    const flush = () => {
+      flushRef.current = null
       localAdapter.save(data)
 
       if (hydratingRef.current) {
@@ -592,19 +597,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!userId || !cloudEnabled()) return
 
       const from = syncedRef.current
+      /* Flagged before the request leaves, not after it fails: a user who
+         logs water and swipes the app away a second later kills the request
+         in flight, and nothing would ever reject. */
+      pushesInFlight += 1
+      markPushFailed(true)
       pushChanges(from, data)
         .then(() => {
+          pushesInFlight -= 1
           syncedRef.current = data
           setSyncError(null)
-          markPushFailed(false)
+          if (pushesInFlight === 0) markPushFailed(false)
         })
         .catch((err) => {
+          pushesInFlight -= 1
           markPushFailed(true)
           setSyncError((err as Error).message)
         })
-    }, 250)
+    }
+    flushRef.current = flush
+    saveTimer.current = window.setTimeout(flush, 250)
     return () => window.clearTimeout(saveTimer.current)
   }, [data, userId])
+
+  /* Leaving the app (home swipe, app switcher, lock) freezes the web view's
+     timers, so a debounced save that has not fired yet would never fire. Run
+     it now, while there is still a tick to run it in. */
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState !== 'hidden') return
+      window.clearTimeout(saveTimer.current)
+      flushRef.current?.()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    return () => document.removeEventListener('visibilitychange', onHide)
+  }, [])
 
   const update = useCallback((fn: (d: AppData) => void) => {
     setData((prev) => {
