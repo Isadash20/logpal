@@ -1617,25 +1617,21 @@ button.row:active {
 /* Sticky pair at the bottom of a recipe: plan it, or log it now. Both apps put
    their primary verb here and never let it scroll away. */
 .ractions {
-  position: sticky;
-  bottom: 0;
+  /* A flex row between the scroller and the nav dock, never inside the
+     scroller. Sticky inside it pinned the bar to the scroller's bottom edge,
+     which is the top of the dock, so it hung a dock's height above the
+     screen with the page scrolling past above and below it. The dock pays
+     the safe-area inset, so this must not add it again. */
+  flex: none;
   display: flex;
   gap: 10px;
-  padding: 18px 14px 6px;
-  /* It pins to the bottom of the scroller, which ends where the nav dock
-     begins, so it sits a dock's height above the screen edge with the page
-     still visible around it. A solid slab with a border there read as a
-     stray bar floating mid-screen. Fading from transparent, like the dock
-     below it, makes the page run out under the buttons and on into the dock
-     as one continuous fade. The dock already pays the safe-area inset, so
-     this must not add it again. */
-  background: linear-gradient(180deg, transparent, var(--bg) 45%);
-  z-index: 2;
+  padding: 10px 14px 4px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
 }
 
 .ractions .btn {
   margin: 0;
-  box-shadow: var(--shadow-2);
 }
 
 /* -------------------------------------------------------- health score -- */

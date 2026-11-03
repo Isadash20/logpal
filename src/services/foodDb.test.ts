@@ -24,6 +24,12 @@ describe('unpackRow', () => {
     expect(food.nutrients.calories).toBeCloseTo(61 * 0.305, 1)
   })
 
+  it('does not add a second "1 oz" when USDA already lists one at 28 g', () => {
+    const jerky: PackedFood = { ...milk, p: [['1 oz', 28]] }
+    const labels = unpackRow(jerky).servings.map((s) => s.label)
+    expect(labels.filter((l) => l === '1 oz')).toHaveLength(1)
+  })
+
   it('falls back to 100 g when every portion was a note', () => {
     const onlyNotes: PackedFood = { ...milk, p: [['Guideline amount on regular', 5]] }
     expect(unpackRow(onlyNotes).servings[0].label).toBe('100 g')

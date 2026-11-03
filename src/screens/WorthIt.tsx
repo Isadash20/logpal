@@ -325,26 +325,27 @@ export function WorthIt({
           </>
         )}
 
-        {/* The action bar is pinned, so the last card needs room to clear it. */}
-        <div style={{ height: 8 }} />
+        <div style={{ height: 12 }} />
+      </div>
 
-        <div className="ractions">
-          <button
-            className="btn btn--ghost"
-            onClick={() => {
-              setPicking('second')
-              setStage('choose')
-            }}
-          >
-            {otherSide ? 'Compare another' : 'Compare'}
-          </button>
-          <button
-            className="btn btn--primary"
-            onClick={() => push({ name: 'foodDetail', food, date, servings: count, servingLabel: serving?.label })}
-          >
-            Log it
-          </button>
-        </div>
+      {/* Outside the scroller, like the recipe screen: a row of its own
+          between the page and the dock, not a bar pinned inside the page. */}
+      <div className="ractions">
+        <button
+          className="btn btn--ghost"
+          onClick={() => {
+            setPicking('second')
+            setStage('choose')
+          }}
+        >
+          {otherSide ? 'Compare another' : 'Compare'}
+        </button>
+        <button
+          className="btn btn--primary"
+          onClick={() => push({ name: 'foodDetail', food, date, servings: count, servingLabel: serving?.label })}
+        >
+          Log it
+        </button>
       </div>
     </>
   )

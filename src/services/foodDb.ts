@@ -80,10 +80,13 @@ export function unpackRow(p: PackedFood): Food {
   }))
 
   // Weight-based portions let anyone log an amount the label doesn't offer.
-  const has = (g: number) => servings.some((s) => Math.abs((s.grams ?? -1) - g) < 0.01)
-  if (!has(100)) servings.push({ label: '100 g', grams: 100, multiplier: 100 / baseGrams })
-  if (!has(1)) servings.push({ label: '1 g', grams: 1, multiplier: 1 / baseGrams })
-  if (!has(28.35)) {
+  // Matched by label as well as weight: USDA rounds its own "1 oz" to 28 g,
+  // and a second "1 oz" row in the picker is a duplicate whatever it weighs.
+  const has = (label: string, g: number) =>
+    servings.some((s) => s.label === label || Math.abs((s.grams ?? -1) - g) < 0.01)
+  if (!has('100 g', 100)) servings.push({ label: '100 g', grams: 100, multiplier: 100 / baseGrams })
+  if (!has('1 g', 1)) servings.push({ label: '1 g', grams: 1, multiplier: 1 / baseGrams })
+  if (!has('1 oz', 28.35)) {
     servings.push({ label: '1 oz', grams: 28.35, multiplier: 28.35 / baseGrams })
   }
 
