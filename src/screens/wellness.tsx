@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon'
 import { Row, TopBar } from '../components/ui'
 import { BarChart } from '../components/charts'
 import { addDays, fromKey, lastNDays, today } from '../lib/dates'
+import { stepCalories } from '../lib/nutrition'
 
 /**
  * Sleep and steps.
@@ -241,6 +242,7 @@ export function StepsScreen({ date }: { date: string }) {
      and says so. It is not added to the diary: exercise you logged is already
      counted there, and adding both would pay you twice for one walk. */
   const km = (walked * (profile.heightIn * 0.0254 * 0.415)) / 1000
+  const kcal = stepCalories(walked, profile.heightIn, profile.currentWeight)
 
   const commit = () => {
     const n = parseInt(typed.replace(/[^\d]/g, ''), 10)
@@ -303,7 +305,8 @@ export function StepsScreen({ date }: { date: string }) {
             </div>
             {log.steps != null && (
               <div style={{ color: 'var(--text-3)', fontSize: 12.5, marginTop: 2 }}>
-                About {km.toFixed(1)} km, from your height
+                About {km.toFixed(1)} km · ~{kcal.toLocaleString()} kcal burned, from your
+                height and weight
               </div>
             )}
           </div>

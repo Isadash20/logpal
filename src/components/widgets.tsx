@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties, type ReactElement, type ReactN
 import { useApp } from '../state/store'
 import { Icon, type IconName } from './Icon'
 import { cal } from '../lib/format'
+import { stepCalories } from '../lib/nutrition'
 import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import { addDays, shortDate } from '../lib/dates'
 import { useT } from '../i18n'
@@ -799,7 +800,12 @@ function StepsWidget({ date, w, h, editing }: WidgetProps) {
               ? t('w.goalReached')
               : t('w.toGo', { amount: cal(goal - log.steps) }),
         ratio,
-        caption: t('w.ofGoal'),
+        caption:
+          log.steps == null
+            ? t('w.ofGoal')
+            : t('w.stepKcal', {
+                kcal: cal(stepCalories(log.steps, profile.heightIn, profile.currentWeight)),
+              }),
       }}
     />
   )

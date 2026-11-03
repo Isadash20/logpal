@@ -93,6 +93,24 @@ export function bmr(opts: {
 }
 
 /**
+ * A rule-of-thumb estimate of the calories a day's steps burned.
+ *
+ * Walking costs about 0.57 kcal per pound of body weight per mile, and a
+ * walking stride is about 0.415 × height, so steps become miles through the
+ * profile's height and miles become calories through its weight. Out-of-range
+ * profile figures fall back the same way `bmr` does. It is shown next to the
+ * step count and deliberately not added to the diary: a walk you logged as
+ * exercise is already counted there, and paying twice for one walk is worse
+ * than paying once.
+ */
+export function stepCalories(steps: number, heightIn: number, weightLb: number): number {
+  const h = heightIn >= 36 && heightIn <= 96 ? heightIn : 66
+  const w = weightLb >= 50 && weightLb <= 1000 ? weightLb : 150
+  const miles = (steps * h * 0.415) / 63360
+  return Math.round(miles * 0.57 * w)
+}
+
+/**
  * Activity multipliers describe *non-exercise* daily movement only. Intentional
  * workouts are logged separately and added back to the day's budget, which is
  * why "Active" here is lower than a typical all-in TDEE multiplier.
