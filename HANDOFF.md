@@ -1383,3 +1383,14 @@ more tables.
 4. **Cuisine coverage is uneven** — Thai 2, Greek/French/Caribbean 3 each,
    against Asian 14 and Mediterranean 16.
 5. **Non-GMO**, above — needs a manual flag.
+
+## Mid-morning, 2026-11-03 (build 9)
+
+"It happened again" was build 7: ASC's TestFlight tester list showed
+phillip@erealgroup.com on 1.1 (7), not 8. While checking, found a second
+hole: `pushFailed` was only set in the catch, so a push cut off by the app
+being killed mid-request left no flag and the cloud still won at launch.
+Build 9 (4259545, uploaded 10:18) flags the push before it leaves (cleared
+only when every in-flight push has resolved) and flushes the debounced save
+on `visibilitychange` → hidden, since a backgrounded web view never fires a
+pending timer. Still unrun: the two `alter table logpal_days` lines.
