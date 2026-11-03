@@ -1408,3 +1408,34 @@ is the server's). The synced snapshot now persists in localStorage
 again on every foreground (visibilitychange + Capacitor appStateChange).
 Without a synced snapshot (first sign-in, or upgrading from ≤9) it falls
 back to the push flag. Tests in merge.test.ts; 136 pass.
+
+## Early afternoon, 2026-11-03 (builds 11–13): small things that looked wrong
+
+Three TestFlight uploads in a row, each one screen Phillip pointed at.
+
+**Build 11 (13:1x): calories from steps.** `stepCalories(steps, heightIn,
+weightLb)` in `src/lib/nutrition.ts`: stride is 0.415 × height, miles at
+0.57 kcal per pound. Out-of-range or missing height/weight fall back to
+66 in / 150 lb rather than producing nonsense. Shown on the wellness steps
+line and as the Steps widget caption (`w.stepKcal`, eight locales).
+
+**Build 12 (13:57): USDA "Guideline amount per fl oz of".** The survey
+portions include dosing notes (2.5 g of milk, for coffee) which made a
+glass of milk one calorie and read as gibberish in the picker.
+`unpackRow` drops any portion whose label starts "Guideline amount"
+before nutrition is based on `portions[0]`; a row that was nothing but
+notes falls back to 100 g. Tests in `src/services/foodDb.test.ts`.
+
+**Build 13 (~15:30): the "elevated bar".** NutriScan's Compare / Log it
+bar was `position: sticky; bottom: 0` *inside* `.scroll`. The scroller
+ends where the nav dock begins, so the bar pinned a dock's height above
+the screen edge, a bordered white slab with the page scrolling past both
+above it and, through the dock's transparent gradient, below it. It is
+now a flex row between the scroller and the dock, exactly as the recipe
+screen already did it; `.ractions` is no longer sticky and no longer pays
+the safe-area inset the dock already pays. Same build: `unpackRow` no
+longer appends a second "1 oz" when USDA already lists one rounded to
+28 g (React was logging duplicate keys in the serving picker).
+
+Still open from the morning: the two `alter table` lines for `sleep_min`
+and `steps` have not been run; the review video is Phillip's to record.
