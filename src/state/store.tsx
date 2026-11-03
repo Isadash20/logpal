@@ -33,7 +33,8 @@ import { aisleFor } from '../data/aisles'
 import { findRecipe, resolveRecipe } from '../services/recipes'
 import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredients'
 import type { Session } from '@supabase/supabase-js'
-import { defaultData, localAdapter } from '../lib/storage'
+import { defaultData, localAdapter, syncedStore } from '../lib/storage'
+import { mergeEdits } from '../services/merge'
 import { cloudEnabled, consumeAuthFragment, installNativeAuthListener, supabase } from '../lib/supabase'
 import {
   deleteAccount as deleteAccountRemote,
@@ -502,6 +503,75 @@ export function AppProvider({ children }: { children: ReactNode }) {
      the upgrade path from the localStorage-only version. Otherwise the cloud
      copy wins, because it is the one that has seen every device. */
   const userId = session?.user.id ?? null
+  const userIdRef = useRef(userId)
+  userIdRef.current = userId
+  const dataRef = useRef(data)
+  dataRef.current = data
+
+  /* The synced snapshot is kept on disk too, so the next launch can still
+     tell this device's edits from the server's. */
+  const setSynced = useCallback((d: AppData | null) => {
+    syncedRef.current = d
+    if (d) syncedStore.save(d)
+    else syncedStore.clear()
+  }, [])
+
+  /* Pull the cloud copy and land it over what this device holds.
+
+     With a synced snapshot the two are merged three ways: whatever this
+     device changed since it last matched the server stays, everything else
+     is the server's, so water logged on the iPad and water logged on the
+     phone both survive. Without one (first sign-in on this device, or an
+     old build) the push flag decides which side wins outright. */
+  const pullingRef = useRef(false)
+  const pullCloud = useCallback(
+    async (uid: string, firstSignIn: boolean) => {
+      if (pullingRef.current) return
+      pullingRef.current = true
+      try {
+        const remote = await fetchAll()
+        if (userIdRef.current !== uid) return
+        const local = dataRef.current
+        if (!remote) {
+          /* An empty cloud means this account has never synced, so lift the
+             device up rather than wiping it. On a later pull an empty server
+             means it was emptied on purpose; leave it. */
+          if (!firstSignIn) return
+          await pushChanges(null, local)
+          if (userIdRef.current !== uid) return
+          setSynced(local)
+          return
+        }
+        const synced = syncedRef.current ?? syncedStore.load()
+        const merged: AppData = synced
+          ? mergeEdits(synced, local, remote)
+          : pushFailed()
+            ? local
+            : {
+                ...remote,
+                planEntries: local.planEntries,
+                shopping: local.shopping,
+                pantry: local.pantry,
+                savedRecipeIds: local.savedRecipeIds,
+                recentSearches: local.recentSearches,
+              }
+        hydratingRef.current = true
+        setData(merged)
+        localAdapter.save(merged)
+        /* The server is at `remote` until this push lands; recording that is
+           what lets a failed push be retried as a diff at the next launch. */
+        setSynced(remote)
+        await pushChanges(remote, merged)
+        if (userIdRef.current !== uid) return
+        setSynced(merged)
+        markPushFailed(false)
+      } finally {
+        pullingRef.current = false
+      }
+    },
+    [setSynced],
+  )
+
   useEffect(() => {
     if (!userId) {
       syncedRef.current = null
@@ -516,68 +586,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .catch(() => live && setUsernameState(null))
     setSyncing(true)
     setSyncError(null)
-    ;(async () => {
-      try {
-        const remote = await fetchAll()
-        if (!live) return
-        if (remote && pushFailed()) {
-          /* The last push from this device failed (a rejected row, or no
-             network), so it holds edits the server never saw. Taking the cloud
-             copy now would erase them, which is exactly how water typed on the
-             phone kept vanishing at the next launch. The device wins: push its
-             diff against the cloud copy, and only trust the server again once
-             that goes through. */
-          const local = localAdapter.load()
-          if (local) {
-            try {
-              await pushChanges(remote, local)
-              markPushFailed(false)
-            } catch (err) {
-              if (live) setSyncError((err as Error).message)
-            }
-            if (!live) return
-            setData(local)
-            syncedRef.current = local
-            setReconciledFor(userId)
-            return
-          }
-        }
-        if (remote) {
-          hydratingRef.current = true
-          /* The planner is not in any cloud collection yet, so the server has
-             nothing to say about it and `remote` carries empty arrays. Taking
-             them at face value would delete a week of planning the moment you
-             signed in on the device that made it. Carried across until the
-             three tables exist; see AppData for the rest of the note. */
-          const local = localAdapter.load()
-          const merged: AppData = {
-            ...remote,
-            planEntries: local?.planEntries ?? [],
-            shopping: local?.shopping ?? [],
-            pantry: local?.pantry ?? [],
-            savedRecipeIds: local?.savedRecipeIds ?? [],
-            recentSearches: local?.recentSearches ?? [],
-          }
-          setData(merged)
-          syncedRef.current = merged
-          localAdapter.save(merged)
-        } else {
-          const local = localAdapter.load() ?? defaultData()
-          await pushChanges(null, local)
-          if (!live) return
-          syncedRef.current = local
-        }
-        setReconciledFor(userId)
-      } catch (err) {
-        if (live) setSyncError((err as Error).message)
-      } finally {
-        if (live) setSyncing(false)
-      }
-    })()
+    pullCloud(userId, true)
+      .then(() => live && setReconciledFor(userId))
+      .catch((err) => live && setSyncError((err as Error).message))
+      .finally(() => live && setSyncing(false))
     return () => {
       live = false
     }
-  }, [userId])
+  }, [userId, pullCloud])
+
+  /* Coming back to the foreground pulls again, so a cup logged on the other
+     device shows up here without a relaunch. */
+  useEffect(() => {
+    if (!userId || reconciledFor !== userId || !cloudEnabled()) return
+    const pull = () => {
+      pullCloud(userId, false).catch((err) => setSyncError((err as Error).message))
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') pull()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) pull()
+    })
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      void sub.then((h) => h.remove())
+    }
+  }, [userId, reconciledFor, pullCloud])
 
   // Persist on every change. Debounced so rapid edits (sliders, steppers)
   // don't thrash localStorage or fire a request per keystroke.
@@ -605,7 +641,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       pushChanges(from, data)
         .then(() => {
           pushesInFlight -= 1
-          syncedRef.current = data
+          setSynced(data)
           setSyncError(null)
           if (pushesInFlight === 0) markPushFailed(false)
         })
@@ -618,7 +654,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     flushRef.current = flush
     saveTimer.current = window.setTimeout(flush, 250)
     return () => window.clearTimeout(saveTimer.current)
-  }, [data, userId])
+  }, [data, userId, setSynced])
 
   /* Leaving the app (home swipe, app switcher, lock) freezes the web view's
      timers, so a debounced save that has not fired yet would never fire. Run
@@ -647,8 +683,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [healthBusy, setHealthBusy] = useState(false)
   const [healthLast, setHealthLast] = useState<HealthSyncResult | null>(loadHealthLast)
   const [healthWrites, setHealthWrites] = useState<WriteStatus | null>(null)
-  const dataRef = useRef(data)
-  dataRef.current = data
   /* Set by an import so the write effect below does not echo weigh-ins that
      came *from* Health straight back into it as LogPal's own. */
   const importedWeightsRef = useRef(false)
@@ -1538,7 +1572,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (userId && cloudEnabled()) {
         deleteAll()
           .then(() => {
-            syncedRef.current = null
+            setSynced(null)
             setSyncError(null)
           })
           .catch((err) => setSyncError((err as Error).message))
@@ -1558,7 +1592,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut()
       // Drop back to whatever this device holds, rather than showing another
       // account's data until the next load.
-      syncedRef.current = null
+      setSynced(null)
       setLocalOnly(false)
       setData(localAdapter.load() ?? defaultData())
       setStack([{ name: 'tab', tab: 'today' }])
@@ -1570,7 +1604,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       /* The server side is gone; the local copy would otherwise linger as a
          ghost of an account that no longer exists, and the save effect would
          try to push it against a dead session. */
-      syncedRef.current = null
+      setSynced(null)
       localAdapter.clear()
       await supabase.auth.signOut().catch(() => undefined)
       setLocalOnly(false)

@@ -59,6 +59,37 @@ export const localAdapter: PersistenceAdapter = {
   },
 }
 
+/**
+ * The last snapshot this device knew the server held. Kept across launches so
+ * the sign-in reconcile can tell a local edit from a server one and merge the
+ * two, instead of letting one side wipe the other.
+ */
+const SYNCED_KEY = 'logpal.synced.v1'
+export const syncedStore = {
+  load(): AppData | null {
+    try {
+      const raw = localStorage.getItem(SYNCED_KEY)
+      return raw ? migrate(JSON.parse(raw)) : null
+    } catch {
+      return null
+    }
+  },
+  save(data: AppData): void {
+    try {
+      localStorage.setItem(SYNCED_KEY, JSON.stringify(data))
+    } catch {
+      try {
+        localStorage.setItem(SYNCED_KEY, JSON.stringify({ ...data, foodCache: {} }))
+      } catch {
+        /* no room; the next launch falls back to the push flag */
+      }
+    }
+  },
+  clear(): void {
+    localStorage.removeItem(SYNCED_KEY)
+  },
+}
+
 /** Old meal keys, from before entries grouped by clock time. */
 const LEGACY_PERIOD: Record<string, string> = {
   breakfast: 'morning',

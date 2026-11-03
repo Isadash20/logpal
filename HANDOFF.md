@@ -1394,3 +1394,17 @@ Build 9 (4259545, uploaded 10:18) flags the push before it leaves (cleared
 only when every in-flight push has resolved) and flushes the debounced save
 on `visibilitychange` → hidden, since a backgrounded web view never fires a
 pending timer. Still unrun: the two `alter table logpal_days` lines.
+
+## Late morning, 2026-11-03 (build 10): two devices
+
+Phillip signed in on iPad and iPhone; water did not cross over. Two causes:
+the cloud was only pulled at sign-in (so the other device needed a full
+relaunch), and the reconcile was whole-snapshot (cloud wins, or device wins
+with the push flag), so whichever side landed last erased the other's day.
+Build 10: `src/services/merge.ts` three-way merge (synced snapshot vs local
+vs remote; local edits since the last confirmed push stay, everything else
+is the server's). The synced snapshot now persists in localStorage
+(`logpal.synced.v1`, `syncedStore` in lib/storage.ts), and `pullCloud` runs
+again on every foreground (visibilitychange + Capacitor appStateChange).
+Without a synced snapshot (first sign-in, or upgrading from ≤9) it falls
+back to the push flag. Tests in merge.test.ts; 136 pass.
