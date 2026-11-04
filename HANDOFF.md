@@ -1517,3 +1517,29 @@ calories breakdown.
 **NutriScan always makes the call.** "Too close to call" under 0.3 is
 gone; the better food is named whenever the scores differ, "Dead even"
 only on an exact tie.
+
+## Late morning, 2026-11-04 (build 17): NutriScan, lighter
+
+Phillip liked what the page said and not how much of it there was ("less
+is more, sleeker"). `src/screens/WorthIt.tsx` rewritten around that, with
+its own `.ns-*` block at the end of `global.css`; the old `.hero__*` (bar
+`.hero`, `--center`, `__big`, `__caption`, which Breakdown uses), `.wtag`,
+`.vs*`, `.rating*` (bar `.rating__bar`) and `.cmp*` rules are gone.
+
+- **Ways in** are three rows in one flat panel (tinted icon, label,
+  chevron), not three shadowed tiles. `.pickways` is still used by the
+  label scanner.
+- **Result**: the name and one thin ring on the wash, no card; the word
+  under it; "Fits your plan" as one quiet line with a dot, no second dial.
+  Stepper centred with nothing drawn around it. The four ratings are 2×2
+  tiles: label, score in colour, the word, a 3 px bar. The long "detail"
+  sentence from `sourceRatings` is no longer shown. A protein/carb/fat
+  score under 2 is grey, not red: "not a source" is a fact, not a fault.
+  Figures are one strip (cal, protein, carbs, fat) with fiber, sugar,
+  sodium in a line under it; the per-row carb/fat/protein make-up text is
+  gone. "In its favour" and "Worth knowing" merged into one "Notes" list,
+  told apart by dot colour.
+- **Compare** shows only the face-off, the two verdicts, the stepper for
+  food 1 (captioned with its name) and the table. The two full details
+  that used to stack beneath are gone; the table already holds every
+  number. Panels are hairline-bordered, no shadow.

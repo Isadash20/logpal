@@ -2573,43 +2573,6 @@ button.row:active {
 
 /* --------------------------------------------------------- comparison -- */
 
-/* Label on the left, one column per food. Equal columns so the eye can run
-   down them; the leading value in each row is the one in accent. */
-.cmp {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 4px;
-  font-size: 13.5px;
-}
-
-.cmp--head {
-  padding: 0 16px 6px;
-  font-weight: 700;
-}
-
-.cmp__name {
-  font-size: 12.5px;
-  line-height: 1.25;
-  text-align: right;
-}
-
-.cmp__label {
-  color: var(--text-2);
-}
-
-.cmp__value {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-num);
-}
-
-.cmp__value--lead {
-  color: var(--accent);
-  font-weight: 700;
-}
-
 /* ------------------------------------------------------- the two ways in -- */
 
 /* Label scan (NutriScan.tsx) asks how before it asks what. Two targets, both large enough to
@@ -3561,11 +3524,10 @@ button.row:active {
   100% { opacity: 0; }
 }
 
-/* ------------------------------------------------------- nutriscan hero -- */
+/* ------------------------------------------------------ breakdown hero -- */
 
-/* The headline card: the food's name, then the health score large and in
-   its colour with the plan-fit dial beside it. Also used, centred, as the
-   top of the breakdown screens. */
+/* The headline card at the top of the breakdown screens: one big figure,
+   centred, with its caption. */
 .hero {
   margin: 12px var(--gutter) 4px;
   padding: 16px 16px 18px;
@@ -3578,59 +3540,10 @@ button.row:active {
   text-align: center;
 }
 
-.hero__name {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.hero__title {
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.hero__brand {
-  font-size: 13.5px;
-  color: var(--text-2);
-  margin-top: 2px;
-}
-
-.hero__scores {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.hero__main,
-.hero__side {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  text-align: center;
-}
-
-.hero__word {
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin-top: 4px;
-}
-
 .hero__caption {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-2);
-}
-
-.hero__note {
-  font-size: 11.5px;
-  color: var(--text-3);
-  line-height: 1.3;
-  margin-top: 2px;
 }
 
 .hero__big {
@@ -3662,158 +3575,7 @@ button.row:active {
   border-bottom: 0;
 }
 
-/* The numbered badge that keeps two compared foods apart down the page. */
-.wtag {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--r-full);
-  font-size: 12px;
-  font-weight: 800;
-  color: #fff;
-  flex: none;
-  vertical-align: middle;
-}
-
-.wtag--1 {
-  background: var(--accent);
-}
-
-.wtag--2 {
-  background: var(--carbs);
-}
-
-/* Two foods face to face. */
-.vs {
-  margin: 12px var(--gutter) 10px;
-  padding: 16px 12px 14px;
-  background: var(--surface);
-  border-radius: var(--r-card);
-  box-shadow: var(--shadow-card);
-}
-
-.vs__sides {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: start;
-  gap: 6px;
-}
-
-.vs__side {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  text-align: center;
-  min-width: 0;
-}
-
-.vs__mid {
-  align-self: center;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding-top: 40px;
-}
-
-.vs__name {
-  font-size: 14.5px;
-  font-weight: 700;
-  line-height: 1.2;
-  min-height: 2.4em;
-  display: flex;
-  align-items: center;
-}
-
-.vs__brand {
-  font-size: 12px;
-  color: var(--text-2);
-  margin-top: -4px;
-}
-
-.vs__verdicts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.vs__verdicts > div {
-  display: grid;
-  gap: 2px;
-  text-align: center;
-}
-
-.vs__k {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.vs__v {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-/* One rating: score chip, word, bar, figures. */
-.rating {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.rating:last-child {
-  border-bottom: 0;
-}
-
-.rating__chip {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-family: var(--font-num);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.rating__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.rating__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.rating__label {
-  font-weight: 700;
-  font-size: 15px;
-}
-
-.rating__word {
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
+/* A thin bar in a nutrient's colour, used by the breakdown screens. */
 .rating__bar {
   display: block;
   height: 6px;
@@ -3827,26 +3589,6 @@ button.row:active {
   height: 100%;
   border-radius: 999px;
   transition: width 0.3s ease;
-}
-
-.rating__detail {
-  font-size: 12.5px;
-  color: var(--text-2);
-  line-height: 1.35;
-}
-
-.pickways--three {
-  grid-template-rows: repeat(3, 1fr);
-}
-
-.pickways--three .pickway {
-  gap: 10px;
-  padding: 16px;
-}
-
-.pickways--three .pickway__icon {
-  width: 64px;
-  height: 64px;
 }
 
 /* ------------------------------------------------------------ breakdown -- */
@@ -4088,4 +3830,376 @@ button.row:active {
 
 @media (prefers-reduced-motion: reduce) {
   .burst, .celebrate__emoji { display: none; }
+}
+
+/* ------------------------------------------------------------ nutriscan -- */
+
+/* Less is more. The score sits on the wash, not in a card; everything else
+   is a flat panel with a hairline, no shadow, and no prose beside a number. */
+.ns-lead {
+  padding: 14px var(--gutter) 12px;
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.ns-panel {
+  margin: 0 var(--gutter) 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.ns-panel .row {
+  background: none;
+}
+
+.ns-way {
+  min-height: 60px;
+  font-weight: 600;
+}
+
+.ns-way__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-full);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  flex: none;
+}
+
+.ns-h {
+  padding: 18px var(--gutter) 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.01em;
+}
+
+/* The headline: name, the ring, a word, and one quiet line for plan fit. */
+.ns-hero {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 20px var(--gutter) 8px;
+  text-align: center;
+}
+
+.ns-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.ns-brand {
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.ns-dial {
+  margin-top: 16px;
+  line-height: 0;
+}
+
+.ns-word {
+  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ns-word--sm {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.ns-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.ns-fit b {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ns-fit__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+/* The serving stepper, centred, with nothing drawn around it. */
+.ns-serving {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px var(--gutter) 10px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.ns-serving__count {
+  min-width: 34px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ns-serving__unit {
+  direction: ltr;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+/* Four ratings as four small tiles. */
+.ns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 var(--gutter) 10px;
+}
+
+.ns-tile {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.ns-tile__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ns-tile__line {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.ns-tile__score {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.ns-tile__word {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ns-tile__bar {
+  display: block;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.ns-tile__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* Four figures in a strip, three more in a line under it. */
+.ns-facts__main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 14px 6px 12px;
+  text-align: center;
+}
+
+.ns-fact {
+  display: grid;
+  gap: 1px;
+}
+
+.ns-fact__v {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ns-fact__k {
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+.ns-facts__more {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 9px 14px 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+/* Notes: a dot, a bold lead, the rest in the quieter colour. */
+.ns-note {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.ns-note:last-child {
+  border-bottom: 0;
+}
+
+.ns-note__dot {
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 999px;
+  flex: none;
+}
+
+.ns-note__detail {
+  color: var(--text-2);
+}
+
+/* Two foods face to face. */
+.ns-vs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+}
+
+.ns-vs__side {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+  min-width: 0;
+}
+
+.ns-vs__mid {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ns-vs__name {
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ns-verdicts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.ns-verdicts > div {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.ns-verdict__k {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.ns-verdict__v {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Label on the left, one column per food. The leading value is in accent. */
+.ns-cmp {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+
+.ns-cmp:last-child {
+  border-bottom: 0;
+}
+
+.ns-cmp--head {
+  padding-top: 11px;
+  padding-bottom: 9px;
+  background: var(--surface-2);
+}
+
+.ns-cmp__name {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.ns-cmp__label {
+  color: var(--text-2);
+}
+
+.ns-cmp__v {
+  text-align: right;
+  color: var(--text-2);
+}
+
+.ns-cmp__v--lead {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ns-clear {
+  padding: 0 var(--gutter) 6px;
+  text-align: center;
+}
+
+.ns-serving {
+  flex-wrap: wrap;
+}
+
+.ns-serving__cap {
+  width: 100%;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-3);
+  margin-bottom: 2px;
 }
