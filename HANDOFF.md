@@ -1489,7 +1489,9 @@ foreground (visibilitychange + Capacitor appStateChange), so a goal met
 while the app was away is cheered at the next opening. `CelebrationHost`
 (`components/Confetti.tsx`) renders at app level from a tiny bus;
 `celebrate(items)` raises one. Ordinary goals: confetti + card, 3.4 s.
-Goal weight: dark backdrop, CSS flames, gold confetti, trophy card, waits
-for a tap. Settings → About has two preview rows.
+Goal weight: dark backdrop with a gold glow, a burst of confetti flying
+out from the card in every direction plus the falling kind, trophy card,
+waits for a tap. (Build 14 had CSS flames; Phillip found them awkward,
+build 15 swapped them for the burst.) Settings → About has two preview rows.
 
 Still open: the two `alter table` lines; the review video.

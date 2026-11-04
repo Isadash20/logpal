@@ -2,8 +2,9 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { Achievement } from '../lib/celebrations'
 
 /**
- * The cheer for a goal met: confetti and a card. For the goal weight, flames
- * under it too, and it waits to be tapped away.
+ * The cheer for a goal met: confetti and a card. For the goal weight, an
+ * explosion of confetti out from the card as well, and it waits to be tapped
+ * away.
  *
  * Deliberately cheap: absolutely positioned pieces on a CSS animation,
  * removed from the tree when it finishes. No canvas and no library for
@@ -64,6 +65,30 @@ function Celebration({ items, onDone }: { items: Achievement[]; onDone(): void }
     })),
   )
 
+  /* The explosion: pieces that start at the card and fly outward in every
+     direction, in two waves so it keeps going for a moment. Angles and
+     distances come from the index, so it is the same burst every time and
+     needs no random source. */
+  const [burst] = useState(() =>
+    big
+      ? Array.from({ length: 110 }, (_, i) => {
+          const angle = ((i * 137.5) % 360) * (Math.PI / 180)
+          const dist = 160 + ((i * 53) % 260)
+          return {
+            dx: Math.round(Math.cos(angle) * dist),
+            dy: Math.round(Math.sin(angle) * dist),
+            color: GOLD[i % GOLD.length],
+            w: 6 + ((i * 7) % 8),
+            h: 10 + ((i * 11) % 10),
+            round: i % 4 === 0,
+            spin: ((i * 71) % 720) - 360,
+            delay: i < 70 ? (i * 13) % 120 : 350 + ((i * 17) % 160),
+            dur: 1.1 + ((i * 7) % 6) / 10,
+          }
+        })
+      : [],
+  )
+
   useEffect(() => {
     if (big) return
     const t = window.setTimeout(onDone, 3400)
@@ -98,15 +123,21 @@ function Celebration({ items, onDone }: { items: Achievement[]; onDone(): void }
         ))}
       </div>
       {big && (
-        <div className="flames" aria-hidden="true">
-          {Array.from({ length: 14 }, (_, i) => (
+        <div className="burst" aria-hidden="true">
+          {burst.map((b, i) => (
             <span
               key={i}
-              className="flame"
+              className="burst__bit"
               style={{
-                left: `${(i / 13) * 100}%`,
-                animationDelay: `${(i * 137) % 900}ms`,
-                height: `${34 + ((i * 29) % 30)}vh`,
+                background: b.color,
+                width: b.w,
+                height: b.h,
+                borderRadius: b.round ? 999 : 2,
+                animationDelay: `${b.delay}ms`,
+                animationDuration: `${b.dur}s`,
+                ['--dx' as string]: `${b.dx}px`,
+                ['--dy' as string]: `${b.dy}px`,
+                ['--spin' as string]: `${b.spin}deg`,
               }}
             />
           ))}
