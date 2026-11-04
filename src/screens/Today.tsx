@@ -92,15 +92,16 @@ export function Today() {
       waterTarget,
       waterText: `${settings.waterUnit === 'ml' ? Math.round(waterShown) : Math.round(waterShown * 10) / 10} ${waterUnitLabel(settings.waterUnit)}`,
       profile,
+      latestWeight: data.weights.length ? app.latestWeight : null,
       fasts: data.fasts,
       now: Date.now(),
-      weightText: `${Math.round(lbToDisplay(profile.currentWeight, settings.weightUnit) * 10) / 10} ${settings.weightUnit}`,
+      weightText: `${Math.round(lbToDisplay(app.latestWeight, settings.weightUnit) * 10) / 10} ${settings.weightUnit}`,
     })
     const fresh = uncelebrated(items)
     if (!fresh.length) return
     markCelebrated(fresh)
     celebrate(fresh)
-  }, [isToday, date, consumed, goal, totals.nutrients, macroTargets, log, waterTarget, settings, profile, data.fasts, tick])
+  }, [isToday, date, consumed, goal, totals.nutrients, macroTargets, log, waterTarget, settings, profile, data.fasts, data.weights.length, app.latestWeight, tick])
 
   const week = useMemo(() => {
     const out: {
@@ -189,7 +190,7 @@ export function Today() {
     if (a.kind === 'log') push({ name: 'foodSearch', date, meal: a.meal })
     else if (a.kind === 'water') push({ name: 'water', date })
     else if (a.kind === 'recipes') setTab('plan')
-    else push({ name: 'diary' })
+    else push({ name: 'calories', date })
   }
 
   /* ---------------------------------------------------------- log again -- */
@@ -373,7 +374,7 @@ export function Today() {
         {/* ---------------------------------------------------------- meals -- */}
         <div className="section-head">
           <span>{t('home.meals')}</span>
-          <button className="textbtn" style={{ padding: 0 }} onClick={() => push({ name: 'diary' })}>
+          <button className="textbtn" style={{ padding: 0 }} onClick={() => push({ name: 'calories', date })}>
             {t('home.openDiary')}
           </button>
         </div>
@@ -393,7 +394,7 @@ export function Today() {
                   className="meal__body"
                   onClick={() =>
                     items.length
-                      ? push({ name: 'diary' })
+                      ? push({ name: 'meal', date, meal: period })
                       : push({ name: 'foodSearch', date, meal: period })
                   }
                   aria-label={

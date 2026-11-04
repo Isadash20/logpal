@@ -523,8 +523,9 @@ function Compare({ a, b }: { a: Side; b: Side }) {
 
   const healthGap = a.health - b.health
   const fitGap = a.fit.score - b.fit.score
-  const verdict = (gap: number) =>
-    Math.abs(gap) < 0.3 ? 'Too close to call' : gap > 0 ? a.food.name : b.food.name
+  /* A call is made whenever the numbers differ at all. Only an exact tie
+     is left as one. */
+  const verdict = (gap: number) => (gap === 0 ? 'Dead even' : gap > 0 ? a.food.name : b.food.name)
 
   return (
     <>

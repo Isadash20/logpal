@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react'
-import { MEAL_KEYS, PERIOD_LABELS, type FoodEntry, type NutrientKey } from '../types'
+import { useState, type ReactNode } from 'react'
+import { MEAL_KEYS, PERIOD_LABELS, type FoodEntry, type MealKey, type NutrientKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
-import { Empty, Row, TopBar } from '../components/ui'
+import { Empty, Row, Sheet, SheetAction, TopBar } from '../components/ui'
 import { Donut, Legend } from '../components/charts'
 import { FoodMark } from '../components/FoodMark'
 import { NUTRIENTS, NUTRIENT_BY_KEY, type NutrientDef } from '../data/nutrients'
-import { cal } from '../lib/format'
+import { cal, entrySubtitle, timeOfDay } from '../lib/format'
 import { friendlyDate } from '../lib/dates'
 
 /**
@@ -16,9 +16,13 @@ import { friendlyDate } from '../lib/dates'
  * question nobody tapping a number was asking. These three screens answer
  * the one they were: calories shows the arithmetic and which meal spent
  * them; macros shows the three against their targets and what provided
- * each; a nutrient shows every logged food that carried it, biggest first.
- * The plan itself is edited under Settings, where changing it is a decision
- * rather than a slip.
+ * each; a nutrient shows every logged food that carried it, biggest first;
+ * a meal is just its foods. The plan itself is edited under Settings, where
+ * changing it is a decision rather than a slip.
+ *
+ * There is no diary page any more. It showed the whole day's arithmetic,
+ * macros, water, food and exercise on one scroll, and opening it from a
+ * meal row to see what breakfast was felt like being handed the ledger.
  */
 const MEAL_COLORS = ['var(--accent)', 'var(--carbs)', 'var(--fat)', 'var(--protein)']
 
@@ -103,7 +107,7 @@ export function CaloriesScreen({ date }: { date: string }) {
                 sub={items.length ? items.map((e) => e.name).join(', ') : 'Nothing logged'}
                 value={`${cal(totals.byMeal[m].calories)} cal`}
                 chevron
-                onClick={() => push({ name: 'diary' })}
+                onClick={() => push({ name: 'meal', date, meal: m })}
               />
             )
           })}
@@ -319,5 +323,90 @@ function Source({ entry, share, color, value }: { entry: FoodEntry; share: numbe
         </span>
       </span>
     </div>
+  )
+}
+
+/* ----------------------------------------------------------------- meal -- */
+
+/** One meal's foods, and nothing else. */
+export function MealScreen({ date, meal }: { date: string; meal: MealKey }) {
+  const app = useApp()
+  const { pop, push, entriesFor, totalsFor } = app
+  const [menu, setMenu] = useState<FoodEntry | null>(null)
+  const entries = entriesFor(date, meal)
+  const kcal = totalsFor(date).byMeal[meal].calories
+
+  return (
+    <>
+      <TopBar title={`${PERIOD_LABELS[meal]} · ${friendlyDate(date)}`} onBack={pop} solid />
+      <div className="scroll">
+        <div className="card" style={{ marginTop: 12 }}>
+          {entries.length === 0 && <Empty title="Nothing logged yet" />}
+          {entries.map((e) => (
+            <Row
+              key={e.id}
+              left={<FoodMark name={e.name} brand={e.brand} size={34} />}
+              title={e.name}
+              sub={entrySubtitle({ brand: e.brand, servings: e.servings, servingLabel: e.servingLabel })}
+              value={`${cal(e.nutrients.calories)} cal`}
+              right={
+                <span className="num" style={{ fontSize: 11, color: 'var(--text-3)', flex: 'none' }}>
+                  {timeOfDay(e.loggedAt)}
+                </span>
+              }
+              onClick={() => {
+                const food = app.resolveFood(e.foodId)
+                if (food) {
+                  push({ name: 'foodDetail', food, date, meal, entryId: e.id, servings: e.servings, servingLabel: e.servingLabel })
+                } else {
+                  setMenu(e)
+                }
+              }}
+            />
+          ))}
+          {entries.length > 0 && (
+            <div className="totals">
+              <span>Total</span>
+              <span className="totals__value">{cal(kcal)} cal</span>
+            </div>
+          )}
+        </div>
+
+        <div className="btn-wrap">
+          <button className="btn" onClick={() => push({ name: 'foodSearch', date, meal })}>
+            <Icon name="plus" size={19} strokeWidth={2.4} />
+            Log food
+          </button>
+        </div>
+        {entries.length > 0 && (
+          <div className="hint">Tap a food to change the serving, move it, or remove it.</div>
+        )}
+      </div>
+
+      {menu && (
+        <Sheet title={menu.name} onClose={() => setMenu(null)}>
+          {MEAL_KEYS.filter((m) => m !== menu.meal).map((m) => (
+            <SheetAction
+              key={m}
+              icon="clock"
+              label={`Move to ${PERIOD_LABELS[m]}`}
+              onClick={() => {
+                app.moveEntry(menu.id, m)
+                setMenu(null)
+              }}
+            />
+          ))}
+          <SheetAction
+            icon="trash"
+            label="Delete entry"
+            danger
+            onClick={() => {
+              app.deleteEntry(menu.id)
+              setMenu(null)
+            }}
+          />
+        </Sheet>
+      )}
+    </>
   )
 }

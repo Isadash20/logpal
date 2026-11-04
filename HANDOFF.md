@@ -1495,3 +1495,25 @@ waits for a tap. (Build 14 had CSS flames; Phillip found them awkward,
 build 15 swapped them for the burst.) Settings → About has two preview rows.
 
 Still open: the two `alter table` lines; the review video.
+
+## Mid-morning, 2026-11-04 (build 16): three corrections
+
+**Goal weight cheered wrongly.** Phillip opened build 14 and was told he
+had reached a goal of 115 at 130. The direction came from `goal.kind`, and
+"gain muscle" with a lower target read as gaining. Direction is now
+`startWeight` against `goalWeight` only; the weight judged is the latest
+weigh-in (`latestWeight`), and no weigh-in means no cheer. The id moved
+to `weight2:<target>` so the wrongly-marked `weight:115` no longer blocks
+the real one.
+
+**The diary page is gone.** `src/screens/Diary.tsx` and route `diary`
+deleted. Tapping a meal (from Home or the calories breakdown) opens
+`MealScreen` (`Breakdown.tsx`, route `meal`): that meal's foods, a total,
+Log food. Tapping a food opens the food detail for the entry; an entry
+whose food can no longer be resolved gets a move/delete sheet. The
+"Open diary" button on Home and the "See the diary" nudge now open the
+calories breakdown.
+
+**NutriScan always makes the call.** "Too close to call" under 0.3 is
+gone; the better food is named whenever the scores differ, "Dead even"
+only on an exact tie.

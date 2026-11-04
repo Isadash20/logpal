@@ -39,7 +39,9 @@ export interface DayState {
   waterTarget: number
   /** "8 cups", in the user's unit, for the card. */
   waterText: string
-  profile: Pick<Profile, 'stepGoal' | 'sleepGoalMin' | 'currentWeight' | 'goalWeight' | 'startWeight' | 'goal'>
+  profile: Pick<Profile, 'stepGoal' | 'sleepGoalMin' | 'goalWeight' | 'startWeight'>
+  /** The most recent weigh-in, in lb; null when none has been logged. */
+  latestWeight: number | null
   fasts: FastSession[]
   now: number
   /** "160 lb", for the card. */
@@ -121,15 +123,20 @@ export function achievementsFor(s: DayState): Achievement[] {
     out.push({ key: 'diary', id: `${d}:diary`, title: 'Diary complete', detail: 'Every meal logged for the day.' })
   }
 
+  /* Direction comes from where the journey started relative to the target,
+     never from the goal kind: "gain muscle" with a lower target weight is a
+     common pairing, and reading it as "gaining" cheered a 130 for a target
+     of 115. The weight judged is the latest weigh-in, and only when there
+     has been one: nobody reaches a goal weight without stepping on a scale. */
   const p = s.profile
-  const losing = p.goal.kind === 'lose-weight' || (p.goal.kind !== 'gain-muscle' && p.startWeight > p.goalWeight)
-  const gaining = p.goal.kind === 'gain-muscle' || (p.goal.kind !== 'lose-weight' && p.startWeight < p.goalWeight)
-  if (p.goalWeight > 0 && p.currentWeight > 0 && p.goalWeight !== p.startWeight) {
-    const reached = losing ? p.currentWeight <= p.goalWeight : gaining ? p.currentWeight >= p.goalWeight : false
+  const w = s.latestWeight
+  if (w != null && w > 0 && p.goalWeight > 0 && p.startWeight > 0 && p.goalWeight !== p.startWeight) {
+    const losing = p.startWeight > p.goalWeight
+    const reached = losing ? w <= p.goalWeight : w >= p.goalWeight
     if (reached) {
       out.push({
         key: 'weight',
-        id: `weight:${p.goalWeight}`,
+        id: `weight2:${p.goalWeight}`,
         title: 'You reached your goal weight',
         detail: `${s.weightText}. Every logged day got you here.`,
         big: true,

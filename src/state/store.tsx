@@ -199,7 +199,7 @@ export type TabKey = 'today' | 'nutriscan' | 'plan' | 'friends' | 'progress' | '
 
 export type Route =
   | { name: 'tab'; tab: TabKey }
-  | { name: 'diary' }
+  | { name: 'meal'; date: string; meal: MealKey }
   | { name: 'nutrition'; date: string }
   | { name: 'calories'; date: string }
   | { name: 'macros'; date: string }

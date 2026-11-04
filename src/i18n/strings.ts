@@ -54,7 +54,7 @@ const en = {
   'home.logAgainAria': 'Log {name} again',
   'home.logged': 'Logged',
   'home.meals': 'Meals',
-  'home.openDiary': 'Open diary',
+  'home.openDiary': 'See breakdown',
   'home.nothingYet': 'Nothing logged yet',
   'home.inDiary': '{meal} in the diary',
   'home.logMeal': 'Log {meal}',

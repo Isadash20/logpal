@@ -3,7 +3,6 @@ import { AppProvider, useApp, type TabKey } from './state/store'
 import { Icon, type IconName } from './components/Icon'
 import { Sheet } from './components/ui'
 import { Today } from './screens/Today'
-import { Diary } from './screens/Diary'
 import { Plan } from './screens/Plan'
 import { MealScan } from './screens/MealScan'
 import { NutriScan } from './screens/NutriScan'
@@ -20,7 +19,7 @@ import {
   PrefsUnits,
 } from './screens/Settings'
 import { NutritionScreen } from './screens/NutritionScreen'
-import { CaloriesScreen, MacrosScreen, NutrientScreen } from './screens/Breakdown'
+import { CaloriesScreen, MacrosScreen, MealScreen, NutrientScreen } from './screens/Breakdown'
 import { CelebrationHost } from './components/Confetti'
 import { FoodSearch } from './screens/FoodSearch'
 import { FoodDetail } from './screens/FoodDetail'
@@ -165,8 +164,8 @@ function Shell() {
           <More />
         )
 
-      case 'diary':
-        return <Diary />
+      case 'meal':
+        return <MealScreen date={route.date} meal={route.meal} />
 
       case 'nutrition':
         return <NutritionScreen date={route.date} />

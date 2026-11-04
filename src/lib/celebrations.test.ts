@@ -12,14 +12,8 @@ function state(over: Partial<DayState> = {}): DayState {
     log: { water: 0, completed: false },
     waterTarget: 2000,
     waterText: '8 cups',
-    profile: {
-      stepGoal: 8000,
-      sleepGoalMin: 480,
-      currentWeight: 180,
-      goalWeight: 160,
-      startWeight: 190,
-      goal: { kind: 'lose-weight', rate: -1 },
-    },
+    profile: { stepGoal: 8000, sleepGoalMin: 480, goalWeight: 160, startWeight: 190 },
+    latestWeight: 180,
     fasts: [],
     now: Date.parse('2026-11-04T12:00:00Z'),
     weightText: '160 lb',
@@ -57,15 +51,23 @@ describe('achievementsFor', () => {
     expect(achievementsFor(s).map((a) => a.id)).toEqual(['fast:a'])
   })
 
-  it('treats the goal weight by direction', () => {
-    const down = state({ profile: { ...state().profile, currentWeight: 159.5 } })
-    expect(keys(down)).toEqual(['weight'])
+  it('treats the goal weight by the direction of the journey', () => {
+    expect(keys(state({ latestWeight: 159.5 }))).toEqual(['weight'])
     const up = state({
-      profile: { stepGoal: 0, sleepGoalMin: 0, currentWeight: 171, goalWeight: 170, startWeight: 150, goal: { kind: 'gain-muscle', rate: 0.5 } },
+      profile: { stepGoal: 0, sleepGoalMin: 0, goalWeight: 170, startWeight: 150 },
+      latestWeight: 171,
     })
     expect(keys(up)).toEqual(['weight'])
-    const notYet = state({ profile: { ...state().profile, currentWeight: 161 } })
-    expect(keys(notYet)).toEqual([])
+    expect(keys(state({ latestWeight: 161 }))).toEqual([])
+  })
+
+  it('never cheers a weight above a lower target, whatever the goal kind says', () => {
+    const s = state({ profile: { stepGoal: 0, sleepGoalMin: 0, goalWeight: 115, startWeight: 130 }, latestWeight: 130 })
+    expect(keys(s)).toEqual([])
+  })
+
+  it('needs a logged weigh-in', () => {
+    expect(keys(state({ latestWeight: null }))).toEqual([])
   })
 })
 
@@ -89,9 +91,9 @@ describe('memory', () => {
   })
 
   it('remembers the weight target across days', () => {
-    const items = achievementsFor(state({ profile: { ...state().profile, currentWeight: 159 } }))
+    const items = achievementsFor(state({ latestWeight: 159 }))
     markCelebrated(items)
-    const nextDay = achievementsFor(state({ date: '2026-11-05', profile: { ...state().profile, currentWeight: 158 } }))
+    const nextDay = achievementsFor(state({ date: '2026-11-05', latestWeight: 158 }))
     expect(uncelebrated(nextDay)).toHaveLength(0)
   })
 })
