@@ -470,7 +470,7 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
   return (
     <Stat
       form={form}
-      onOpen={() => open({ name: 'goals' })}
+      onOpen={() => open({ name: 'calories', date })}
       s={{
         icon: 'flame',
         color: 'var(--accent)',
@@ -490,7 +490,7 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
         action:
           form === 'wide' || form === 'big' ? (
             <span className="textbtn" style={{ padding: 0, alignSelf: 'flex-start', fontSize: 13.5 }}>
-              {t('w.yourPlan')}
+              {t('w.breakdown')}
             </span>
           ) : undefined,
       }}
@@ -505,9 +505,11 @@ function CaloriesWidget({ date, w, h, editing }: WidgetProps) {
  * shapes stack them as rows with a bar each; wide shapes set them side by
  * side; the biggest gives each a ring.
  */
-function MacrosWidget({ date, w, h }: WidgetProps) {
+function MacrosWidget({ date, w, h, editing }: WidgetProps) {
   const { totalsFor, macroTargets } = useApp()
   const t = useT()
+  const open = useOpen(editing)
+  const onOpen = () => open({ name: 'macros', date })
   const n = totalsFor(date).nutrients
   const form = formOf(w, h)
 
@@ -523,7 +525,7 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
 
   if (form === 'tiny') {
     return (
-      <div className="widget__body widget__body--tiny" style={{ alignItems: 'stretch', gap: 3, justifyContent: 'center' }}>
+      <button onClick={onOpen} className="widget__body widget__body--tap widget__body--tiny" style={{ alignItems: 'stretch', gap: 3, justifyContent: 'center' }}>
         {rows.map(([label, now, , color]) => (
           <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
             {dot(color, 6)}
@@ -533,14 +535,14 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             </span>
           </span>
         ))}
-      </div>
+      </button>
     )
   }
 
   if (form === 'halfstrip' || form === 'strip') {
     const wide = form === 'strip'
     return (
-      <div className="widget__body widget__body--row">
+      <button onClick={onOpen} className="widget__body widget__body--tap widget__body--row">
         {wide && <Disc icon="chart" color="var(--carbs)" size={36} />}
         <span style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: wide ? 14 : 8, flex: 1, minWidth: 0 }}>
           {rows.map(([label, now, target, color]) => (
@@ -563,13 +565,13 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             </span>
           ))}
         </span>
-      </div>
+      </button>
     )
   }
 
   if (form === 'column') {
     return (
-      <div className="widget__body widget__body--column" style={{ justifyContent: 'space-between' }}>
+      <button onClick={onOpen} className="widget__body widget__body--tap widget__body--column" style={{ justifyContent: 'space-between' }}>
         <Disc icon="chart" color="var(--carbs)" size={26} />
         {rows.map(([label, now, target, color]) => (
           <span key={label} style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
@@ -582,14 +584,14 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             <Bar value={pct(now, target)} color={color} height={4} style={{ marginTop: 0 }} />
           </span>
         ))}
-      </div>
+      </button>
     )
   }
 
   if (form === 'card' || form === 'tall') {
     const tall = form === 'tall'
     return (
-      <div className="widget__body">
+      <button onClick={onOpen} className="widget__body widget__body--tap">
         <Title icon="chart" color="var(--carbs)">
           Macros
         </Title>
@@ -612,13 +614,13 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             </span>
           ))}
         </span>
-      </div>
+      </button>
     )
   }
 
   if (form === 'big') {
     return (
-      <div className="widget__body">
+      <button onClick={onOpen} className="widget__body widget__body--tap">
         <Title icon="chart" color="var(--carbs)">
           Macros
         </Title>
@@ -627,13 +629,13 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
             <Ring key={label} value={pct(now, target)} color={color} caption={`${Math.round(now)} / ${target} g`} label={label} />
           ))}
         </div>
-      </div>
+      </button>
     )
   }
 
   /* wide: three columns with a bar each, the Home macro card. */
   return (
-    <div className="widget__body">
+    <button onClick={onOpen} className="widget__body widget__body--tap">
       <Title icon="chart" color="var(--carbs)">
         Macros
       </Title>
@@ -663,7 +665,7 @@ function MacrosWidget({ date, w, h }: WidgetProps) {
           </div>
         ))}
       </div>
-    </div>
+    </button>
   )
 }
 

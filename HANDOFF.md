@@ -1439,3 +1439,57 @@ longer appends a second "1 oz" when USDA already lists one rounded to
 
 Still open from the morning: the two `alter table` lines for `sleep_min`
 and `steps` have not been run; the review video is Phillip's to record.
+
+## Morning, 2026-11-04 (build 14): Phillip's list
+
+Seven things from a day of use, all in one build.
+
+**Calories tap.** The Home calories figure opened the plan editor. It now
+opens `CaloriesScreen` (`src/screens/Breakdown.tsx`): the arithmetic (plan +
+exercise − food = left), a donut by meal with each meal's foods, the day's
+exercise, and one quiet line saying where the plan is changed. The widget's
+action text reads "Where it went".
+
+**Macros tap.** The macros widget was not tappable. It opens `MacrosScreen`:
+three cards (grams against target, share of calories, "mostly from X"),
+each opening `NutrientScreen`, which lists every logged food carrying that
+nutrient, biggest first, with its share. The "everything else" list under
+the three does the same for every nutrient on the panel. Routes
+`calories`, `macros`, `nutrient`.
+
+**NutriScan.** Rewritten (`WorthIt.tsx`). No "Log it"; the only action is
+Compare. The health score is the headline, large and in its colour, with
+the plan-fit dial beside it. Under it, four ratings from
+`src/lib/sourceRatings.ts`: protein source, carb source, fat source, clean
+eating, each 0–10 with a word and the figures behind it. Comparison is a
+face-to-face card (two dials, "Healthier" and "Better for today") and a
+row-per-figure table with the leader lit, then each food in full with a
+numbered badge.
+
+The pair lives in `src/state/worthSession.ts`, not component state: the
+router shows one route at a time, so the scanners unmounted the screen and
+the first food was lost. `Scanner` (mode `worth`) and the label scanner
+(new `mode` on route `nutriScan`) now `deliver()` their result and pop.
+Label scan is the third door on the NutriScan choose screen; its reading
+becomes a food named "Scanned label" without going through the create
+form.
+
+**Search tabs.** "My Favourites / My Meals / My Recipes / My Foods" →
+"Favorited foods / Favorited meals / My recipes / My foods".
+
+**Streak.** The Home flame pill is bigger (`.pill--streak`), the flame
+leads and breathes.
+
+**Celebrations.** `src/lib/celebrations.ts` decides what has just been
+met: calories within 5% of goal, all three macros, water, steps, sleep, a
+fast past its target (keyed by fast), diary completed, and the goal weight
+(keyed by target, direction-aware). `uncelebrated`/`markCelebrated` keep
+memory in `logpal.celebrated.v2`. Home checks on every change and on every
+foreground (visibilitychange + Capacitor appStateChange), so a goal met
+while the app was away is cheered at the next opening. `CelebrationHost`
+(`components/Confetti.tsx`) renders at app level from a tiny bus;
+`celebrate(items)` raises one. Ordinary goals: confetti + card, 3.4 s.
+Goal weight: dark backdrop, CSS flames, gold confetti, trophy card, waits
+for a tap. Settings → About has two preview rows.
+
+Still open: the two `alter table` lines; the review video.

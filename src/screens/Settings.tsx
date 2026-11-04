@@ -1,3 +1,5 @@
+import { celebrate } from '../components/Confetti'
+import { PREVIEW_GOAL, PREVIEW_WEIGHT } from '../lib/celebrations'
 import { useEffect, useMemo, useState } from 'react'
 import type { Sex } from '../types'
 import { useApp } from '../state/store'
@@ -1008,6 +1010,16 @@ export function About() {
           <a className="btn btn--ghost" href="/privacy" target="_blank" rel="noreferrer">
             Privacy policy
           </a>
+        </div>
+
+        <div className="section-label">Celebrations</div>
+        <div className="card" style={{ padding: '4px 0' }}>
+          <Row title="Preview a goal cheer" chevron onClick={() => celebrate(PREVIEW_GOAL)} />
+          <Row title="Preview the goal-weight cheer" chevron onClick={() => celebrate(PREVIEW_WEIGHT)} />
+        </div>
+        <div className="hint">
+          The real ones fire once each when a goal is met, or the next time the app opens if it
+          happened while you were away.
         </div>
       </div>
     </>

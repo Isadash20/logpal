@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../state/store'
+import { worthSession } from '../state/worthSession'
 import { Icon } from '../components/Icon'
 import { TopBar } from '../components/ui'
 import { RateLimitedError, lookupBarcode } from '../services/openFoodFacts'
@@ -40,11 +41,10 @@ export function BarcodeScanner({ date, mode = 'log' }: { date: string; mode?: 'l
           // is searchable later without another network round trip.
           saveScannedFood(food)
           pop()
-          push(
-            mode === 'worth'
-              ? { name: 'worthIt', food, date }
-              : { name: 'foodDetail', food, date },
-          )
+          /* NutriScan is waiting underneath with a slot open; handing the food
+             to it keeps whatever it already holds for the comparison. */
+          if (mode === 'worth') worthSession.deliver(food)
+          else push({ name: 'foodDetail', food, date })
         } else {
           pop()
           push({ name: 'createFood', barcode: code, returnTo: { date } })

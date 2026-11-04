@@ -94,6 +94,7 @@ const en = {
   'w.targetHours': '{h}h target',
   'w.goalReached': 'Goal reached',
   'w.toGo': '{amount} to go',
+  'w.breakdown': 'Where it went',
   'w.stepKcal': '≈ {kcal} kcal burned',
   'w.targetMet': 'Target met',
   'w.tapWeighIn': 'Tap to log a weigh-in',

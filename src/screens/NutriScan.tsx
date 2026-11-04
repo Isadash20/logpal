@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import type { NutrientKey } from '../types'
+import type { Food, NutrientKey } from '../types'
 import { useApp } from '../state/store'
+import { worthSession } from '../state/worthSession'
+import { ZERO_NUTRIENTS } from '../lib/nutrition'
 import { Icon } from '../components/Icon'
 import { Row, TopBar } from '../components/ui'
 import { NUTRIENTS, SHORT_LABELS } from '../data/nutrients'
@@ -27,7 +29,7 @@ const STAGE_LABEL: Record<string, string> = {
   'recognizing text': 'Reading the label',
 }
 
-export function NutriScan({ date }: { date: string }) {
+export function NutriScan({ date, mode = 'log' }: { date: string; mode?: 'log' | 'worth' }) {
   const { pop, push } = useApp()
   const [phase, setPhase] = useState<Phase>('camera')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -76,6 +78,31 @@ export function NutriScan({ date }: { date: string }) {
     setReading(null)
     setProblem(null)
     setPhase('camera')
+  }
+
+  /* For NutriScan: the reading becomes a food on the spot, no naming, and
+     is handed to the screen waiting underneath. */
+  function rateReading() {
+    if (!reading) return
+    const nutrients = { ...ZERO_NUTRIENTS }
+    for (const [k, v] of Object.entries(reading.values)) {
+      if (typeof v === 'number') nutrients[k as NutrientKey] = v
+    }
+    const food: Food = {
+      id: `label_${Date.now()}`,
+      name: 'Scanned label',
+      nutrients,
+      servings: [
+        {
+          label: reading.per100g ? '100 g' : (reading.servingLabel ?? '1 serving'),
+          grams: reading.per100g ? 100 : reading.servingGrams,
+          multiplier: 1,
+        },
+      ],
+      source: 'custom',
+    }
+    pop()
+    worthSession.deliver(food)
   }
 
   function useReading() {
@@ -230,9 +257,15 @@ export function NutriScan({ date }: { date: string }) {
               ))}
             </div>
             <div className="btn-wrap" style={{ gap: 10 }}>
-              <button className="btn" onClick={useReading}>
-                Looks right, name the food
-              </button>
+              {mode === 'worth' ? (
+                <button className="btn" onClick={rateReading}>
+                  Looks right, rate it
+                </button>
+              ) : (
+                <button className="btn" onClick={useReading}>
+                  Looks right, name the food
+                </button>
+              )}
               <button className="btn btn--ghost" onClick={retake}>
                 Retake
               </button>

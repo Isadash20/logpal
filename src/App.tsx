@@ -20,6 +20,8 @@ import {
   PrefsUnits,
 } from './screens/Settings'
 import { NutritionScreen } from './screens/NutritionScreen'
+import { CaloriesScreen, MacrosScreen, NutrientScreen } from './screens/Breakdown'
+import { CelebrationHost } from './components/Confetti'
 import { FoodSearch } from './screens/FoodSearch'
 import { FoodDetail } from './screens/FoodDetail'
 import { CreateFood } from './screens/CreateFood'
@@ -120,6 +122,7 @@ function Shell() {
   return (
     <div className="app">
       {renderRoute()}
+      <CelebrationHost />
 
       <div className="navdock">
         <nav className="tabbar">
@@ -168,6 +171,15 @@ function Shell() {
       case 'nutrition':
         return <NutritionScreen date={route.date} />
 
+      case 'calories':
+        return <CaloriesScreen date={route.date} />
+
+      case 'macros':
+        return <MacrosScreen date={route.date} />
+
+      case 'nutrient':
+        return <NutrientScreen date={route.date} nutrient={route.key} />
+
       case 'foodSearch':
         return <FoodSearch date={route.date} meal={route.meal} />
 
@@ -199,7 +211,7 @@ function Shell() {
         return <MealScan date={route.date} />
 
       case 'nutriScan':
-        return <NutriScan date={route.date} />
+        return <NutriScan date={route.date} mode={route.mode} />
 
       case 'exerciseSearch':
         return <ExerciseSearch date={route.date} kind={route.kind} />

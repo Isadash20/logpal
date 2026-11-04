@@ -5,11 +5,13 @@ import { Icon } from '../components/Icon'
 import { WeekStrip } from '../components/charts'
 import { WidgetGrid } from '../components/WidgetGrid'
 import { FoodMark } from '../components/FoodMark'
-import { Confetti, celebratedToday, markCelebrated } from '../components/Confetti'
+import { celebrate } from '../components/Confetti'
+import { achievementsFor, markCelebrated, uncelebrated } from '../lib/celebrations'
+import { App as CapApp } from '@capacitor/app'
 import { cal } from '../lib/format'
 import { addDays, longDate, today, weekdayInitials } from '../lib/dates'
 import { useT } from '../i18n'
-import { mlToDisplay, waterUnitLabel } from '../lib/units'
+import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import { dayInsight, type InsightAction } from '../lib/dayInsight'
 import { catalogRecipes, catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
 import { summarise } from '../services/recipes'
@@ -58,14 +60,47 @@ export function Today() {
     totals.nutrients.carbs >= macroTargets.carbs &&
     totals.nutrients.fat >= macroTargets.fat
 
-  /* Every macro target met is the one moment in the day worth marking, so it
-     is marked once and then left alone. */
-  const [celebrating, setCelebrating] = useState(false)
+  /* Goals met are cheered once each: on the change that meets them, or at
+     the next opening if it happened while the app was away. The tick makes
+     the check re-run when the app comes to the front, which is what catches
+     a fast that ticked over in a pocket. */
+  const [tick, setTick] = useState(0)
   useEffect(() => {
-    if (!allMacrosMet || celebratedToday(date)) return
-    markCelebrated(date)
-    setCelebrating(true)
-  }, [date, allMacrosMet])
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') setTick((n) => n + 1)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    const sub = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) setTick((n) => n + 1)
+    })
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      void sub.then((s) => s.remove()).catch(() => undefined)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isToday) return
+    const waterShown = mlToDisplay(log.water, settings.waterUnit)
+    const items = achievementsFor({
+      date,
+      consumed,
+      goal,
+      nutrients: totals.nutrients,
+      macroTargets,
+      log,
+      waterTarget,
+      waterText: `${settings.waterUnit === 'ml' ? Math.round(waterShown) : Math.round(waterShown * 10) / 10} ${waterUnitLabel(settings.waterUnit)}`,
+      profile,
+      fasts: data.fasts,
+      now: Date.now(),
+      weightText: `${Math.round(lbToDisplay(profile.currentWeight, settings.weightUnit) * 10) / 10} ${settings.weightUnit}`,
+    })
+    const fresh = uncelebrated(items)
+    if (!fresh.length) return
+    markCelebrated(fresh)
+    celebrate(fresh)
+  }, [isToday, date, consumed, goal, totals.nutrients, macroTargets, log, waterTarget, settings, profile, data.fasts, tick])
 
   const week = useMemo(() => {
     const out: {
@@ -233,8 +268,6 @@ export function Today() {
 
   return (
     <>
-      {celebrating && <Confetti onDone={() => setCelebrating(false)} />}
-
       <div className="scroll">
         <div className="home-head">
           <div className="home-head__top">
@@ -245,9 +278,9 @@ export function Today() {
             {/* Only from one day. A streak of zero is not worth a badge, and
                 showing "0" on day one is discouraging rather than motivating. */}
             {logStreak > 0 && (
-              <span className="pill" title={t('home.streak', { n: logStreak })}>
+              <span className="pill pill--streak" title={t('home.streak', { n: logStreak })}>
                 <span className="pill__flame">
-                  <Icon name="flame" size={16} strokeWidth={2.2} />
+                  <Icon name="flame" size={26} strokeWidth={2.4} />
                 </span>
                 <span className="num">{logStreak}</span>
               </span>

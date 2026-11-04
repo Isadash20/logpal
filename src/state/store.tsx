@@ -27,6 +27,7 @@ import type {
   FastingSettings,
   MealSlot,
   WeightEntry,
+  NutrientKey,
 } from '../types'
 import { MEAL_KEYS, periodForDate } from '../types'
 import { aisleFor } from '../data/aisles'
@@ -200,6 +201,9 @@ export type Route =
   | { name: 'tab'; tab: TabKey }
   | { name: 'diary' }
   | { name: 'nutrition'; date: string }
+  | { name: 'calories'; date: string }
+  | { name: 'macros'; date: string }
+  | { name: 'nutrient'; date: string; key: NutrientKey }
   | { name: 'foodSearch'; date: string; meal?: MealKey }
   | {
       name: 'foodDetail'
@@ -213,7 +217,7 @@ export type Route =
       servingLabel?: string
     }
   | { name: 'createFood'; barcode?: string; returnTo?: { date: string }; prefill?: LabelPrefill }
-  | { name: 'nutriScan'; date: string }
+  | { name: 'nutriScan'; date: string; mode?: 'log' | 'worth' }
   | { name: 'quickAdd'; date: string; meal?: MealKey }
   /* `mode` decides where a scan lands: the diary, or the worth-it screen. The
      camera and the lookup are identical either way, so they are not duplicated. */

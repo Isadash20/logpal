@@ -3560,3 +3560,543 @@ button.row:active {
   70% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ------------------------------------------------------- nutriscan hero -- */
+
+/* The headline card: the food's name, then the health score large and in
+   its colour with the plan-fit dial beside it. Also used, centred, as the
+   top of the breakdown screens. */
+.hero {
+  margin: 12px var(--gutter) 4px;
+  padding: 16px 16px 18px;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.hero--center {
+  text-align: center;
+}
+
+.hero__name {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.hero__title {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.hero__brand {
+  font-size: 13.5px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+.hero__scores {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.hero__main,
+.hero__side {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.hero__word {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+
+.hero__caption {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.hero__note {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.hero__big {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* The calorie arithmetic, one line a term. */
+.sum {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+.sum__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 2px;
+  font-size: 14.5px;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.sum__row--strong {
+  color: var(--text);
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+/* The numbered badge that keeps two compared foods apart down the page. */
+.wtag {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  flex: none;
+  vertical-align: middle;
+}
+
+.wtag--1 {
+  background: var(--accent);
+}
+
+.wtag--2 {
+  background: var(--carbs);
+}
+
+/* Two foods face to face. */
+.vs {
+  margin: 12px var(--gutter) 10px;
+  padding: 16px 12px 14px;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.vs__sides {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 6px;
+}
+
+.vs__side {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+  min-width: 0;
+}
+
+.vs__mid {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-top: 40px;
+}
+
+.vs__name {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+}
+
+.vs__brand {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: -4px;
+}
+
+.vs__verdicts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.vs__verdicts > div {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.vs__k {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vs__v {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* One rating: score chip, word, bar, figures. */
+.rating {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rating:last-child {
+  border-bottom: 0;
+}
+
+.rating__chip {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-family: var(--font-num);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.rating__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rating__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.rating__label {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.rating__word {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rating__bar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.rating__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.rating__detail {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.35;
+}
+
+.pickways--three {
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.pickways--three .pickway {
+  gap: 10px;
+  padding: 16px;
+}
+
+.pickways--three .pickway__icon {
+  width: 64px;
+  height: 64px;
+}
+
+/* ------------------------------------------------------------ breakdown -- */
+
+.dotmark {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: none;
+}
+
+.macrocard {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 2 * var(--gutter));
+  margin: 0 var(--gutter) 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+}
+
+.macrocard__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.macrocard__label {
+  font-weight: 700;
+  font-size: 16px;
+  flex: 1;
+}
+
+.macrocard__value {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.macrocard__unit {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.macrocard__sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.nb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nb:last-child {
+  border-bottom: 0;
+}
+
+.nb__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nb__head,
+.nb__sub {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.nb__name {
+  font-weight: 600;
+  font-size: 15px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb__value {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nb__sub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* --------------------------------------------------------------- streak -- */
+
+/* The flame is the badge. It was a 16 px icon in a pill that read as a
+   count with a decoration; now the flame leads and the count rides on it. */
+.pill--streak {
+  height: 46px;
+  padding: 0 14px 0 10px;
+  gap: 4px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.pill--streak .pill__flame {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--warning) 55%, transparent));
+  animation: flame-breathe 1.8s ease-in-out infinite;
+}
+
+@keyframes flame-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* ---------------------------------------------------------- celebration -- */
+
+.celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: celebrate-in 0.25s ease-out;
+}
+
+.celebrate--big {
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 120, 20, 0.45), rgba(10, 6, 20, 0.86) 70%);
+}
+
+@keyframes celebrate-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.celebrate__card {
+  position: relative;
+  z-index: 2;
+  max-width: 340px;
+  width: 100%;
+  padding: 22px 22px 20px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: celebrate-pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.celebrate--big .celebrate__card {
+  padding: 28px 24px 24px;
+  box-shadow: 0 0 0 4px #ffd54a, 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes celebrate-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.celebrate__emoji {
+  font-size: 46px;
+  line-height: 1;
+}
+
+.celebrate--big .celebrate__emoji {
+  font-size: 64px;
+  animation: trophy-bounce 1.2s ease-in-out infinite;
+}
+
+@keyframes trophy-bounce {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+
+.celebrate__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: 10px;
+}
+
+.celebrate--big .celebrate__title {
+  font-size: 26px;
+}
+
+.celebrate__detail {
+  font-size: 14.5px;
+  color: var(--text-2);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.celebrate__tap {
+  margin-top: 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Flames rising from the bottom edge: soft blurred teardrops in three
+   layers of colour, each on its own flicker. */
+.flames {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6vh;
+  height: 70vh;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(14px) contrast(1.4);
+}
+
+.flame {
+  position: absolute;
+  bottom: 0;
+  width: 18vw;
+  margin-left: -9vw;
+  border-radius: 50% 50% 35% 35% / 60% 60% 40% 40%;
+  background: linear-gradient(to top, #ff3d00 0%, #ff8a00 35%, #ffd54a 65%, rgba(255, 240, 180, 0) 100%);
+  transform-origin: 50% 100%;
+  animation: flame-rise 0.9s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+.flame:nth-child(odd) {
+  animation-duration: 1.15s;
+  background: linear-gradient(to top, #ff1744 0%, #ff6d00 40%, #ffc400 70%, rgba(255, 240, 180, 0) 100%);
+}
+
+@keyframes flame-rise {
+  from { transform: scaleY(0.82) scaleX(0.94) translateY(6px); }
+  to { transform: scaleY(1.08) scaleX(1.04) translateY(-14px); }
+}
+
+.celebrate--big .confetti__bit {
+  width: 10px;
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flames, .celebrate__emoji { animation: none; }
+  .flame { animation: none; }
+}
