@@ -24,6 +24,8 @@
   --accent-press: #4a4ac2;
   --accent-soft: #ecebfb;
   --accent-ring: rgba(91, 91, 214, 0.2);
+  /* How strong the coloured washes on cards are; the soft looks turn it down. */
+  --tint-k: 1;
   /* The second colour, splashed about: the add button, links, the picked
      day, the icon tiles. Classic has none, so it is the brand colour. */
   --pop: #5b5bd6;
@@ -175,110 +177,112 @@
    `classic` sets nothing here. Each has a dark half. */
 
 :root[data-palette='sakura'] {
-  --accent: #e4799a;
-  --accent-press: #d4688a;
-  --accent-soft: #fbe3ea;
-  --accent-ring: rgba(228, 121, 154, 0.22);
-  --pop: #7fb27a;
-  --pop-press: #6ea069;
-  --pop-soft: #e2f0de;
-  --pop-ring: rgba(127, 178, 122, 0.28);
+  --accent: #d8809a;
+  --accent-press: #c96f8a;
+  --accent-soft: #f9e8ee;
+  --accent-ring: rgba(216, 128, 154, 0.16);
+  --pop: #86ad82;
+  --pop-press: #769d72;
+  --pop-soft: #e8f1e5;
+  --pop-ring: rgba(134, 173, 130, 0.2);
 
   --ink: #3a2a33;
   --ink-2: #5a4652;
   --on-ink: #ffffff;
   --on-ink-2: #d8c7cf;
 
-  --protein: #d75f82;
-  --carbs: #7fb27a;
-  --fat: #eea9bd;
-  --water: #7fb27a;
-  --steps: #e4799a;
-  --sleep: #c9628a;
+  --protein: #d26f8b;
+  --carbs: #86ad82;
+  --fat: #e6b4c3;
+  --water: #86ad82;
+  --steps: #d8809a;
+  --sleep: #c27a95;
 
-  --positive: #6aa86b;
+  --positive: #74a874;
   --warning: #e9a23b;
   --danger: #e0566a;
   --gold: #f3c85c;
 
-  --bg: #f8e3e9;
-  --bg-top: #f8e3e9;
-  --surface: #fffafb;
-  --surface-2: #fdf3f6;
-  --surface-3: #f6e4ea;
-  --border: #f3dfe6;
-  --border-strong: #e6c9d4;
+  --bg: #fbf4f6;
+  --bg-top: #fbf4f6;
+  --surface: #ffffff;
+  --surface-2: #fcf6f8;
+  --surface-3: #f5eaee;
+  --border: #f1e6ea;
+  --border-strong: #e4d3da;
 
-  --text: #2b2026;
-  --text-2: #7a6a72;
-  --text-3: #a8979f;
+  --text: #2a2328;
+  --text-2: #746870;
+  --text-3: #a3979d;
 
   --shadow-1: 0 1px 2px rgba(140, 60, 95, 0.05), 0 2px 8px rgba(140, 60, 95, 0.05);
   --shadow-card: 0 2px 4px rgba(140, 60, 95, 0.06), 0 12px 32px rgba(140, 60, 95, 0.1);
   --shadow-2: 0 2px 6px rgba(140, 60, 95, 0.06), 0 10px 30px rgba(140, 60, 95, 0.1);
   --shadow-3: 0 16px 40px rgba(140, 60, 95, 0.16);
-  --meal-morning: #e4799a;
-  --meal-afternoon: #7fb27a;
-  --meal-evening: #d75f82;
-  --meal-late: #c9628a;
+  --meal-morning: #d8809a;
+  --meal-afternoon: #86ad82;
+  --meal-evening: #d26f8b;
+  --meal-late: #c27a95;
+  --tint-k: 0.5;
 }
 
 :root[data-palette='matcha'] {
-  --accent: #7fa87a;
-  --accent-press: #6e976a;
-  --accent-soft: #e3eedf;
-  --accent-ring: rgba(127, 168, 122, 0.25);
-  --pop: #e58aa5;
-  --pop-press: #d87795;
-  --pop-soft: #fbe4ec;
-  --pop-ring: rgba(229, 138, 165, 0.26);
+  --accent: #83a97f;
+  --accent-press: #72986e;
+  --accent-soft: #e7efe3;
+  --accent-ring: rgba(131, 169, 127, 0.18);
+  --pop: #d98ba3;
+  --pop-press: #c97a93;
+  --pop-soft: #f8e8ee;
+  --pop-ring: rgba(217, 139, 163, 0.2);
 
   --ink: #26302a;
   --ink-2: #3d4a41;
   --on-ink: #ffffff;
   --on-ink-2: #c7d3c9;
 
-  --protein: #e58aa5;
-  --carbs: #7fa87a;
-  --fat: #b6d3ae;
-  --water: #e58aa5;
-  --steps: #7fa87a;
-  --sleep: #5f8f5b;
+  --protein: #d98ba3;
+  --carbs: #83a97f;
+  --fat: #bdd4b6;
+  --water: #d98ba3;
+  --steps: #83a97f;
+  --sleep: #6f9a6b;
 
-  --positive: #5f9c5a;
+  --positive: #6f9f6a;
   --warning: #e9a23b;
   --danger: #e0566a;
   --gold: #f3c85c;
 
-  --bg: #e6efe1;
-  --bg-top: #e6efe1;
-  --surface: #fbfdfa;
-  --surface-2: #f3f8f0;
-  --surface-3: #e5eee1;
-  --border: #e0eadb;
-  --border-strong: #c9d9c3;
+  --bg: #f5f8f3;
+  --bg-top: #f5f8f3;
+  --surface: #ffffff;
+  --surface-2: #f7faf5;
+  --surface-3: #ecf1e9;
+  --border: #e6ece3;
+  --border-strong: #d2dccd;
 
-  --text: #22291f;
-  --text-2: #6b766a;
-  --text-3: #98a296;
+  --text: #242a22;
+  --text-2: #6c766b;
+  --text-3: #99a297;
 
   --shadow-1: 0 1px 2px rgba(60, 90, 50, 0.05), 0 2px 8px rgba(60, 90, 50, 0.05);
   --shadow-card: 0 2px 4px rgba(60, 90, 50, 0.06), 0 12px 32px rgba(60, 90, 50, 0.1);
   --shadow-2: 0 2px 6px rgba(60, 90, 50, 0.06), 0 10px 30px rgba(60, 90, 50, 0.1);
   --shadow-3: 0 16px 40px rgba(60, 90, 50, 0.16);
-  --meal-morning: #7fa87a;
-  --meal-afternoon: #e58aa5;
-  --meal-evening: #5f8f5b;
-  --meal-late: #6e976a;
+  --meal-morning: #83a97f;
+  --meal-afternoon: #d98ba3;
+  --meal-evening: #6f9a6b;
+  --meal-late: #72986e;
+  --tint-k: 0.5;
 }
 
 /* The dark halves: a plum-dark or moss-dark ground, the base colour kept
    in the brand and the blobs, the second colour lifted so it still reads. */
 :root[data-theme='dark'][data-palette='sakura'] {
-  --accent: #f2a1bb;
+  --accent: #e9a3b8;
   --accent-press: #f7b6ca;
   --accent-soft: #3d2733;
-  --accent-ring: rgba(242, 161, 187, 0.25);
+  --accent-ring: rgba(233, 163, 184, 0.18);
   --pop: #9bd094;
   --pop-press: #b0dcaa;
   --pop-soft: #26352a;
@@ -293,7 +297,7 @@
   --carbs: #9bd094;
   --fat: #f6c4d2;
   --water: #9bd094;
-  --steps: #f2a1bb;
+  --steps: #e9a3b8;
   --sleep: #e27fa2;
 
   --positive: #8fcf8c;
@@ -301,13 +305,13 @@
   --danger: #ff7a8c;
   --gold: #fdd56a;
 
-  --bg: #1d1419;
+  --bg: #1a1518;
   --bg-top: #1d1419;
-  --surface: #271b22;
-  --surface-2: #2d2128;
-  --surface-3: #392b34;
-  --border: #35282f;
-  --border-strong: #4b3a45;
+  --surface: #231c21;
+  --surface-2: #292127;
+  --surface-3: #352b32;
+  --border: #31282e;
+  --border-strong: #473a43;
 
   --text: #f6edf1;
   --text-2: #b8a6b0;
@@ -321,13 +325,14 @@
   --meal-afternoon: #9bd094;
   --meal-evening: #f28a9f;
   --meal-late: #e27fa2;
+  --tint-k: 0.6;
 }
 
 :root[data-theme='dark'][data-palette='matcha'] {
-  --accent: #9ccb95;
+  --accent: #9bc495;
   --accent-press: #b0d9aa;
   --accent-soft: #263426;
-  --accent-ring: rgba(156, 203, 149, 0.25);
+  --accent-ring: rgba(155, 196, 149, 0.18);
   --pop: #f2a1bb;
   --pop-press: #f7b6ca;
   --pop-soft: #3d2733;
@@ -342,7 +347,7 @@
   --carbs: #9ccb95;
   --fat: #cfe6c9;
   --water: #f2a1bb;
-  --steps: #9ccb95;
+  --steps: #9bc495;
   --sleep: #7fb27a;
 
   --positive: #8fcf8c;
@@ -350,13 +355,13 @@
   --danger: #ff7a8c;
   --gold: #fdd56a;
 
-  --bg: #141a14;
+  --bg: #141814;
   --bg-top: #141a14;
-  --surface: #1c241c;
-  --surface-2: #222b22;
-  --surface-3: #2d382d;
-  --border: #2a342b;
-  --border-strong: #3e4b3e;
+  --surface: #1c221c;
+  --surface-2: #222922;
+  --surface-3: #2c352c;
+  --border: #2a322b;
+  --border-strong: #3e493e;
 
   --text: #eef4ec;
   --text-2: #a7b4a5;
@@ -370,4 +375,5 @@
   --meal-afternoon: #f2a1bb;
   --meal-evening: #7fb27a;
   --meal-late: #b0d9aa;
+  --tint-k: 0.6;
 }

@@ -3256,35 +3256,37 @@ button.row:active {
    tile takes a wash of its own colour with a solid icon disc; the macro
    figures are set in their colours; the greeting, the streak, the week and
    the active tab are tinted. Cards carry a visible shadow so they lift off
-   the ground, which the user asked for by name. */
+   the ground, which the user asked for by name. `--tint-k` scales every
+   wash: 1 in classic, well under it in the pink and green looks, where a
+   full-strength tint of the same hue on every card wore the eyes out. */
 
 .widget--calories {
-  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  background: color-mix(in srgb, var(--accent) calc(13% * var(--tint-k, 1)), var(--surface));
   box-shadow: 0 2px 6px var(--accent-ring), 0 12px 32px var(--accent-ring);
 }
 
 .widget--fasting {
-  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+  background: color-mix(in srgb, var(--accent) calc(9% * var(--tint-k, 1)), var(--surface));
 }
 
 .widget--water {
-  background: color-mix(in srgb, var(--water) 11%, var(--surface));
+  background: color-mix(in srgb, var(--water) calc(11% * var(--tint-k, 1)), var(--surface));
 }
 
 .widget--sleep {
-  background: color-mix(in srgb, var(--sleep) 9%, var(--surface));
+  background: color-mix(in srgb, var(--sleep) calc(9% * var(--tint-k, 1)), var(--surface));
 }
 
 .widget--steps {
-  background: color-mix(in srgb, var(--steps) 11%, var(--surface));
+  background: color-mix(in srgb, var(--steps) calc(11% * var(--tint-k, 1)), var(--surface));
 }
 
 .widget--weight {
-  background: color-mix(in srgb, var(--fat) 9%, var(--surface));
+  background: color-mix(in srgb, var(--fat) calc(9% * var(--tint-k, 1)), var(--surface));
 }
 
 .widget--exercise {
-  background: color-mix(in srgb, var(--carbs) 10%, var(--surface));
+  background: color-mix(in srgb, var(--carbs) calc(10% * var(--tint-k, 1)), var(--surface));
 }
 
 /* A tinted card needs a track that is not the grey of a white card. */

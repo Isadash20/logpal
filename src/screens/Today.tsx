@@ -404,7 +404,7 @@ export function Today() {
                   <span
                     className="meal__icon"
                     style={{
-                      background: `color-mix(in srgb, ${tint} 14%, var(--surface))`,
+                      background: `color-mix(in srgb, ${tint} calc(14% * var(--tint-k, 1)), var(--surface))`,
                       color: tint,
                     }}
                   >

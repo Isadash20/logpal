@@ -1577,3 +1577,10 @@ upload**.
   Settings banner reads "Sakura · Match system".
 - Strings are English only (`settings.palette`, `settings.paletteClassic`;
   `settings.themeHint` reworded); `t()` falls back to English.
+
+Fourth note, same day: "too much on the eyes, I get tired". The cause was
+one saturated hue everywhere: a pink wash, a pink tint on every card, pink
+figures. So: the wash is near-white blush (`#fbf4f6`) / near-white sage,
+cards pure white, the hues dustier (rose `#d8809a`, sage `#86ad82`), and
+`--tint-k` (new, 1 in classic, 0.5 in the soft looks, 0.6 dark) scales
+every card wash in `global.css` and the meal icon tint in Today.tsx.
