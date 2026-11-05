@@ -50,6 +50,11 @@
   --water: #06b6d4;
   --steps: #10b981;
   --sleep: #a855f7;
+  /* The four meal rows on Home, each icon on its own tint. */
+  --meal-morning: #e8890c;
+  --meal-afternoon: #3b82f6;
+  --meal-evening: #5b5bd6;
+  --meal-late: #a855f7;
 
   /* Status */
   --positive: #16a34a;
@@ -129,6 +134,10 @@
   --water: #22d3ee;
   --steps: #34d399;
   --sleep: #c084fc;
+  --meal-morning: #ffb340;
+  --meal-afternoon: #60a5fa;
+  --meal-evening: #8d8dff;
+  --meal-late: #c084fc;
 
   --positive: #3ddc84;
   --warning: #ffb340;
@@ -157,14 +166,13 @@
 /* ------------------------------------------------------------- palettes -- */
 
 /* From a board Phillip sent 2026-11-05: soft pink, matcha green, white,
-   cherry blossom. Each look is one base colour and splashes of a second:
-   Sakura is pink with green about it, Matcha is green with pink. The base
-   is the wash and a breath of it in the cards; the brand colour matches
-   the base; the second colour (`--pop`) takes the add button, links, the
-   picked day and the icon tiles, and sits as soft blurred blobs on the
-   wash through `--bg-pattern`, which `.app` lays over it. Status colours
-   are re-tinted and the macro hues softened; shape and type do not
-   change. `classic` sets nothing here. Each has a dark half. */
+   cherry blossom. Each look is one base colour with the other "splotched"
+   through it: Sakura is pink everywhere (wash, brand, water, steps, sleep,
+   meals, two of the three macros) with green in a few places (the add
+   button, links, the picked day, the icon tiles, water, carbs, one meal);
+   Matcha is the mirror. The wash is plain, no pattern: he was clear about
+   that. Status colours are re-tinted, shape and type do not change.
+   `classic` sets nothing here. Each has a dark half. */
 
 :root[data-palette='sakura'] {
   --accent: #e4799a;
@@ -181,12 +189,12 @@
   --on-ink: #ffffff;
   --on-ink-2: #d8c7cf;
 
-  --protein: #e06b7c;
-  --carbs: #f0a85c;
-  --fat: #7da6de;
-  --water: #6fc3d6;
-  --steps: #7fb27a;
-  --sleep: #b79ad9;
+  --protein: #d75f82;
+  --carbs: #7fb27a;
+  --fat: #eea9bd;
+  --water: #7fb27a;
+  --steps: #e4799a;
+  --sleep: #c9628a;
 
   --positive: #6aa86b;
   --warning: #e9a23b;
@@ -195,11 +203,6 @@
 
   --bg: #f8e3e9;
   --bg-top: #f8e3e9;
-  --bg-pattern:
-    radial-gradient(260px 220px at 88% 8%, rgba(127, 178, 122, 0.26), transparent 70%),
-    radial-gradient(300px 260px at -4% 42%, rgba(127, 178, 122, 0.22), transparent 70%),
-    radial-gradient(240px 240px at 76% 78%, rgba(127, 178, 122, 0.2), transparent 70%),
-    radial-gradient(180px 180px at 24% 96%, rgba(255, 255, 255, 0.6), transparent 70%);
   --surface: #fffafb;
   --surface-2: #fdf3f6;
   --surface-3: #f6e4ea;
@@ -214,6 +217,10 @@
   --shadow-card: 0 2px 4px rgba(140, 60, 95, 0.06), 0 12px 32px rgba(140, 60, 95, 0.1);
   --shadow-2: 0 2px 6px rgba(140, 60, 95, 0.06), 0 10px 30px rgba(140, 60, 95, 0.1);
   --shadow-3: 0 16px 40px rgba(140, 60, 95, 0.16);
+  --meal-morning: #e4799a;
+  --meal-afternoon: #7fb27a;
+  --meal-evening: #d75f82;
+  --meal-late: #c9628a;
 }
 
 :root[data-palette='matcha'] {
@@ -231,12 +238,12 @@
   --on-ink: #ffffff;
   --on-ink-2: #c7d3c9;
 
-  --protein: #e07a8c;
-  --carbs: #e9b25f;
-  --fat: #78a3dd;
-  --water: #6fc0d2;
-  --steps: #5fb08a;
-  --sleep: #b39adb;
+  --protein: #e58aa5;
+  --carbs: #7fa87a;
+  --fat: #b6d3ae;
+  --water: #e58aa5;
+  --steps: #7fa87a;
+  --sleep: #5f8f5b;
 
   --positive: #5f9c5a;
   --warning: #e9a23b;
@@ -245,11 +252,6 @@
 
   --bg: #e6efe1;
   --bg-top: #e6efe1;
-  --bg-pattern:
-    radial-gradient(260px 220px at 88% 8%, rgba(229, 138, 165, 0.26), transparent 70%),
-    radial-gradient(300px 260px at -4% 42%, rgba(229, 138, 165, 0.22), transparent 70%),
-    radial-gradient(240px 240px at 76% 78%, rgba(229, 138, 165, 0.2), transparent 70%),
-    radial-gradient(180px 180px at 24% 96%, rgba(255, 255, 255, 0.6), transparent 70%);
   --surface: #fbfdfa;
   --surface-2: #f3f8f0;
   --surface-3: #e5eee1;
@@ -264,6 +266,10 @@
   --shadow-card: 0 2px 4px rgba(60, 90, 50, 0.06), 0 12px 32px rgba(60, 90, 50, 0.1);
   --shadow-2: 0 2px 6px rgba(60, 90, 50, 0.06), 0 10px 30px rgba(60, 90, 50, 0.1);
   --shadow-3: 0 16px 40px rgba(60, 90, 50, 0.16);
+  --meal-morning: #7fa87a;
+  --meal-afternoon: #e58aa5;
+  --meal-evening: #5f8f5b;
+  --meal-late: #6e976a;
 }
 
 /* The dark halves: a plum-dark or moss-dark ground, the base colour kept
@@ -283,12 +289,12 @@
   --on-ink: #1a1216;
   --on-ink-2: #6a5a63;
 
-  --protein: #f28a99;
-  --carbs: #f5bd73;
-  --fat: #8fb8ee;
-  --water: #7fd3e4;
-  --steps: #9bd094;
-  --sleep: #c9aee8;
+  --protein: #f28a9f;
+  --carbs: #9bd094;
+  --fat: #f6c4d2;
+  --water: #9bd094;
+  --steps: #f2a1bb;
+  --sleep: #e27fa2;
 
   --positive: #8fcf8c;
   --warning: #ffb75c;
@@ -297,10 +303,6 @@
 
   --bg: #1d1419;
   --bg-top: #1d1419;
-  --bg-pattern:
-    radial-gradient(260px 220px at 88% 8%, rgba(155, 208, 148, 0.12), transparent 70%),
-    radial-gradient(300px 260px at -4% 42%, rgba(155, 208, 148, 0.1), transparent 70%),
-    radial-gradient(240px 240px at 76% 78%, rgba(155, 208, 148, 0.09), transparent 70%);
   --surface: #271b22;
   --surface-2: #2d2128;
   --surface-3: #392b34;
@@ -315,6 +317,10 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --meal-morning: #f2a1bb;
+  --meal-afternoon: #9bd094;
+  --meal-evening: #f28a9f;
+  --meal-late: #e27fa2;
 }
 
 :root[data-theme='dark'][data-palette='matcha'] {
@@ -332,12 +338,12 @@
   --on-ink: #121712;
   --on-ink-2: #5d6a5c;
 
-  --protein: #f08c9c;
-  --carbs: #f3c070;
-  --fat: #8db6ec;
-  --water: #7fd0e0;
-  --steps: #7ccfa3;
-  --sleep: #c6afe8;
+  --protein: #f2a1bb;
+  --carbs: #9ccb95;
+  --fat: #cfe6c9;
+  --water: #f2a1bb;
+  --steps: #9ccb95;
+  --sleep: #7fb27a;
 
   --positive: #8fcf8c;
   --warning: #ffb75c;
@@ -346,10 +352,6 @@
 
   --bg: #141a14;
   --bg-top: #141a14;
-  --bg-pattern:
-    radial-gradient(260px 220px at 88% 8%, rgba(242, 161, 187, 0.12), transparent 70%),
-    radial-gradient(300px 260px at -4% 42%, rgba(242, 161, 187, 0.1), transparent 70%),
-    radial-gradient(240px 240px at 76% 78%, rgba(242, 161, 187, 0.09), transparent 70%);
   --surface: #1c241c;
   --surface-2: #222b22;
   --surface-3: #2d382d;
@@ -364,4 +366,8 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+  --meal-morning: #9ccb95;
+  --meal-afternoon: #f2a1bb;
+  --meal-evening: #7fb27a;
+  --meal-late: #b0d9aa;
 }

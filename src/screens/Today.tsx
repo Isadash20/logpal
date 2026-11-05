@@ -492,8 +492,8 @@ const PERIOD_ICON = {
    before the words are read. Drawn from the tokens so the row never carries a
    colour the rest of the app does not. */
 const PERIOD_TINT: Record<MealKey, string> = {
-  morning: 'var(--warning)',
-  afternoon: 'var(--fat)',
-  evening: 'var(--accent)',
-  late: 'var(--sleep)',
+  morning: 'var(--meal-morning)',
+  afternoon: 'var(--meal-afternoon)',
+  evening: 'var(--meal-evening)',
+  late: 'var(--meal-late)',
 }

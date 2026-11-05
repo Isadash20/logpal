@@ -1564,9 +1564,12 @@ upload**.
   a breath of it in the cards, the brand colour) plus a second colour,
   `--pop`, that takes the add button, links, the picked day and the banner
   icon tiles (`global.css` routes those through `--pop`; classic sets it to
-  the accent), and sits as soft blurred blobs on the wash via `--bg-pattern`,
-  which `.app` lays over it (`background-image: var(--bg-pattern, none)`).
-  Macro hues softened; shape and type do not change.
+  the accent). Third note: no blobs on the wash ("plain pink"); the
+  splotches are the *things*: water, steps, sleep, the meal rows and the
+  macros are all pink in Sakura with green on a few (water, carbs, the
+  afternoon meal), the mirror in Matcha. Meal tints are tokens now
+  (`--meal-morning` etc., `PERIOD_TINT` in Today.tsx). `--bg-pattern` is
+  still honoured by `.app` but no palette sets it.
 - Appearance screen: a row of three swatch discs ("Look") above the mode
   select. A pick shows at once; the shell re-applies the saved look on
   every route change (`route` is a dependency of the look effect in
