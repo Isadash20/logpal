@@ -7,13 +7,10 @@ W,K='#ffffff','#000000'
 # key, label, accent, pop, bg (light), textbase, note
 SPECS=[
  ('lavender','Lavender','#8f74d2','#4fb39a','#f6f3fc','#241f2f','lilac with mint about it'),
- ('peach','Peach','#ec7c5f','#3f9fb0','#fdf3ee','#2c2220','coral with teal'),
  ('sky','Sky','#4f8fe0','#e09a4a','#f1f6fc','#1b2534','blue with sand'),
  ('honey','Honey','#d9961f','#4d6fb3','#fcf7ea','#2a2414','mustard with slate blue'),
  ('slate','Slate','#44679f','#e08f2f','#f0f3f8','#161c27','steel blue with amber'),
  ('forest','Forest','#2f8457','#d07a3a','#f0f6f1','#15221a','deep green with copper'),
- ('ocean','Ocean','#1f87a6','#ec7158','#eff5f8','#142128','teal with coral'),
- ('mono','Mono','#23232b','#e23d4e','#f3f3f5','#111114','near-black with one red'),
 ]
 out=[]
 out.append("""

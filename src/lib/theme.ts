@@ -12,7 +12,9 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
   const root = document.documentElement
   const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.dataset.theme = dark ? 'dark' : 'light'
-  root.dataset.palette = palette
+  /* A save may name a look that was since cut (Peach, Ocean, Mono went on
+     2026-11-05); that falls back to classic rather than to no tokens. */
+  root.dataset.palette = PALETTES.some((p) => p.key === palette) ? palette : 'classic'
   /* The browser chrome (and the PWA's status bar) takes the wash colour. */
   const bg = getComputedStyle(root).getPropertyValue('--bg').trim()
   if (bg) document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg))
@@ -25,11 +27,8 @@ export const PALETTES: { key: Palette; label: string; bg: string; accent: string
   { key: 'sakura', label: 'Sakura', bg: '#fbf4f6', accent: '#d8809a', second: '#86ad82' },
   { key: 'matcha', label: 'Matcha', bg: '#f5f8f3', accent: '#83a97f', second: '#d98ba3' },
   { key: 'lavender', label: 'Lavender', bg: '#f6f3fc', accent: '#8f74d2', second: '#4fb39a' },
-  { key: 'peach', label: 'Peach', bg: '#fdf3ee', accent: '#ec7c5f', second: '#3f9fb0' },
   { key: 'sky', label: 'Sky', bg: '#f1f6fc', accent: '#4f8fe0', second: '#e09a4a' },
   { key: 'honey', label: 'Honey', bg: '#fcf7ea', accent: '#d9961f', second: '#4d6fb3' },
   { key: 'slate', label: 'Slate', bg: '#f0f3f8', accent: '#44679f', second: '#e08f2f' },
   { key: 'forest', label: 'Forest', bg: '#f0f6f1', accent: '#2f8457', second: '#d07a3a' },
-  { key: 'ocean', label: 'Ocean', bg: '#eff5f8', accent: '#1f87a6', second: '#ec7158' },
-  { key: 'mono', label: 'Mono', bg: '#f3f3f5', accent: '#23232b', second: '#e23d4e' },
 ]

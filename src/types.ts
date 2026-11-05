@@ -398,13 +398,10 @@ export type Palette =
   | 'sakura'
   | 'matcha'
   | 'lavender'
-  | 'peach'
   | 'sky'
   | 'honey'
   | 'slate'
   | 'forest'
-  | 'ocean'
-  | 'mono'
 
 export interface Settings {
   weightUnit: 'lb' | 'kg'

@@ -1600,3 +1600,6 @@ so truncate the generated section first): fuller accents (Slate `#44679f`,
 Ocean `#1f87a6`, Mono near-black with red `#e23d4e`…), secondary text
 darker, borders and card tints stronger (`--tint-k` 0.8 for these;
 Sakura/Matcha untouched at 0.5 since he liked them).
+
+Seventh note: Peach, Ocean and Mono cut. Seven looks remain. `applyLook`
+falls back to classic for a saved palette key that no longer exists.
