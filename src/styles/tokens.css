@@ -24,6 +24,12 @@
   --accent-press: #4a4ac2;
   --accent-soft: #ecebfb;
   --accent-ring: rgba(91, 91, 214, 0.2);
+  /* The second colour, splashed about: the add button, links, the picked
+     day, the icon tiles. Classic has none, so it is the brand colour. */
+  --pop: #5b5bd6;
+  --pop-press: #4a4ac2;
+  --pop-soft: #ecebfb;
+  --pop-ring: rgba(91, 91, 214, 0.2);
 
   /* Chrome. The near-black that carries the premium feel */
   --ink: #111118;
@@ -105,6 +111,10 @@
   --accent-press: #a3a3ff;
   --accent-soft: #24244a;
   --accent-ring: rgba(141, 141, 255, 0.25);
+  --pop: #8d8dff;
+  --pop-press: #a3a3ff;
+  --pop-soft: #24244a;
+  --pop-ring: rgba(141, 141, 255, 0.25);
 
   /* Ink flips: the one committing button on a screen is white on dark, the
      way it is in every dark-mode tracker studied. */
@@ -146,19 +156,25 @@
 
 /* ------------------------------------------------------------- palettes -- */
 
-/* Added 2026-11-05 from a board Phillip sent: soft pink, matcha green and
-   white, gingham, cherry blossom. Each palette re-tints the wash, the brand
-   colour and the status colours, and softens the macro hues to sit with
-   them; shape, type and layout do not change. `classic` is the violet above
-   and sets nothing here. Each has a dark half so the mode switch still
-   works under it. The gingham one paints its check through `--bg-pattern`,
-   which the shell lays over the wash. */
+/* From a board Phillip sent 2026-11-05: soft pink, matcha green, white,
+   cherry blossom. Each look is one base colour and splashes of a second:
+   Sakura is pink with green about it, Matcha is green with pink. The base
+   is the wash and a breath of it in the cards; the brand colour matches
+   the base; the second colour (`--pop`) takes the add button, links, the
+   picked day and the icon tiles, and sits as soft blurred blobs on the
+   wash through `--bg-pattern`, which `.app` lays over it. Status colours
+   are re-tinted and the macro hues softened; shape and type do not
+   change. `classic` sets nothing here. Each has a dark half. */
 
 :root[data-palette='sakura'] {
   --accent: #e4799a;
   --accent-press: #d4688a;
-  --accent-soft: #fbe6ee;
+  --accent-soft: #fbe3ea;
   --accent-ring: rgba(228, 121, 154, 0.22);
+  --pop: #7fb27a;
+  --pop-press: #6ea069;
+  --pop-soft: #e2f0de;
+  --pop-ring: rgba(127, 178, 122, 0.28);
 
   --ink: #3a2a33;
   --ink-2: #5a4652;
@@ -169,7 +185,7 @@
   --carbs: #f0a85c;
   --fat: #7da6de;
   --water: #6fc3d6;
-  --steps: #8dbd86;
+  --steps: #7fb27a;
   --sleep: #b79ad9;
 
   --positive: #6aa86b;
@@ -177,29 +193,38 @@
   --danger: #e0566a;
   --gold: #f3c85c;
 
-  --bg: #fbf3f5;
-  --bg-top: #fbf3f5;
-  --surface: #ffffff;
-  --surface-2: #fdf7f9;
-  --surface-3: #f6e9ee;
-  --border: #f1e3e8;
-  --border-strong: #e5cfd8;
+  --bg: #f8e3e9;
+  --bg-top: #f8e3e9;
+  --bg-pattern:
+    radial-gradient(260px 220px at 88% 8%, rgba(127, 178, 122, 0.26), transparent 70%),
+    radial-gradient(300px 260px at -4% 42%, rgba(127, 178, 122, 0.22), transparent 70%),
+    radial-gradient(240px 240px at 76% 78%, rgba(127, 178, 122, 0.2), transparent 70%),
+    radial-gradient(180px 180px at 24% 96%, rgba(255, 255, 255, 0.6), transparent 70%);
+  --surface: #fffafb;
+  --surface-2: #fdf3f6;
+  --surface-3: #f6e4ea;
+  --border: #f3dfe6;
+  --border-strong: #e6c9d4;
 
   --text: #2b2026;
   --text-2: #7a6a72;
   --text-3: #a8979f;
 
-  --shadow-1: 0 1px 2px rgba(120, 60, 90, 0.05), 0 2px 8px rgba(120, 60, 90, 0.05);
-  --shadow-card: 0 2px 4px rgba(120, 60, 90, 0.06), 0 12px 32px rgba(120, 60, 90, 0.1);
-  --shadow-2: 0 2px 6px rgba(120, 60, 90, 0.06), 0 10px 30px rgba(120, 60, 90, 0.1);
-  --shadow-3: 0 16px 40px rgba(120, 60, 90, 0.16);
+  --shadow-1: 0 1px 2px rgba(140, 60, 95, 0.05), 0 2px 8px rgba(140, 60, 95, 0.05);
+  --shadow-card: 0 2px 4px rgba(140, 60, 95, 0.06), 0 12px 32px rgba(140, 60, 95, 0.1);
+  --shadow-2: 0 2px 6px rgba(140, 60, 95, 0.06), 0 10px 30px rgba(140, 60, 95, 0.1);
+  --shadow-3: 0 16px 40px rgba(140, 60, 95, 0.16);
 }
 
 :root[data-palette='matcha'] {
-  --accent: #7ea878;
-  --accent-press: #6d9768;
-  --accent-soft: #e6f0e2;
-  --accent-ring: rgba(126, 168, 120, 0.25);
+  --accent: #7fa87a;
+  --accent-press: #6e976a;
+  --accent-soft: #e3eedf;
+  --accent-ring: rgba(127, 168, 122, 0.25);
+  --pop: #e58aa5;
+  --pop-press: #d87795;
+  --pop-soft: #fbe4ec;
+  --pop-ring: rgba(229, 138, 165, 0.26);
 
   --ink: #26302a;
   --ink-2: #3d4a41;
@@ -218,13 +243,18 @@
   --danger: #e0566a;
   --gold: #f3c85c;
 
-  --bg: #f3f7f0;
-  --bg-top: #f3f7f0;
-  --surface: #ffffff;
-  --surface-2: #f7faf5;
-  --surface-3: #e9f0e5;
-  --border: #e4ece0;
-  --border-strong: #cfdcc9;
+  --bg: #e6efe1;
+  --bg-top: #e6efe1;
+  --bg-pattern:
+    radial-gradient(260px 220px at 88% 8%, rgba(229, 138, 165, 0.26), transparent 70%),
+    radial-gradient(300px 260px at -4% 42%, rgba(229, 138, 165, 0.22), transparent 70%),
+    radial-gradient(240px 240px at 76% 78%, rgba(229, 138, 165, 0.2), transparent 70%),
+    radial-gradient(180px 180px at 24% 96%, rgba(255, 255, 255, 0.6), transparent 70%);
+  --surface: #fbfdfa;
+  --surface-2: #f3f8f0;
+  --surface-3: #e5eee1;
+  --border: #e0eadb;
+  --border-strong: #c9d9c3;
 
   --text: #22291f;
   --text-2: #6b766a;
@@ -236,60 +266,17 @@
   --shadow-3: 0 16px 40px rgba(60, 90, 50, 0.16);
 }
 
-/* Pink and green check on white: the board's tablecloth. Cards stay white
-   and lift off it, so the pattern is a ground, never behind text. */
-:root[data-palette='gingham'] {
-  --accent: #e4799a;
-  --accent-press: #d4688a;
-  --accent-soft: #fbe6ee;
-  --accent-ring: rgba(228, 121, 154, 0.22);
-
-  --ink: #3a2a33;
-  --ink-2: #5a4652;
-  --on-ink: #ffffff;
-  --on-ink-2: #d8c7cf;
-
-  --protein: #e06b7c;
-  --carbs: #f0a85c;
-  --fat: #7da6de;
-  --water: #6fc3d6;
-  --steps: #8dbd86;
-  --sleep: #b79ad9;
-
-  --positive: #6aa86b;
-  --warning: #e9a23b;
-  --danger: #e0566a;
-  --gold: #f3c85c;
-
-  --bg: #fdfbfc;
-  --bg-top: #fdfbfc;
-  --bg-pattern:
-    repeating-linear-gradient(0deg, rgba(228, 121, 154, 0.09) 0 18px, transparent 18px 36px),
-    repeating-linear-gradient(90deg, rgba(126, 168, 120, 0.09) 0 18px, transparent 18px 36px);
-  --surface: #ffffff;
-  --surface-2: #fcf7f9;
-  --surface-3: #f3ebee;
-  --border: #efe5e9;
-  --border-strong: #dfd0d6;
-
-  --text: #2b2026;
-  --text-2: #7a6a72;
-  --text-3: #a8979f;
-
-  --shadow-1: 0 1px 2px rgba(120, 60, 90, 0.05), 0 2px 8px rgba(120, 60, 90, 0.05);
-  --shadow-card: 0 2px 4px rgba(120, 60, 90, 0.08), 0 12px 32px rgba(120, 60, 90, 0.12);
-  --shadow-2: 0 2px 6px rgba(120, 60, 90, 0.06), 0 10px 30px rgba(120, 60, 90, 0.1);
-  --shadow-3: 0 16px 40px rgba(120, 60, 90, 0.16);
-}
-
-/* The dark halves. Sakura and gingham share one: a plum-dark ground with
-   the pink lifted so it still reads; the check fades to a whisper. */
-:root[data-theme='dark'][data-palette='sakura'],
-:root[data-theme='dark'][data-palette='gingham'] {
+/* The dark halves: a plum-dark or moss-dark ground, the base colour kept
+   in the brand and the blobs, the second colour lifted so it still reads. */
+:root[data-theme='dark'][data-palette='sakura'] {
   --accent: #f2a1bb;
   --accent-press: #f7b6ca;
   --accent-soft: #3d2733;
   --accent-ring: rgba(242, 161, 187, 0.25);
+  --pop: #9bd094;
+  --pop-press: #b0dcaa;
+  --pop-soft: #26352a;
+  --pop-ring: rgba(155, 208, 148, 0.25);
 
   --ink: #f6edf1;
   --ink-2: #e2d3da;
@@ -308,13 +295,17 @@
   --danger: #ff7a8c;
   --gold: #fdd56a;
 
-  --bg: #17121a;
-  --bg-top: #17121a;
-  --surface: #211a24;
-  --surface-2: #27202b;
-  --surface-3: #332a37;
-  --border: #30272f;
-  --border-strong: #463a46;
+  --bg: #1d1419;
+  --bg-top: #1d1419;
+  --bg-pattern:
+    radial-gradient(260px 220px at 88% 8%, rgba(155, 208, 148, 0.12), transparent 70%),
+    radial-gradient(300px 260px at -4% 42%, rgba(155, 208, 148, 0.1), transparent 70%),
+    radial-gradient(240px 240px at 76% 78%, rgba(155, 208, 148, 0.09), transparent 70%);
+  --surface: #271b22;
+  --surface-2: #2d2128;
+  --surface-3: #392b34;
+  --border: #35282f;
+  --border-strong: #4b3a45;
 
   --text: #f6edf1;
   --text-2: #b8a6b0;
@@ -326,17 +317,15 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
-:root[data-theme='dark'][data-palette='gingham'] {
-  --bg-pattern:
-    repeating-linear-gradient(0deg, rgba(242, 161, 187, 0.05) 0 18px, transparent 18px 36px),
-    repeating-linear-gradient(90deg, rgba(155, 208, 148, 0.05) 0 18px, transparent 18px 36px);
-}
-
 :root[data-theme='dark'][data-palette='matcha'] {
   --accent: #9ccb95;
   --accent-press: #b0d9aa;
   --accent-soft: #263426;
   --accent-ring: rgba(156, 203, 149, 0.25);
+  --pop: #f2a1bb;
+  --pop-press: #f7b6ca;
+  --pop-soft: #3d2733;
+  --pop-ring: rgba(242, 161, 187, 0.25);
 
   --ink: #eef4ec;
   --ink-2: #d4dfd1;
@@ -355,13 +344,17 @@
   --danger: #ff7a8c;
   --gold: #fdd56a;
 
-  --bg: #121712;
-  --bg-top: #121712;
-  --surface: #1a211a;
-  --surface-2: #20281f;
-  --surface-3: #2b352a;
-  --border: #28312a;
-  --border-strong: #3c483c;
+  --bg: #141a14;
+  --bg-top: #141a14;
+  --bg-pattern:
+    radial-gradient(260px 220px at 88% 8%, rgba(242, 161, 187, 0.12), transparent 70%),
+    radial-gradient(300px 260px at -4% 42%, rgba(242, 161, 187, 0.1), transparent 70%),
+    radial-gradient(240px 240px at 76% 78%, rgba(242, 161, 187, 0.09), transparent 70%);
+  --surface: #1c241c;
+  --surface-2: #222b22;
+  --surface-3: #2d382d;
+  --border: #2a342b;
+  --border-strong: #3e4b3e;
 
   --text: #eef4ec;
   --text-2: #a7b4a5;

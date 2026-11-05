@@ -1551,18 +1551,23 @@ blossom) and asked for "a few other options for themes", to look at on
 Vercel first, not TestFlight. So: pushed to main, **no build bumped, no
 upload**.
 
-- `Settings.palette: 'classic' | 'sakura' | 'matcha' | 'gingham'`
+- `Settings.palette: 'classic' | 'sakura' | 'matcha'`
   (`types.ts`, default `classic` in `defaultSettings`; `migrateSettings`
   spreads defaults, so old saves get it). It sits under the light/dark
   mode, which is unchanged.
 - `src/lib/theme.ts`: `applyLook(theme, palette)` sets `data-theme` and
   `data-palette` on `<html>` and copies the wash colour into the
   `theme-color` metas. `PALETTES` is the swatch list.
-- `tokens.css`: a block per palette (light), and dark halves. Each re-tints
-  wash, brand, status and softens the macro hues; shape and type do not
-  change. Gingham paints a pink/green check through `--bg-pattern`, which
-  `.app` lays over the wash (`background-image: var(--bg-pattern, none)`).
-- Appearance screen: a row of four swatch discs ("Look") above the mode
+- `tokens.css`: a block per palette (light), and dark halves. Phillip's
+  second note: "pink as the base colour and splotches of green" (Sakura),
+  the reverse for Matcha; Gingham dropped. So each look is a base (the wash,
+  a breath of it in the cards, the brand colour) plus a second colour,
+  `--pop`, that takes the add button, links, the picked day and the banner
+  icon tiles (`global.css` routes those through `--pop`; classic sets it to
+  the accent), and sits as soft blurred blobs on the wash via `--bg-pattern`,
+  which `.app` lays over it (`background-image: var(--bg-pattern, none)`).
+  Macro hues softened; shape and type do not change.
+- Appearance screen: a row of three swatch discs ("Look") above the mode
   select. A pick shows at once; the shell re-applies the saved look on
   every route change (`route` is a dependency of the look effect in
   `App.tsx`), which is what puts an unsaved pick back on leaving. The

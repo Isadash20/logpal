@@ -39,7 +39,7 @@ textarea {
 }
 
 a {
-  color: var(--accent);
+  color: var(--pop);
   text-decoration: none;
 }
 
@@ -60,7 +60,8 @@ h4 {
   max-width: var(--page-max);
   margin: 0 auto;
   background: var(--bg);
-  /* A palette may lay a pattern over the wash (gingham). None by default. */
+  /* A palette may lay soft blobs of its second colour over the wash. None
+     by default. Fixed to the shell, so they do not scroll with the page. */
   background-image: var(--bg-pattern, none);
   position: relative;
   box-shadow: 0 0 0 1px var(--border);
@@ -156,7 +157,7 @@ h4 {
 
 .textbtn {
   padding: 8px 12px;
-  color: var(--accent);
+  color: var(--pop);
   font-weight: 600;
   font-size: 15px;
   border-radius: var(--r-md);
@@ -281,11 +282,11 @@ h4 {
   margin: -8px 4px;
   flex: none;
   border-radius: var(--r-full);
-  background: var(--accent);
+  background: var(--pop);
   color: var(--on-accent);
   display: grid;
   place-items: center;
-  box-shadow: 0 6px 16px var(--accent-ring);
+  box-shadow: 0 6px 16px var(--pop-ring);
   transition: transform 0.12s ease;
 }
 
@@ -294,7 +295,7 @@ h4 {
 }
 
 .fab:active {
-  background: var(--accent-press);
+  background: var(--pop-press);
 }
 
 /* ----------------------------------------------------------------- card -- */
@@ -1013,8 +1014,8 @@ button.row:active {
   height: 40px;
   flex: none;
   border-radius: 13px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--pop-soft);
+  color: var(--pop);
   display: grid;
   place-items: center;
 }
@@ -2921,10 +2922,10 @@ button.row:active {
 }
 
 .week__circle--selected {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--pop);
+  border-color: var(--pop);
   color: var(--on-accent);
-  box-shadow: 0 0 0 3px var(--accent-ring);
+  box-shadow: 0 0 0 3px var(--pop-ring);
 }
 
 /* Arranging the board is a thing you do to the board, so its control lives
@@ -4212,7 +4213,7 @@ button.row:active {
    disc, the brand colour and its partner as two dots on it. */
 .swatches {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   padding: 12px 16px 16px;
 }
@@ -4237,7 +4238,6 @@ button.row:active {
   border-radius: var(--r-full);
   border: 1px solid var(--border-strong);
   background-color: var(--sw-bg);
-  background-image: var(--sw-pattern, none);
   box-shadow: var(--shadow-1);
   transition: box-shadow 0.15s ease;
 }

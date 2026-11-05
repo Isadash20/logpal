@@ -18,10 +18,10 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
   if (bg) document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg))
 }
 
-/** What the Appearance screen offers, with the colours each swatch is drawn in. */
-export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string; pattern?: boolean }[] = [
+/** What the Appearance screen offers, with the colours each swatch is drawn in:
+    the wash, the brand colour, and the second colour that is splashed about. */
+export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string }[] = [
   { key: 'classic', label: 'Classic', bg: '#f4f4f7', accent: '#5b5bd6', second: '#16a34a' },
-  { key: 'sakura', label: 'Sakura', bg: '#fbf3f5', accent: '#e4799a', second: '#8dbd86' },
-  { key: 'matcha', label: 'Matcha', bg: '#f3f7f0', accent: '#7ea878', second: '#e4799a' },
-  { key: 'gingham', label: 'Gingham', bg: '#fdfbfc', accent: '#e4799a', second: '#8dbd86', pattern: true },
+  { key: 'sakura', label: 'Sakura', bg: '#f8e3e9', accent: '#e4799a', second: '#7fb27a' },
+  { key: 'matcha', label: 'Matcha', bg: '#e6efe1', accent: '#7fa87a', second: '#e58aa5' },
 ]

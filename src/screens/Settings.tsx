@@ -975,9 +975,6 @@ export function PrefsAppearance() {
                       '--sw-bg': p.bg,
                       '--sw-accent': p.accent,
                       '--sw-second': p.second,
-                      '--sw-pattern': p.pattern
-                        ? `repeating-linear-gradient(0deg, ${p.accent}22 0 7px, transparent 7px 14px), repeating-linear-gradient(90deg, ${p.second}22 0 7px, transparent 7px 14px)`
-                        : undefined,
                     } as CSSProperties
                   }
                 >
