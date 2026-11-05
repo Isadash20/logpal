@@ -1592,3 +1592,11 @@ so run it once or trim first): Lavender, Peach (soft), Sky, Honey (middle),
 Slate, Forest, Ocean, Mono (plain). Same rules as Sakura/Matcha: one base,
 the other colour splotched through, pale wash, white cards, `--tint-k`
 0.5. Light and dark for each. Swatch grid is five wide.
+
+Sixth note: the eight generated looks were "grayish on whitish on
+whitish". Regenerated (`scripts/palettes.py` now updates the swatch rows
+in place when the keys already exist, and still appends to `tokens.css`,
+so truncate the generated section first): fuller accents (Slate `#44679f`,
+Ocean `#1f87a6`, Mono near-black with red `#e23d4e`…), secondary text
+darker, borders and card tints stronger (`--tint-k` 0.8 for these;
+Sakura/Matcha untouched at 0.5 since he liked them).
