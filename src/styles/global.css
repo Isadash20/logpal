@@ -4212,16 +4212,16 @@ button.row:active {
    disc, the brand colour and its partner as two dots on it. */
 .swatches {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 12px 16px 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px 6px;
+  padding: 12px 10px 16px;
 }
 
 .swatch {
   display: grid;
   justify-items: center;
-  gap: 7px;
-  font-size: 12.5px;
+  gap: 6px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-2);
 }
@@ -4232,8 +4232,8 @@ button.row:active {
 
 .swatch__disc {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: 50px;
+  height: 50px;
   border-radius: var(--r-full);
   border: 1px solid var(--border-strong);
   background-color: var(--sw-bg);
@@ -4251,17 +4251,17 @@ button.row:active {
 }
 
 .swatch__dot--a {
-  width: 22px;
-  height: 22px;
-  left: 11px;
-  top: 14px;
+  width: 20px;
+  height: 20px;
+  left: 10px;
+  top: 13px;
   background: var(--sw-accent);
 }
 
 .swatch__dot--b {
-  width: 13px;
-  height: 13px;
-  left: 31px;
-  top: 28px;
+  width: 12px;
+  height: 12px;
+  left: 28px;
+  top: 26px;
   background: var(--sw-second);
 }

@@ -393,7 +393,18 @@ export interface Profile {
  */
 export type ShareLevel = 'off' | 'percent' | 'exact'
 
-export type Palette = 'classic' | 'sakura' | 'matcha'
+export type Palette =
+  | 'classic'
+  | 'sakura'
+  | 'matcha'
+  | 'lavender'
+  | 'peach'
+  | 'sky'
+  | 'honey'
+  | 'slate'
+  | 'forest'
+  | 'ocean'
+  | 'mono'
 
 export interface Settings {
   weightUnit: 'lb' | 'kg'
