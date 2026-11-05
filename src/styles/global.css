@@ -3293,10 +3293,7 @@ button.row:active {
   background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
-.insight {
-  background: var(--accent-soft);
-  box-shadow: none;
-}
+/* The greeting card stays white, like every other card (Phillip, 2026-11-05). */
 
 .insight__mark {
   background: var(--accent);
