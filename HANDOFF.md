@@ -1543,3 +1543,29 @@ its own `.ns-*` block at the end of `global.css`; the old `.hero__*` (bar
   food 1 (captioned with its name) and the table. The two full details
   that used to stack beneath are gone; the table already holds every
   number. Panels are hairline-bordered, no shadow.
+
+## Morning, 2026-11-05: looks (palettes), web only
+
+Phillip sent a board (soft pink, matcha green, white, gingham, cherry
+blossom) and asked for "a few other options for themes", to look at on
+Vercel first, not TestFlight. So: pushed to main, **no build bumped, no
+upload**.
+
+- `Settings.palette: 'classic' | 'sakura' | 'matcha' | 'gingham'`
+  (`types.ts`, default `classic` in `defaultSettings`; `migrateSettings`
+  spreads defaults, so old saves get it). It sits under the light/dark
+  mode, which is unchanged.
+- `src/lib/theme.ts`: `applyLook(theme, palette)` sets `data-theme` and
+  `data-palette` on `<html>` and copies the wash colour into the
+  `theme-color` metas. `PALETTES` is the swatch list.
+- `tokens.css`: a block per palette (light), and dark halves. Each re-tints
+  wash, brand, status and softens the macro hues; shape and type do not
+  change. Gingham paints a pink/green check through `--bg-pattern`, which
+  `.app` lays over the wash (`background-image: var(--bg-pattern, none)`).
+- Appearance screen: a row of four swatch discs ("Look") above the mode
+  select. A pick shows at once; the shell re-applies the saved look on
+  every route change (`route` is a dependency of the look effect in
+  `App.tsx`), which is what puts an unsaved pick back on leaving. The
+  Settings banner reads "Sakura · Match system".
+- Strings are English only (`settings.palette`, `settings.paletteClassic`;
+  `settings.themeHint` reworded); `t()` falls back to English.

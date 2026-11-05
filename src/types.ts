@@ -393,12 +393,16 @@ export interface Profile {
  */
 export type ShareLevel = 'off' | 'percent' | 'exact'
 
+export type Palette = 'classic' | 'sakura' | 'matcha' | 'gingham'
+
 export interface Settings {
   weightUnit: 'lb' | 'kg'
   heightUnit: 'in' | 'cm'
   energyUnit: 'kcal' | 'kJ'
   waterUnit: 'cup' | 'ml' | 'floz'
   theme: 'light' | 'dark' | 'system'
+  /** The colour family under the light/dark mode. `classic` is the violet. */
+  palette: Palette
   /**
    * `auto` follows the device; otherwise one of the languages in `i18n`.
    * The time zone decides which calendar day an entry lands on; `auto` is

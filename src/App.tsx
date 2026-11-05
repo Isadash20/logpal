@@ -38,6 +38,7 @@ import { AddSheetContent, QuickAdd, WaterScreen } from './screens/misc'
 import { SleepScreen, StepsScreen } from './screens/wellness'
 import { BarcodeScanner } from './screens/Scanner'
 import { WorthIt } from './screens/WorthIt'
+import { applyLook } from './lib/theme'
 import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
@@ -78,16 +79,17 @@ function Shell() {
   /* Theme is applied to <html> so the tokens cascade everywhere, including
      portalled sheets. `system` follows the OS and updates live. */
   useEffect(() => {
-    const root = document.documentElement
     const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const apply = () => {
-      const dark = settings.theme === 'dark' || (settings.theme === 'system' && media.matches)
-      root.dataset.theme = dark ? 'dark' : 'light'
-    }
+    const apply = () => applyLook(settings.theme, settings.palette)
     apply()
     media.addEventListener('change', apply)
     return () => media.removeEventListener('change', apply)
-  }, [settings.theme])
+    /* `route` is a dependency on purpose: the Appearance screen previews an
+       unsaved pick on <html>, and re-applying the saved look on every route
+       change is what puts it back when that screen is left without saving.
+       Doing it here rather than in that screen's cleanup means the order
+       React runs effects in cannot leave the preview behind. */
+  }, [settings.theme, settings.palette, route])
 
   /* Auth gates the app only when the build actually has Supabase credentials.
      Without them LogPal is the local-only app it has always been, and showing

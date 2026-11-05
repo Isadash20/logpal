@@ -234,6 +234,7 @@ export function defaultSettings(): Settings {
     energyUnit: 'kcal',
     waterUnit: 'cup',
     theme: 'system',
+    palette: 'classic',
     language: 'auto',
     timeZone: 'auto',
     exerciseAddsCalories: true,

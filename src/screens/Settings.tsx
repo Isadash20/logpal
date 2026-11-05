@@ -1,7 +1,8 @@
 import { celebrate } from '../components/Confetti'
 import { PREVIEW_GOAL, PREVIEW_WEIGHT } from '../lib/celebrations'
-import { useEffect, useMemo, useState } from 'react'
-import type { Sex } from '../types'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import type { Palette, Sex } from '../types'
+import { applyLook, PALETTES } from '../lib/theme'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { Banner, Dialog, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
@@ -162,13 +163,16 @@ export function More() {
         <Banner
           icon="star"
           title={t('settings.appearance')}
-          sub={
+          sub={[
+            settings.palette === 'classic'
+              ? t('settings.paletteClassic')
+              : (PALETTES.find((p) => p.key === settings.palette)?.label ?? ''),
             settings.theme === 'system'
               ? t('settings.matchSystem')
               : settings.theme === 'dark'
                 ? t('settings.dark')
-                : t('settings.light')
-          }
+                : t('settings.light'),
+          ].join(' · ')}
           onClick={() => push({ name: 'prefsAppearance' })}
         />
         <Banner
@@ -941,12 +945,53 @@ export function PrefsAppearance() {
   const { pop, settings, saveSettings } = useApp()
   const t = useT()
   const [theme, setTheme] = useState(settings.theme)
+  const [palette, setPalette] = useState<Palette>(settings.palette)
+
+  /* The pick shows at once, since a look is something you judge by eye.
+     Leaving without saving puts the saved one back: the shell re-applies
+     the saved look on every route change (see App.tsx). */
+  useEffect(() => {
+    applyLook(theme, palette)
+  }, [theme, palette])
 
   return (
     <>
       <TopBar title={t('settings.appearance')} onBack={pop} solid />
       <div className="scroll">
-        <div className="card" style={{ marginTop: 12 }}>
+        <div className="section-label">{t('settings.palette')}</div>
+        <div className="card">
+          <div className="swatches">
+            {PALETTES.map((p) => (
+              <button
+                key={p.key}
+                className={`swatch ${palette === p.key ? 'swatch--on' : ''}`}
+                onClick={() => setPalette(p.key)}
+                aria-pressed={palette === p.key}
+              >
+                <span
+                  className="swatch__disc"
+                  style={
+                    {
+                      '--sw-bg': p.bg,
+                      '--sw-accent': p.accent,
+                      '--sw-second': p.second,
+                      '--sw-pattern': p.pattern
+                        ? `repeating-linear-gradient(0deg, ${p.accent}22 0 7px, transparent 7px 14px), repeating-linear-gradient(90deg, ${p.second}22 0 7px, transparent 7px 14px)`
+                        : undefined,
+                    } as CSSProperties
+                  }
+                >
+                  <span className="swatch__dot swatch__dot--a" />
+                  <span className="swatch__dot swatch__dot--b" />
+                </span>
+                {p.key === 'classic' ? t('settings.paletteClassic') : p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="section-label">{t('settings.theme')}</div>
+        <div className="card">
           <SelectField
             label={t('settings.theme')}
             value={theme}
@@ -963,9 +1008,9 @@ export function PrefsAppearance() {
 
       <SaveBar
         label={t('common.save')}
-        disabled={theme === settings.theme}
+        disabled={theme === settings.theme && palette === settings.palette}
         onSave={() => {
-          saveSettings({ theme })
+          saveSettings({ theme, palette })
           pop()
         }}
       />

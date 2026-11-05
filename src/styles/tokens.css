@@ -143,3 +143,232 @@
   --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
+
+/* ------------------------------------------------------------- palettes -- */
+
+/* Added 2026-11-05 from a board Phillip sent: soft pink, matcha green and
+   white, gingham, cherry blossom. Each palette re-tints the wash, the brand
+   colour and the status colours, and softens the macro hues to sit with
+   them; shape, type and layout do not change. `classic` is the violet above
+   and sets nothing here. Each has a dark half so the mode switch still
+   works under it. The gingham one paints its check through `--bg-pattern`,
+   which the shell lays over the wash. */
+
+:root[data-palette='sakura'] {
+  --accent: #e4799a;
+  --accent-press: #d4688a;
+  --accent-soft: #fbe6ee;
+  --accent-ring: rgba(228, 121, 154, 0.22);
+
+  --ink: #3a2a33;
+  --ink-2: #5a4652;
+  --on-ink: #ffffff;
+  --on-ink-2: #d8c7cf;
+
+  --protein: #e06b7c;
+  --carbs: #f0a85c;
+  --fat: #7da6de;
+  --water: #6fc3d6;
+  --steps: #8dbd86;
+  --sleep: #b79ad9;
+
+  --positive: #6aa86b;
+  --warning: #e9a23b;
+  --danger: #e0566a;
+  --gold: #f3c85c;
+
+  --bg: #fbf3f5;
+  --bg-top: #fbf3f5;
+  --surface: #ffffff;
+  --surface-2: #fdf7f9;
+  --surface-3: #f6e9ee;
+  --border: #f1e3e8;
+  --border-strong: #e5cfd8;
+
+  --text: #2b2026;
+  --text-2: #7a6a72;
+  --text-3: #a8979f;
+
+  --shadow-1: 0 1px 2px rgba(120, 60, 90, 0.05), 0 2px 8px rgba(120, 60, 90, 0.05);
+  --shadow-card: 0 2px 4px rgba(120, 60, 90, 0.06), 0 12px 32px rgba(120, 60, 90, 0.1);
+  --shadow-2: 0 2px 6px rgba(120, 60, 90, 0.06), 0 10px 30px rgba(120, 60, 90, 0.1);
+  --shadow-3: 0 16px 40px rgba(120, 60, 90, 0.16);
+}
+
+:root[data-palette='matcha'] {
+  --accent: #7ea878;
+  --accent-press: #6d9768;
+  --accent-soft: #e6f0e2;
+  --accent-ring: rgba(126, 168, 120, 0.25);
+
+  --ink: #26302a;
+  --ink-2: #3d4a41;
+  --on-ink: #ffffff;
+  --on-ink-2: #c7d3c9;
+
+  --protein: #e07a8c;
+  --carbs: #e9b25f;
+  --fat: #78a3dd;
+  --water: #6fc0d2;
+  --steps: #5fb08a;
+  --sleep: #b39adb;
+
+  --positive: #5f9c5a;
+  --warning: #e9a23b;
+  --danger: #e0566a;
+  --gold: #f3c85c;
+
+  --bg: #f3f7f0;
+  --bg-top: #f3f7f0;
+  --surface: #ffffff;
+  --surface-2: #f7faf5;
+  --surface-3: #e9f0e5;
+  --border: #e4ece0;
+  --border-strong: #cfdcc9;
+
+  --text: #22291f;
+  --text-2: #6b766a;
+  --text-3: #98a296;
+
+  --shadow-1: 0 1px 2px rgba(60, 90, 50, 0.05), 0 2px 8px rgba(60, 90, 50, 0.05);
+  --shadow-card: 0 2px 4px rgba(60, 90, 50, 0.06), 0 12px 32px rgba(60, 90, 50, 0.1);
+  --shadow-2: 0 2px 6px rgba(60, 90, 50, 0.06), 0 10px 30px rgba(60, 90, 50, 0.1);
+  --shadow-3: 0 16px 40px rgba(60, 90, 50, 0.16);
+}
+
+/* Pink and green check on white: the board's tablecloth. Cards stay white
+   and lift off it, so the pattern is a ground, never behind text. */
+:root[data-palette='gingham'] {
+  --accent: #e4799a;
+  --accent-press: #d4688a;
+  --accent-soft: #fbe6ee;
+  --accent-ring: rgba(228, 121, 154, 0.22);
+
+  --ink: #3a2a33;
+  --ink-2: #5a4652;
+  --on-ink: #ffffff;
+  --on-ink-2: #d8c7cf;
+
+  --protein: #e06b7c;
+  --carbs: #f0a85c;
+  --fat: #7da6de;
+  --water: #6fc3d6;
+  --steps: #8dbd86;
+  --sleep: #b79ad9;
+
+  --positive: #6aa86b;
+  --warning: #e9a23b;
+  --danger: #e0566a;
+  --gold: #f3c85c;
+
+  --bg: #fdfbfc;
+  --bg-top: #fdfbfc;
+  --bg-pattern:
+    repeating-linear-gradient(0deg, rgba(228, 121, 154, 0.09) 0 18px, transparent 18px 36px),
+    repeating-linear-gradient(90deg, rgba(126, 168, 120, 0.09) 0 18px, transparent 18px 36px);
+  --surface: #ffffff;
+  --surface-2: #fcf7f9;
+  --surface-3: #f3ebee;
+  --border: #efe5e9;
+  --border-strong: #dfd0d6;
+
+  --text: #2b2026;
+  --text-2: #7a6a72;
+  --text-3: #a8979f;
+
+  --shadow-1: 0 1px 2px rgba(120, 60, 90, 0.05), 0 2px 8px rgba(120, 60, 90, 0.05);
+  --shadow-card: 0 2px 4px rgba(120, 60, 90, 0.08), 0 12px 32px rgba(120, 60, 90, 0.12);
+  --shadow-2: 0 2px 6px rgba(120, 60, 90, 0.06), 0 10px 30px rgba(120, 60, 90, 0.1);
+  --shadow-3: 0 16px 40px rgba(120, 60, 90, 0.16);
+}
+
+/* The dark halves. Sakura and gingham share one: a plum-dark ground with
+   the pink lifted so it still reads; the check fades to a whisper. */
+:root[data-theme='dark'][data-palette='sakura'],
+:root[data-theme='dark'][data-palette='gingham'] {
+  --accent: #f2a1bb;
+  --accent-press: #f7b6ca;
+  --accent-soft: #3d2733;
+  --accent-ring: rgba(242, 161, 187, 0.25);
+
+  --ink: #f6edf1;
+  --ink-2: #e2d3da;
+  --on-ink: #1a1216;
+  --on-ink-2: #6a5a63;
+
+  --protein: #f28a99;
+  --carbs: #f5bd73;
+  --fat: #8fb8ee;
+  --water: #7fd3e4;
+  --steps: #9bd094;
+  --sleep: #c9aee8;
+
+  --positive: #8fcf8c;
+  --warning: #ffb75c;
+  --danger: #ff7a8c;
+  --gold: #fdd56a;
+
+  --bg: #17121a;
+  --bg-top: #17121a;
+  --surface: #211a24;
+  --surface-2: #27202b;
+  --surface-3: #332a37;
+  --border: #30272f;
+  --border-strong: #463a46;
+
+  --text: #f6edf1;
+  --text-2: #b8a6b0;
+  --text-3: #80717a;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
+:root[data-theme='dark'][data-palette='gingham'] {
+  --bg-pattern:
+    repeating-linear-gradient(0deg, rgba(242, 161, 187, 0.05) 0 18px, transparent 18px 36px),
+    repeating-linear-gradient(90deg, rgba(155, 208, 148, 0.05) 0 18px, transparent 18px 36px);
+}
+
+:root[data-theme='dark'][data-palette='matcha'] {
+  --accent: #9ccb95;
+  --accent-press: #b0d9aa;
+  --accent-soft: #263426;
+  --accent-ring: rgba(156, 203, 149, 0.25);
+
+  --ink: #eef4ec;
+  --ink-2: #d4dfd1;
+  --on-ink: #121712;
+  --on-ink-2: #5d6a5c;
+
+  --protein: #f08c9c;
+  --carbs: #f3c070;
+  --fat: #8db6ec;
+  --water: #7fd0e0;
+  --steps: #7ccfa3;
+  --sleep: #c6afe8;
+
+  --positive: #8fcf8c;
+  --warning: #ffb75c;
+  --danger: #ff7a8c;
+  --gold: #fdd56a;
+
+  --bg: #121712;
+  --bg-top: #121712;
+  --surface: #1a211a;
+  --surface-2: #20281f;
+  --surface-3: #2b352a;
+  --border: #28312a;
+  --border-strong: #3c483c;
+
+  --text: #eef4ec;
+  --text-2: #a7b4a5;
+  --text-3: #728071;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
