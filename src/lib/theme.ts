@@ -24,13 +24,13 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
     the wash, the brand colour, and the second colour that is splashed about. */
 export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string }[] = [
   { key: 'classic', label: 'Classic', bg: '#f4f4f7', accent: '#5b5bd6', second: '#16a34a' },
-  { key: 'sakura', label: 'Sakura', bg: '#fcf6f3', accent: '#ec9ab9', second: '#5a3a44' },
-  { key: 'matcha', label: 'Matcha', bg: '#faf8ec', accent: '#9fc48f', second: '#4a4a32' },
-  { key: 'lavender', label: 'Lavender', bg: '#fbf7f6', accent: '#b39adb', second: '#4a3d5c' },
-  { key: 'sky', label: 'Sky', bg: '#f9f8f1', accent: '#8fb8e6', second: '#3a4658' },
-  { key: 'honey', label: 'Honey', bg: '#fcf7e4', accent: '#e9b84a', second: '#5c4320' },
-  { key: 'slate', label: 'Slate', bg: '#f7f6f1', accent: '#8aa0bd', second: '#2f3a4a' },
-  { key: 'mocha', label: 'Mocha', bg: '#fbf7f1', accent: '#bf8f70', second: '#3b2a22' },
+  { key: 'sakura', label: 'Sakura', bg: '#eef3fb', accent: '#ea7fa6', second: '#3e4b40' },
+  { key: 'matcha', label: 'Matcha', bg: '#fcecec', accent: '#7fb86a', second: '#5a3838' },
+  { key: 'lavender', label: 'Lavender', bg: '#fbf8d8', accent: '#a483dc', second: '#3d2e4f' },
+  { key: 'sky', label: 'Sky', bg: '#fdf0e3', accent: '#5fa3e6', second: '#243247' },
+  { key: 'honey', label: 'Honey', bg: '#eaf1f8', accent: '#e8ae2e', second: '#4e3414' },
+  { key: 'slate', label: 'Slate', bg: '#f5efe3', accent: '#6b90c0', second: '#26303c' },
+  { key: 'mocha', label: 'Mocha', bg: '#eaf3ec', accent: '#c7845a', second: '#3a2820' },
   { key: 'earth', label: 'Earth', bg: '#fbf1df', accent: '#b9ae66', second: '#163e11' },
   { key: 'neapolitan', label: 'Neapolitan', bg: '#fcf7e4', accent: '#e27ab0', second: '#604734' },
 ]

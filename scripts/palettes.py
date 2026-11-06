@@ -6,16 +6,20 @@ def rgba(h,a): r,g,b=rgb(h); return 'rgba(%d, %d, %d, %s)'%(r,g,b,a)
 W,K='#ffffff','#000000'
 # key, label, accent, pop, bg (light), textbase, note
 SPECS=[
- # key, label, pastel accent, deep second colour, cream wash, text, note.
- # The recipe Phillip liked in Neapolitan and Mint Choc (2026-11-05 night):
- # a warm cream wash, a pastel main colour, a dark second colour.
- ('sakura','Sakura','#ec9ab9','#5a3a44','#fcf6f3','#3a2a2e','strawberry pink with dark rose-brown, on cream'),
- ('matcha','Matcha','#9fc48f','#4a4a32','#faf8ec','#33341f','matcha with dark olive, on cream'),
- ('lavender','Lavender','#b39adb','#4a3d5c','#fbf7f6','#342c3e','lilac with deep plum, on cream'),
- ('sky','Sky','#8fb8e6','#3a4658','#f9f8f1','#26303c','sky blue with deep navy, on cream'),
- ('honey','Honey','#e9b84a','#5c4320','#fcf7e4','#3a2c14','honey with dark caramel, on cream'),
- ('slate','Slate','#8aa0bd','#2f3a4a','#f7f6f1','#232b36','steel with charcoal, on cream'),
- ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
+ # key, label, main colour, deep second colour, tinted wash, text, note.
+ # Re-tuned 2026-11-06 around what Phillip said works in Neapolitan: four
+ # colours that go together but CONTRAST. The wash is a real tint of a
+ # different hue from the main colour (vanilla under strawberry), the main
+ # colour is as saturated as the strawberry, and the second colour is deep.
+ # The 2026-11-05 set (near-white washes, pastel mains of the same hue) read
+ # as washed out next to it; that set is in git before this commit.
+ ('sakura','Sakura','#ea7fa6','#3e4b40','#eef3fb','#2b3336','cherry pink with deep leaf green, on pale sky'),
+ ('matcha','Matcha','#7fb86a','#5a3838','#fcecec','#2f3a28','matcha with azuki, on strawberry milk'),
+ ('lavender','Lavender','#a483dc','#3d2e4f','#fbf8d8','#332c3e','lilac with deep plum, on lemon'),
+ ('sky','Sky','#5fa3e6','#243247','#fdf0e3','#26303c','sky blue with navy, on peach'),
+ ('honey','Honey','#e8ae2e','#4e3414','#eaf1f8','#3a2c14','honey with dark caramel, on pale blue'),
+ ('slate','Slate','#6b90c0','#26303c','#f5efe3','#232b36','steel with charcoal, on sand'),
+ ('mocha','Mocha','#c7845a','#3a2820','#eaf3ec','#2e221c','caramel with espresso, on mint'),
  # An optional eighth value is a third colour, for water, fat and sleep.
  ('earth','Earth','#b9ae66','#163e11','#fbf1df','#2b2a18','his olive, forest, sand, brown set','#73503d'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
