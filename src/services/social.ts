@@ -77,6 +77,16 @@ export interface Person {
   exercise: string | null
   /** What it burned, on the top setting only. */
   exerciseCalories: number | null
+  /**
+   * This week as counts of days, 0-7, for the friendly competition on the
+   * Friends tab. Null when that metric is not shared at all.
+   */
+  weekStepDays: number | null
+  weekWaterDays: number | null
+  weekCalorieDays: number | null
+  weekLoggedDays: number | null
+  /** Steps walked this week, on the top setting only. */
+  weekSteps: number | null
   /** True when following them needs their approval. */
   private: boolean
   /** True when nothing about them is visible: they share nothing, or they are
@@ -108,6 +118,11 @@ export interface PublishedProfile {
   fat_g: number | null
   exercise: string | null
   exercise_calories: number | null
+  week_step_days: number | null
+  week_water_days: number | null
+  week_calorie_days: number | null
+  week_logged_days: number | null
+  week_steps: number | null
 }
 
 interface UsernameRow {
@@ -138,6 +153,11 @@ interface SocialRow {
   fat_g: number | null
   exercise: string | null
   exercise_calories: number | null
+  week_step_days?: number | null
+  week_water_days?: number | null
+  week_calorie_days?: number | null
+  week_logged_days?: number | null
+  week_steps?: number | null
 }
 
 /* -------------------------------------------------------------- hydration -- */
@@ -190,6 +210,11 @@ async function hydrate(userIds: string[]): Promise<Map<string, Person>> {
       fatG: p?.fat_g ?? null,
       exercise: p?.exercise ?? null,
       exerciseCalories: p?.exercise_calories ?? null,
+      weekStepDays: p?.week_step_days ?? null,
+      weekWaterDays: p?.week_water_days ?? null,
+      weekCalorieDays: p?.week_calorie_days ?? null,
+      weekLoggedDays: p?.week_logged_days ?? null,
+      weekSteps: p?.week_steps ?? null,
       private: p?.private ?? false,
       empty:
         !p ||
@@ -447,6 +472,11 @@ export const NOTHING_PUBLISHED: PublishedProfile = {
   fat_g: null,
   exercise: null,
   exercise_calories: null,
+  week_step_days: null,
+  week_water_days: null,
+  week_calorie_days: null,
+  week_logged_days: null,
+  week_steps: null,
 }
 
 /**
@@ -463,8 +493,15 @@ export const NOTHING_PUBLISHED: PublishedProfile = {
  * would come back public without ever being asked.
  */
 export async function publishProfile(fields: PublishedProfile): Promise<void> {
-  const { error } = await requireClient()
-    .from('logpal_social_profile')
-    .upsert({ ...fields, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+  const db = requireClient()
+  const row = { ...fields, updated_at: new Date().toISOString() }
+  let { error } = await db.from('logpal_social_profile').upsert(row, { onConflict: 'user_id' })
+  if (error?.code === 'PGRST204') {
+    /* The weekly columns are not on the server yet (HANDOFF has the SQL).
+       Publish everything else rather than nothing. */
+    const { week_step_days, week_water_days, week_calorie_days, week_logged_days, week_steps, ...rest } = row
+    void [week_step_days, week_water_days, week_calorie_days, week_logged_days, week_steps]
+    ;({ error } = await db.from('logpal_social_profile').upsert(rest, { onConflict: 'user_id' }))
+  }
   if (error) throw error
 }

@@ -39,6 +39,8 @@ import {
 } from '../lib/recipeTags'
 import { foodDbSize, loadFoodDb, onFoodDbGrown } from '../services/foodDb'
 import { catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
+import { rankLikes, type IdeaCandidate } from '../lib/mealIdeas'
+import { ideaContextFor } from '../lib/ideaContext'
 
 /**
  * Makes sure the food database is in memory, and re-renders when it lands.
@@ -382,7 +384,8 @@ export function PlanPane({
      the filter chips made them look like part of the browsing. */
   aboveSearch?: ReactNode
 }) {
-  const { push, data, rememberSearch, forgetSearch, toggleRecipeBookmark } = useApp()
+  const app = useApp()
+  const { push, data, rememberSearch, forgetSearch, toggleRecipeBookmark } = app
   const dbSize = useFoodDb()
 
   const [query, setQuery] = useState('')
@@ -521,13 +524,20 @@ export function PlanPane({
     }
   }, [recipes, resolve])
 
-  /* A stable sample rather than the first nine alphabetically, which would
-     make Explore a page about avocados. */
+  /* Feed-based, not a sample: ranked by how much a dish looks like what this
+     person logs, then by fit for the plan and body (`rankLikes`). Phillip,
+     2026-11-06: "I want them to be kind of like feed based". */
   const suggested = useMemo(() => {
-    // Shuffled rather than evenly stepped: a fixed stride through an
-    // alphabetical list is still an alphabetical list, just a sparser one.
-    return seededOrder(recipes.filter((r) => r.imageUrl), 'suggested').slice(0, 20)
-  }, [recipes])
+    const extra = [...data.customFoods, ...Object.values(data.foodCache)]
+    const cands: IdeaCandidate[] = recipes
+      .filter((r) => r.imageUrl)
+      .map((r) => {
+        const sum = summarise(r, extra)
+        return { recipe: r, n: sum.perServing, health: sum.health.score }
+      })
+    return rankLikes(cands, ideaContextFor(app), new Set(), 20).map((i) => i.recipe)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipes, data.customFoods, data.foodCache, data.foodEntries, app.profile, app.latestWeight, app.macroTargets])
 
   const results = useMemo(() => {
     const found = searchRecipes(

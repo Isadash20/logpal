@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useApp } from '../state/store'
+import { lastNDays } from '../lib/dates'
+import { weekCounts, type WeekCounts } from '../lib/weekly'
 import type { ShareLevel } from '../types'
-import { Icon } from '../components/Icon'
+import { Icon, type IconName } from '../components/Icon'
 import {
   Empty,
   Row,
@@ -223,6 +225,7 @@ function FriendBoard({ person }: { person: Person }) {
                 gridTemplateColumns: `repeat(${macros.length}, 1fr)`,
                 gap: 6,
                 marginTop: 4,
+                paddingBottom: 6,
               }}
             >
               {macros.map((m) => (
@@ -317,6 +320,124 @@ function FriendBoard({ person }: { person: Person }) {
               </div>
             )}
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------- competition -- */
+
+type ContestKey = 'stepDays' | 'waterDays' | 'calorieDays' | 'loggedDays'
+
+const CONTESTS: { key: ContestKey; label: string; icon: IconName; blurb: string }[] = [
+  { key: 'stepDays', label: 'Steps', icon: 'steps', blurb: 'Days at the step goal' },
+  { key: 'waterDays', label: 'Water', icon: 'water', blurb: 'Days at the water goal' },
+  { key: 'calorieDays', label: 'Calories', icon: 'flame', blurb: 'Days inside the calorie goal' },
+  { key: 'loggedDays', label: 'Logging', icon: 'diary', blurb: 'Days with the diary filled in' },
+]
+
+function friendCounts(p: Person): Record<ContestKey, number | null> & { steps: number | null } {
+  return {
+    stepDays: p.weekStepDays,
+    waterDays: p.weekWaterDays,
+    calorieDays: p.weekCalorieDays,
+    loggedDays: p.weekLoggedDays,
+    steps: p.weekSteps,
+  }
+}
+
+/**
+ * This week, as a race.
+ *
+ * The Apple Watch idea: a small number per person, the same number for
+ * everyone, and a ranking. Days at goal out of seven, in four contests. You
+ * are always on the board; friends appear in a contest only when they share
+ * the thing it counts, so nobody is shown losing at something they never
+ * entered. Ties keep their order, which is you first, then by name.
+ */
+function Compete({ following }: { following: Person[] }) {
+  const app = useApp()
+  const [contest, setContest] = useState<ContestKey>('stepDays')
+
+  const mine: WeekCounts = useMemo(
+    () =>
+      weekCounts(
+        lastNDays(7).map((k) => {
+          const t = app.totalsFor(k)
+          const dl = app.data.days[k]
+          return {
+            calories: t.nutrients.calories,
+            calorieGoal: t.goal,
+            waterMl: dl?.water ?? 0,
+            waterGoalMl: app.waterTarget,
+            steps: dl?.steps ?? null,
+            stepGoal: app.profile.stepGoal,
+          }
+        }),
+      ),
+    [app],
+  )
+
+  const def = CONTESTS.find((c) => c.key === contest)!
+  const rows = [
+    { id: 'me', name: 'You', you: true, n: mine[contest], steps: mine.steps as number | null },
+    ...following
+      .map((p) => {
+        const c = friendCounts(p)
+        return { id: p.userId, name: p.name || `@${p.username}`, you: false, n: c[contest], steps: c.steps }
+      })
+      .filter((r): r is typeof r & { n: number } => r.n !== null)
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  ].sort((a, b) => (b.n ?? 0) - (a.n ?? 0))
+  const lead = rows[0]?.n ?? 0
+
+  return (
+    <div className="card" style={{ marginTop: 12 }}>
+      <div className="card__head">
+        <span className="card__title">This week</span>
+        <span style={{ fontSize: 12.5, color: 'var(--text-2)' }}>{def.blurb}</span>
+      </div>
+      <div className="chips" style={{ padding: '10px 14px 4px' }}>
+        {CONTESTS.map((c) => (
+          <button
+            key={c.key}
+            className={`chip ${contest === c.key ? 'chip--active' : ''}`}
+            onClick={() => setContest(c.key)}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <div className="race">
+        {rows.map((r, i) => (
+          <div key={r.id} className={`race__row ${r.you ? 'race__row--you' : ''}`}>
+            <span className="race__rank num">{i + 1}</span>
+            <span className="race__main">
+              <span className="race__name">
+                {r.name}
+                {lead > 0 && r.n === lead && <span className="race__crown">👑</span>}
+              </span>
+              <span className="tile__bar" style={{ marginTop: 5 }}>
+                <span
+                  className="tile__fill"
+                  style={{ width: `${Math.round(((r.n ?? 0) / 7) * 100)}%`, background: 'var(--accent)' }}
+                />
+              </span>
+            </span>
+            <span className="race__value">
+              <span className="num">{r.n ?? 0}</span>
+              <span className="race__of"> of 7</span>
+              {contest === 'stepDays' && r.steps !== null && r.steps > 0 && (
+                <span className="race__sub">{r.steps.toLocaleString()} steps</span>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+      {rows.length === 1 && (
+        <div className="hint" style={{ paddingTop: 0 }}>
+          Nobody you follow shares this yet. You are racing yourself for now.
         </div>
       )}
     </div>
@@ -672,6 +793,9 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
         {/* What came in while you were away, before the lists. It is the one
             thing on this screen that is addressed to you. */}
         {me && !query.trim() && tab === 'following' && <NudgeInbox me={me} />}
+        {me && !query.trim() && tab === 'following' && conn && conn.following.length > 0 && (
+          <Compete following={conn.following} />
+        )}
 
         {query.trim() ? (
           <SearchResults

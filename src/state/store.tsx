@@ -46,7 +46,8 @@ import {
   pushChanges,
 } from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
-import { addDays, today } from '../lib/dates'
+import { weekCounts } from '../lib/weekly'
+import { addDays, today, lastNDays } from '../lib/dates'
 import { applyRegion, resolveTimeZone } from '../i18n'
 import { App as CapApp } from '@capacitor/app'
 import { LB_PER_KG } from '../lib/units'
@@ -1019,6 +1020,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const burned = workouts.reduce((sum, e) => sum + (e.caloriesBurned ?? 0), 0)
     const named = workouts.map((e) => (e.minutes ? `${e.name}, ${e.minutes} min` : e.name))
 
+    /* Seven days ending today, as counts. Each count rides on the same
+       switch as the figure it summarises. */
+    const week = weekCounts(
+      lastNDays(7).map((k) => {
+        const t = totalsFor(k)
+        const dl = data.days[k]
+        return {
+          calories: t.nutrients.calories,
+          calorieGoal: t.goal,
+          waterMl: dl?.water ?? 0,
+          waterGoalMl: waterTarget,
+          steps: dl?.steps ?? null,
+          stepGoal: data.profile.stepGoal,
+        }
+      }),
+    )
+
     return {
       display_name: s.shareName ? data.profile.name || null : null,
       streak: s.shareStreak ? logStreak : null,
@@ -1046,6 +1064,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       exercise:
         s.shareWorkouts !== 'off' && named.length ? named.join(' · ').slice(0, 120) : null,
       exercise_calories: s.shareWorkouts === 'exact' && burned > 0 ? Math.round(burned) : null,
+
+      week_step_days: shares(s.shareSteps) ? week.stepDays : null,
+      week_water_days: shares(s.shareWater) ? week.waterDays : null,
+      week_calorie_days: shares(s.shareCalories) ? week.calorieDays : null,
+      week_logged_days: s.shareStreak ? week.loggedDays : null,
+      week_steps: exact(week.steps, s.shareSteps),
     }
   }, [
     data.settings,
