@@ -32,6 +32,7 @@ export type IconName =
   | 'ruler'
   | 'clock'
   | 'copy'
+  | 'share'
   | 'bookmark'
   | 'chart'
   | 'info'
@@ -96,6 +97,7 @@ const PATHS: Record<IconName, string> = {
   ruler: 'M3 8h18v8H3zM7 8v3M11 8v5M15 8v3M19 8v5',
   clock: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3 2',
   copy: 'M9 9h10v10a2 2 0 01-2 2H9a2 2 0 01-2-2zM5 15V5a2 2 0 012-2h8',
+  share: 'M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5',
   bookmark: 'M6 3h12v18l-6-4.5L6 21z',
   chart: 'M3 3v18h18M7 15l4-5 3 3 5-7',
   info: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 16v-5M12 8h.01',

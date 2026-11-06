@@ -170,7 +170,7 @@ interface SocialRow {
  * policy allows it, so an id with a handle and no profile is the normal case for
  * a private account you do not follow, not an error.
  */
-async function hydrate(userIds: string[]): Promise<Map<string, Person>> {
+export async function hydrate(userIds: string[]): Promise<Map<string, Person>> {
   const out = new Map<string, Person>()
   if (!userIds.length) return out
 

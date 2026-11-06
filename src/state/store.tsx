@@ -46,6 +46,8 @@ import {
   pushChanges,
 } from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
+import { announce, joinCrew } from '../services/crews'
+import { parseInvite } from '../lib/crews'
 import { weekCounts } from '../lib/weekly'
 import { addDays, today, lastNDays } from '../lib/dates'
 import { applyRegion, resolveTimeZone } from '../i18n'
@@ -93,6 +95,7 @@ function markPushFailed(failed: boolean) {
 
 /** Set when someone declines an account; keeps them out of the auth screen. */
 const LOCAL_ONLY_KEY = 'logpal.localOnly'
+const INVITE_KEY = 'logpal.invite'
 import { uid } from '../lib/id'
 import {
   age as ageOf,
@@ -260,6 +263,8 @@ export type Route =
   | { name: 'friends' }
   | { name: 'friendProfile'; userId: string; username: string }
   | { name: 'friendsSharing' }
+  | { name: 'crews' }
+  | { name: 'crew'; id: string }
   | { name: 'mealPlanner' }
   | { name: 'recipeBrowse'; slot?: MealSlot; date?: string }
   | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
@@ -425,6 +430,9 @@ interface Ctx {
   deleteAccount(): Promise<void>
   /** True when the user chose to carry on without an account on this device. */
   localOnly: boolean
+  /** An invite code from a /join link, held until the account exists to join with. */
+  pendingInvite: string | null
+  dismissInvite(): void
   setLocalOnly(v: boolean): void
 }
 
@@ -457,13 +465,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     applyRegion(data.settings)
   }, [data.settings.language, data.settings.timeZone])
   const [activeTab, setActiveTab] = useState<TabKey>('today')
-  const [stack, setStack] = useState<Route[]>([{ name: 'tab', tab: 'today' }])
+  const [stack, setStack] = useState<Route[]>(() =>
+    /* `?crewdemo` on a dev server opens the sample crew for screenshots. */
+    import.meta.env.DEV && new URLSearchParams(window.location.search).has('crewdemo')
+      ? [{ name: 'tab', tab: 'friends' }, { name: 'crew', id: 'demo' }]
+      : [{ name: 'tab', tab: 'today' }],
+  )
 
   /* Remembered per device, so someone who declined an account is not asked
      again on every load. Cleared from Settings when they want to sign in. */
   const [localOnly, setLocalOnlyState] = useState(
     () => localStorage.getItem(LOCAL_ONLY_KEY) === '1',
   )
+
+  /* A crew invite, from `/join/CODE` on the web or `logpal://join/CODE` in
+     the app. Kept on the device until there is an account to join with, so
+     the person can sign up (and confirm an email) and still land in the crew.
+     The join itself is the effect further down. */
+  const [pendingInvite, setPendingInvite] = useState<string | null>(() => {
+    const fromUrl = parseInvite(window.location.pathname)
+    if (fromUrl) {
+      localStorage.setItem(INVITE_KEY, fromUrl)
+      window.history.replaceState({}, '', '/')
+      return fromUrl
+    }
+    return localStorage.getItem(INVITE_KEY)
+  })
+  const dismissInvite = useCallback(() => {
+    localStorage.removeItem(INVITE_KEY)
+    setPendingInvite(null)
+  }, [])
+  useEffect(() => {
+    const sub = CapApp.addListener('appUrlOpen', ({ url }) => {
+      const code = parseInvite(url)
+      if (!code) return
+      localStorage.setItem(INVITE_KEY, code)
+      setPendingInvite(code)
+    })
+    return () => void sub.then((s) => s.remove())
+  }, [])
   const setLocalOnly = useCallback((v: boolean) => {
     if (v) localStorage.setItem(LOCAL_ONLY_KEY, '1')
     else localStorage.removeItem(LOCAL_ONLY_KEY)
@@ -1114,6 +1154,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [userId, reconciledFor, published])
 
+  /* The invite, redeemed: once there is a session, a handle and an onboarded
+     profile, join and open the crew. A failed join (a stale code) is dropped
+     rather than retried on every load. */
+  useEffect(() => {
+    if (!pendingInvite || !userId || !username || !data.profile.onboarded || !cloudEnabled()) return
+    const code = pendingInvite
+    dismissInvite()
+    joinCrew(code)
+      .then((id) => {
+        setStack([{ name: 'tab', tab: 'friends' }, { name: 'crew', id }])
+        setActiveTab('friends')
+      })
+      .catch((err) => setSyncError((err as Error).message))
+  }, [pendingInvite, userId, username, data.profile.onboarded, dismissInvite])
+
+  /* Streak milestones go to every crew you are in, once each. */
+  useEffect(() => {
+    if (!userId || !cloudEnabled() || reconciledFor !== userId) return
+    const marks = [7, 14, 30, 60, 100, 365]
+    const hit = marks.filter((m) => logStreak >= m).pop()
+    if (!hit) return
+    const key = `logpal.streakTold.${userId}`
+    if (Number(localStorage.getItem(key) ?? 0) >= hit) return
+    localStorage.setItem(key, String(hit))
+    void announce(userId, `${hit}-day logging streak 🔥`)
+  }, [userId, reconciledFor, logStreak])
+
   /* ----------------------------------------------------------- mutations -- */
 
   const logFood = useCallback<Ctx['logFood']>(
@@ -1322,7 +1389,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         else d.lifts.push(rec)
         d.lifts.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.loggedAt - b.loggedAt))
       })
-      return { pr: e.weightLb > prevBest, prevBest }
+      const pr = e.weightLb > prevBest
+      if (pr && prevBest > 0 && userId && cloudEnabled())
+        void announce(userId, `New ${exercise} PR: ${e.weightLb} lb${e.reps ? ` × ${e.reps}` : ''} 🏋️`)
+      return { pr, prevBest }
     },
 
     deleteLift: (id) =>
@@ -1649,6 +1719,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     syncError,
     localOnly,
     setLocalOnly,
+    pendingInvite,
+    dismissInvite,
     signOut: async () => {
       if (!supabase) return
       await supabase.auth.signOut()

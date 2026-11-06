@@ -44,6 +44,7 @@ import { Fasting } from './screens/Fasting'
 import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
+import { CrewDashboard, Crews, InviteLanding } from './screens/Crews'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
 import { useT, type StringKey } from './i18n'
@@ -73,8 +74,9 @@ function Shell() {
   const app = useApp()
   const t = useT()
   const { route, activeTab, setTab, profile, settings, date } = app
-  const { session, authReady, localOnly, setLocalOnly, username } = app
+  const { session, authReady, localOnly, setLocalOnly, username, pendingInvite, dismissInvite } = app
   const [addOpen, setAddOpen] = useState(false)
+  const [inviteAck, setInviteAck] = useState(false)
   const tabDefs = (defs: typeof TABS_LEFT): TabDef[] => defs.map((d) => ({ ...d, label: t(d.label) }))
 
   /* Theme is applied to <html> so the tokens cascade everywhere, including
@@ -99,6 +101,23 @@ function Shell() {
     // Blank rather than a spinner: the session check reads localStorage and
     // resolves in a few milliseconds, and a flashed spinner reads as jank.
     if (!authReady) return <div className="app" />
+    /* The invite landing: for someone who arrived by a crew link and has no
+       account yet, the benefits come before the sign-in form. A dismissed
+       invite is forgotten; a tapped one carries through sign-up. */
+    if (!session && pendingInvite && !inviteAck) {
+      return (
+        <div className="app">
+          <InviteLanding
+            code={pendingInvite}
+            onContinue={() => {
+              setInviteAck(true)
+              setLocalOnly(false)
+            }}
+            onDismiss={dismissInvite}
+          />
+        </div>
+      )
+    }
     if (!session && !localOnly) {
       return (
         <div className="app">
@@ -296,6 +315,10 @@ function Shell() {
 
       case 'friendsSharing':
         return <FriendsSharing />
+      case 'crews':
+        return <Crews />
+      case 'crew':
+        return <CrewDashboard id={route.id} />
 
       case 'mealPlanner':
         return <MealPlanner />
