@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Nutrients, Recipe } from '../types'
-import { foodTokens, rankIdeas, type IdeaCandidate, type IdeaContext } from './mealIdeas'
+import { foodTokens, rankIdeas, rankLikes, typicalFoods, type IdeaCandidate, type IdeaContext } from './mealIdeas'
 
 function n(p: Partial<Nutrients>): Nutrients {
   const z = {
@@ -17,7 +17,7 @@ function cand(id: string, name: string, p: Partial<Nutrients>, health = 6, tags?
 }
 const base: IdeaContext = {
   caloriesLeft: 1200, calorieGoal: 2000, proteinLeft: 80, proteinTarget: 150, carbsLeft: 100, fatLeft: 40,
-  goalKind: 'maintain', sex: 'male', age: 30, recentNames: [], todayNames: [], hour: 18, seed: 20261105,
+  goalKind: 'maintain', sex: 'male', age: 30, weightLb: 170, userSeed: 7, recentNames: [], todayNames: [], hour: 18, seed: 20261105,
 }
 
 describe('rankIdeas', () => {
@@ -63,5 +63,29 @@ describe('rankIdeas', () => {
 
   it('tokenises names down to the words that matter', () => {
     expect(foodTokens('2 cups chopped tomatoes with salt')).toEqual(['tomato'])
+  })
+})
+
+describe('rankLikes and typicalFoods', () => {
+  it('names what keeps getting logged', () => {
+    expect(typicalFoods(['Chicken breast', 'Rice bowl', 'Chicken rice', 'Eggs', 'Chicken wrap'])).toEqual(['chicken', 'rice'])
+  })
+
+  it('likes dishes that look like the log, and skips what the ideas rail has', () => {
+    const cands = [
+      cand('a', 'Chicken rice bowl', { calories: 600, protein: 40 }, 6, undefined, ['chicken thigh', 'rice']),
+      cand('b', 'Tofu curry', { calories: 600, protein: 25 }, 6, undefined, ['tofu', 'coconut milk']),
+      cand('c', 'Chicken salad', { calories: 500, protein: 35 }, 6, undefined, ['chicken breast', 'lettuce']),
+    ]
+    const ctx = { ...base, recentNames: ['Chicken breast', 'Chicken rice', 'Grilled chicken', 'Rice'] }
+    const out = rankLikes(cands, ctx, new Set(['a']))
+    expect(out.map((i) => i.recipe.id)).toEqual(['c', 'b'])
+  })
+
+  it('two people on the same day do not get the same order of near-ties', () => {
+    const cands = Array.from({ length: 12 }, (_, i) => cand(`r${i}`, `Dish ${i}`, { calories: 500, protein: 30 }))
+    const a = rankIdeas(cands, { ...base, userSeed: 1 }).map((i) => i.recipe.id)
+    const b = rankIdeas(cands, { ...base, userSeed: 2 }).map((i) => i.recipe.id)
+    expect(a).not.toEqual(b)
   })
 })

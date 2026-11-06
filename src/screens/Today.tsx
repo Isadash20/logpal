@@ -15,7 +15,7 @@ import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import { dayInsight, type InsightAction } from '../lib/dayInsight'
 import { catalogRecipes, catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
 import { summarise } from '../services/recipes'
-import { rankIdeas, type Idea, type IdeaCandidate } from '../lib/mealIdeas'
+import { rankIdeas, rankLikes, typicalFoods, type Idea, type IdeaCandidate } from '../lib/mealIdeas'
 import { age } from '../lib/nutrition'
 
 /**
@@ -246,8 +246,8 @@ export function Today() {
   /* Ranked by `rankIdeas`: room left, protein need, the plan, what has been
      eaten lately and today, the hour. The catalogue is the pool; the user's
      own recipes are in it too. */
-  const ideas = useMemo((): Idea[] => {
-    if (!catalogReady || !isToday) return []
+  const picks = useMemo((): { ideas: Idea[]; likes: Idea[]; typical: string[] } => {
+    if (!catalogReady || !isToday) return { ideas: [], likes: [], typical: [] }
     const extra = [...data.customFoods, ...Object.values(data.foodCache)]
     const cands: IdeaCandidate[] = [...catalogRecipes(), ...data.recipes]
       .filter((r) => r.imageUrl)
@@ -261,7 +261,7 @@ export function Today() {
       .sort((a, b) => b.loggedAt - a.loggedAt)
       .map((e) => e.name)
     const todayNames = data.foodEntries.filter((e) => e.date === date).map((e) => e.name)
-    return rankIdeas(cands, {
+    const ctx = {
       caloriesLeft: goal - consumed,
       calorieGoal: goal,
       proteinLeft: macroTargets.protein - totals.nutrients.protein,
@@ -271,12 +271,27 @@ export function Today() {
       goalKind: profile.goal.kind,
       sex: profile.sex,
       age: age(profile.birthDate),
+      weightLb: app.latestWeight,
+      userSeed: Number(profile.birthDate.replace(/-/g, '')) + profile.heightIn,
       recentNames,
       todayNames,
       hour,
       seed: Number(date.replace(/-/g, '')),
-    })
-  }, [catalogReady, isToday, goal, consumed, data.customFoods, data.foodCache, data.recipes, data.foodEntries, date, hour, macroTargets, totals.nutrients, profile])
+    }
+    const ideas = rankIdeas(cands, ctx)
+    const likes = rankLikes(cands, ctx, new Set(ideas.map((i) => i.recipe.id)))
+    return { ideas, likes, typical: typicalFoods(recentNames) }
+  }, [catalogReady, isToday, goal, consumed, data.customFoods, data.foodCache, data.recipes, data.foodEntries, date, hour, macroTargets, totals.nutrients, profile, app.latestWeight])
+  const { ideas, likes, typical } = picks
+
+  /* The short "why these" strip above the rails: who the picks are for. */
+  const whyChips = [
+    t(profile.sex === 'female' ? 'home.whyWoman' : 'home.whyMan', { age: age(profile.birthDate) }),
+    t(`home.why.${profile.goal.kind}`, {
+      weight: Math.round(lbToDisplay(app.latestWeight, app.settings.weightUnit)),
+      unit: app.settings.weightUnit,
+    }),
+  ]
 
   const ideasTitle =
     hour < 11 ? t('home.ideasToday') : hour < 15 ? t('home.ideasLunch') : t('home.ideasDinner')
@@ -458,26 +473,35 @@ export function Today() {
                 {t('home.allRecipes')}
               </button>
             </div>
-            <div className="hint" style={{ paddingTop: 0, paddingBottom: 10 }}>
-              {t(proteinBehind ? 'home.ideasHintProtein' : 'home.ideasHintTailored', {
-                cal: cal(Math.max(350, goal - consumed)),
-              })}
+            <div className="why">
+              <div className="why__chips">
+                {whyChips.map((c) => (
+                  <span key={c} className="why__chip">{c}</span>
+                ))}
+                <span className={`why__chip ${typical.length ? 'why__chip--pop' : 'why__chip--quiet'}`}>
+                  {typical.length
+                    ? t('home.whyLog', { foods: typical.join(', ') })
+                    : t('home.whyLogNone')}
+                </span>
+              </div>
+              <div className="why__hint">
+                {t(proteinBehind ? 'home.ideasHintProtein' : 'home.ideasHintTailored', {
+                  cal: cal(Math.max(350, goal - consumed)),
+                })}
+              </div>
             </div>
-            <div className="qrail">
-              {ideas.map(({ recipe, calories, protein }) => (
-                <button
-                  key={recipe.id}
-                  className="idea"
-                  onClick={() => push({ name: 'recipeView', recipeId: recipe.id, date })}
-                >
-                  <img className="idea__img" src={recipe.imageUrl} alt="" loading="lazy" />
-                  <span className="idea__name">{recipe.name}</span>
-                  <span className="idea__meta">
-                    {t('home.ideaMeta', { cal: cal(calories), protein: Math.round(protein) })}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <IdeaRail ideas={ideas} onOpen={(id) => push({ name: 'recipeView', recipeId: id, date })} />
+            {likes.length > 0 && (
+              <>
+                <div className="section-head" style={{ paddingTop: 10 }}>
+                  <span>{t('home.likes')}</span>
+                </div>
+                <div className="hint" style={{ paddingTop: 0, paddingBottom: 10 }}>
+                  {t(typical.length ? 'home.likesHint' : 'home.likesHintNew')}
+                </div>
+                <IdeaRail ideas={likes} onOpen={(id) => push({ name: 'recipeView', recipeId: id, date })} />
+              </>
+            )}
           </>
         )}
 
@@ -492,6 +516,23 @@ export function Today() {
         </div>
       </div>
     </>
+  )
+}
+
+function IdeaRail({ ideas, onOpen }: { ideas: Idea[]; onOpen: (id: string) => void }) {
+  const t = useT()
+  return (
+    <div className="qrail">
+      {ideas.map(({ recipe, calories, protein }) => (
+        <button key={recipe.id} className="idea" onClick={() => onOpen(recipe.id)}>
+          <img className="idea__img" src={recipe.imageUrl} alt="" loading="lazy" />
+          <span className="idea__name">{recipe.name}</span>
+          <span className="idea__meta">
+            {t('home.ideaMeta', { cal: cal(calories), protein: Math.round(protein) })}
+          </span>
+        </button>
+      ))}
+    </div>
   )
 }
 

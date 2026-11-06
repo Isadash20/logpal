@@ -40,6 +40,10 @@ export interface IdeaContext {
   goalKind: GoalKind
   sex: Sex
   age: number
+  /** Body weight in lb. Heavier bodies get bigger plates and more protein. */
+  weightLb: number
+  /** Anything stable per person; two people with the same day see different near-ties. */
+  userSeed: number
   /** Names of foods logged over the last couple of weeks, most recent first. */
   recentNames: string[]
   /** Names of foods logged today. */
@@ -68,6 +72,10 @@ const STOP = new Set([
   'ounce', 'ounces', 'pound', 'pounds', 'slice', 'slices', 'piece', 'pieces', 'chopped', 'diced',
   'minced', 'sliced', 'ground', 'whole', 'plain', 'raw', 'cooked', 'from', 'into', 'about', 'taste',
   'salt', 'pepper', 'water', 'oil', 'olive', 'sugar', 'butter', 'flour',
+  /* Label words, not foods: "Greek nonfat yogurt" is yogurt. */
+  'greek', 'nonfat', 'lowfat', 'light', 'lite', 'organic', 'original', 'natural', 'reduced', 'skim',
+  'unsweetened', 'sweetened', 'boneless', 'skinless', 'frozen', 'canned', 'dried', 'grilled', 'roasted',
+  'baked', 'fried', 'steamed', 'homemade', 'serving', 'gram', 'grams',
 ])
 
 /** The words that carry a food's identity: four letters or more, not a measure. */
@@ -93,18 +101,47 @@ export function mealShare(hour: number): number {
   return hour < 11 ? 0.35 : hour < 15 ? 0.42 : 0.6
 }
 
+/**
+ * The words this person keeps logging, most frequent first: "chicken",
+ * "rice", "eggs". Counted once per entry, so one long ingredient list does
+ * not swamp a fortnight of breakfasts.
+ */
+export function typicalFoods(recentNames: string[], limit = 3): string[] {
+  const count = new Map<string, number>()
+  for (const name of recentNames.slice(0, 80)) {
+    for (const tok of new Set(foodTokens(name))) count.set(tok, (count.get(tok) ?? 0) + 1)
+  }
+  return [...count.entries()]
+    .filter(([, c]) => c >= 2)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([t]) => t)
+}
+
+/** 0..1 jitter that differs per person and per day, so near-ties rotate. */
+function jitter(ctx: IdeaContext, id: string): number {
+  return (((ctx.seed * 9301 + ctx.userSeed * 7919 + hash(id) * 49297) >>> 0) % 233280) / 233280
+}
+
 export function rankIdeas(cands: IdeaCandidate[], ctx: IdeaContext, limit = 8): Idea[] {
   const room = Math.max(350, ctx.caloriesLeft)
-  const target = clamp(room * mealShare(ctx.hour), 300, 850)
+  /* A 220 lb body eats a bigger plate than a 120 lb one at the same share of
+     the day; the room already carries most of that, this nudges the rest. */
+  const bodyScale = clamp(ctx.weightLb / 160, 0.85, 1.2)
+  const target = clamp(room * mealShare(ctx.hour) * bodyScale, 300, 900)
 
   const proteinNeed = clamp(ctx.proteinLeft / Math.max(1, ctx.proteinTarget))
-  let proteinWeight = 0.9 + proteinNeed * 1.1
+  /* Grams still owed per pound of body: past 0.4 g/lb the day is well behind. */
+  const perLb = clamp(ctx.proteinLeft / Math.max(80, ctx.weightLb) / 0.4)
+  let proteinWeight = 0.8 + proteinNeed * 0.8 + perLb * 0.6
   if (ctx.goalKind === 'gain-muscle' || ctx.goalKind === 'recomp') proteinWeight *= 1.3
   if (ctx.goalKind === 'lose-weight') proteinWeight *= 1.1
   if (ctx.age >= 50) proteinWeight *= 1.2
   /* Fibre matters more with age, and women are likelier to fall short of
      it; neither changes the dish much, both nudge. */
   const fiberWeight = 0.35 + (ctx.age >= 40 ? 0.15 : 0) + (ctx.sex === 'female' ? 0.1 : 0)
+  /* Past fifty, salt starts to matter; before that it is noise. */
+  const sodiumWeight = ctx.age >= 50 ? 0.35 : ctx.age >= 40 ? 0.15 : 0
 
   const recent = ctx.recentNames.slice(0, 60).map((s) => new Set(foodTokens(s)))
   const todayTok = new Set(ctx.todayNames.flatMap(foodTokens))
@@ -140,6 +177,7 @@ export function rankIdeas(cands: IdeaCandidate[], ctx: IdeaContext, limit = 8): 
       s += 0.3 * clamp(health / 10)
     }
     s += 0.3 * clamp(health / 10)
+    s -= sodiumWeight * clamp((n.sodium / Math.max(1, kcal)) * 100 / 250)
 
     /* 4. Balance: over on carbs or fat already, and a dish heavy in it costs. */
     const carbShare = (n.carbs * 4) / Math.max(1, kcal)
@@ -151,12 +189,12 @@ export function rankIdeas(cands: IdeaCandidate[], ctx: IdeaContext, limit = 8): 
     const dishTok = new Set([...foodTokens(recipe.name), ...(recipe.ingredients ?? []).flatMap(foodTokens)])
     let familiar = 0
     for (const r of recent) if (overlap(r, dishTok) > 0) familiar++
-    s += 0.5 * clamp(familiar / 4)
+    s += 0.8 * clamp(familiar / 5)
 
     /* 6. Variety: not what they just ate; and a daily rotation of near-ties. */
     const nameTok = new Set(foodTokens(recipe.name))
     if (overlap(nameTok, todayTok) >= Math.max(1, Math.ceil(nameTok.size / 2))) s -= 0.8
-    s += ((ctx.seed * 9301 + hash(recipe.id) * 49297) % 233280) / 233280 * 0.12
+    s += jitter(ctx, recipe.id) * 0.25
 
     /* 7. Time of day. */
     if (morning && isBreakfast) s += 0.4
@@ -165,6 +203,52 @@ export function rankIdeas(cands: IdeaCandidate[], ctx: IdeaContext, limit = 8): 
     scored.push({ recipe, calories: kcal, protein: n.protein, score: s })
   }
 
+  scored.sort((a, b) => b.score - a.score)
+  return scored.slice(0, limit)
+}
+
+/**
+ * "Recipes you may like": taste over timing. Ranked by how much a dish
+ * resembles what this person actually logs, then by fit for the plan and
+ * body, with no calorie-room gate, because this rail is for later in the
+ * week as much as tonight. Anything already on the ideas rail is left out.
+ * With nothing logged yet it falls back to the plan and the body, and a
+ * different jitter from the ideas rail so the two never look like one list.
+ */
+export function rankLikes(cands: IdeaCandidate[], ctx: IdeaContext, excludeIds: Set<string>, limit = 8): Idea[] {
+  const recent = ctx.recentNames.slice(0, 80).map((s) => new Set(foodTokens(s)))
+  const typical = new Set(typicalFoods(ctx.recentNames, 8))
+  const perMeal = clamp(ctx.calorieGoal * 0.4 * clamp(ctx.weightLb / 160, 0.85, 1.2), 350, 950)
+  const proteinWeight =
+    (ctx.goalKind === 'gain-muscle' || ctx.goalKind === 'recomp' ? 1.3 : 1) * (ctx.age >= 50 ? 1.2 : 1)
+  const fiberWeight = 0.3 + (ctx.age >= 40 ? 0.15 : 0) + (ctx.sex === 'female' ? 0.1 : 0)
+
+  const scored: Idea[] = []
+  for (const { recipe, n, health } of cands) {
+    if (excludeIds.has(recipe.id)) continue
+    const kcal = n.calories
+    if (kcal < 180 || kcal > perMeal * 1.6) continue
+    const tags = recipe.tags ?? []
+    if (!tags.includes('Main dish') && !tags.includes('Breakfast')) continue
+
+    const dishTok = new Set([...foodTokens(recipe.name), ...(recipe.ingredients ?? []).flatMap(foodTokens)])
+    let familiar = 0
+    for (const r of recent) if (overlap(r, dishTok) > 0) familiar++
+    const core = overlap(typical, dishTok)
+
+    let s = 0
+    s += 1.4 * clamp(familiar / 6) + 0.6 * clamp(core / 2)
+    s += 0.9 * (1 - clamp(Math.abs(kcal - perMeal) / perMeal))
+    s += proteinWeight * 0.7 * clamp(((n.protein / Math.max(1, kcal)) * 100) / 12)
+    s += fiberWeight * clamp(((n.fiber / Math.max(1, kcal)) * 100) / 3)
+    s += 0.4 * clamp(health / 10)
+    if (ctx.goalKind === 'lose-weight') s -= 0.4 * clamp(n.sugar / 25) + 0.3 * clamp(kcal / perMeal - 0.8)
+    if (ctx.goalKind === 'gain-muscle') s += 0.3 * clamp(kcal / perMeal)
+    if (ctx.age >= 50) s -= 0.3 * clamp(((n.sodium / Math.max(1, kcal)) * 100) / 250)
+    s += jitter({ ...ctx, seed: ctx.seed + 17 }, recipe.id) * 0.3
+
+    scored.push({ recipe, calories: kcal, protein: n.protein, score: s })
+  }
   scored.sort((a, b) => b.score - a.score)
   return scored.slice(0, limit)
 }

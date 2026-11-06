@@ -1672,3 +1672,7 @@ Slate, Mocha, Earth, Neapolitan.
 ## Night, 2026-11-06: build 18 to TestFlight
 
 Build 18 (1.1) uploaded 00:25 with everything since 17: the nine looks, meal ideas ranked, tab labels. Same recipe, derived data in the scratchpad.
+
+## Small hours, 2026-11-06: the feed is personal now (build 19)
+
+Phillip: "I keep on saying the same food feed for everybody." Home now shows a "why" strip (sex + age, weight + goal, the three words they log most) above two rails: Ideas for today (room-fit, `rankIdeas`) and Recipes you may like (taste-fit, `rankLikes`, no room gate, skips the first rail). Ranking now uses body weight (plate size, protein per lb), salt past 40/50, a stronger familiarity term, and a per-person seed so two people never get the same near-tie order. Label words (greek, nonfat, grilled) are stop words. Build 19 uploaded.
