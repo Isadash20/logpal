@@ -6,22 +6,28 @@ def rgba(h,a): r,g,b=rgb(h); return 'rgba(%d, %d, %d, %s)'%(r,g,b,a)
 W,K='#ffffff','#000000'
 # key, label, accent, pop, bg (light), textbase, note
 SPECS=[
- ('lavender','Lavender','#8f74d2','#4fb39a','#f6f3fc','#241f2f','lilac with mint about it'),
- ('sky','Sky','#4f8fe0','#e09a4a','#f1f6fc','#1b2534','blue with sand'),
- ('honey','Honey','#d9961f','#4d6fb3','#fcf7ea','#2a2414','mustard with slate blue'),
- ('slate','Slate','#44679f','#e08f2f','#f0f3f8','#161c27','steel blue with amber'),
+ # key, label, pastel accent, deep second colour, cream wash, text, note.
+ # The recipe Phillip liked in Neapolitan and Mint Choc (2026-11-05 night):
+ # a warm cream wash, a pastel main colour, a dark second colour.
+ ('sakura','Sakura','#ec9ab9','#5a3a44','#fcf6f3','#3a2a2e','strawberry pink with dark rose-brown, on cream'),
+ ('matcha','Matcha','#9fc48f','#4a4a32','#faf8ec','#33341f','matcha with dark olive, on cream'),
+ ('lavender','Lavender','#b39adb','#4a3d5c','#fbf7f6','#342c3e','lilac with deep plum, on cream'),
+ ('sky','Sky','#8fb8e6','#3a4658','#f9f8f1','#26303c','sky blue with deep navy, on cream'),
+ ('honey','Honey','#e9b84a','#5c4320','#fcf7e4','#3a2c14','honey with dark caramel, on cream'),
+ ('slate','Slate','#8aa0bd','#2f3a4a','#f7f6f1','#232b36','steel with charcoal, on cream'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
  ('mintchoc','Mint Choc','#7dbda4','#3e3630','#faf8ef','#3e3630','mint with dark chocolate, on cream'),
- ('forest','Forest','#2f8457','#d07a3a','#f0f6f1','#15221a','deep green with copper'),
+ ('forest','Forest','#6fae8a','#2f3f33','#f6f7ee','#233128','sage with dark pine, on cream'),
 ]
 out=[]
 out.append("""
-/* Eight more, 2026-11-05, "something for everybody": the same rules as
-   Sakura and Matcha (one base, the other colour splotched through, pale
-   wash, white cards, half-strength tints), generated from a short spec
-   by scratchpad/palettes.py so the derivations stay alike. Lavender and
-   Peach lean soft; Sky and Honey sit in the middle; Slate, Forest, Ocean
-   and Mono lean plain. */
+/* All the looks, 2026-11-05, generated from SPECS in scripts/palettes.py
+   (run from the repo root after cutting everything below the "palettes"
+   header; it appends). The recipe is the one Phillip picked out of
+   Neapolitan and Mint Choc that night: a warm cream wash, white cards, a
+   pastel main colour for the brand and the widgets, and one deep dark
+   second colour that takes the add button, links, the picked day, the
+   icon tiles, water and carbs. Each has a dark half. */
 """)
 for key,label,acc,pop,bg,text,note in SPECS:
     L={
@@ -30,7 +36,7 @@ for key,label,acc,pop,bg,text,note in SPECS:
      'ink':mix(text,acc,.15),'ink-2':mix(text,acc,.35),'on-ink':W,'on-ink-2':mix(bg,acc,.25),
      'protein':mix(acc,K,.1),'carbs':pop,'fat':mix(acc,W,.38),'water':pop,'steps':acc,'sleep':mix(acc,K,.22),
      'meal-morning':acc,'meal-afternoon':pop,'meal-evening':mix(acc,K,.1),'meal-late':mix(acc,K,.22),
-     'positive':'#6fa470' if key not in ('forest',) else '#c7824f','warning':'#e2a23f','danger':'#d95a6a','gold':'#e9c45c',
+     'positive':'#6fa470','warning':'#e2a23f','danger':'#d95a6a','gold':'#e9c45c',
      'bg':bg,'bg-top':bg,'surface':W,'surface-2':mix(bg,W,.4),'surface-3':mix(bg,acc,.12),
      'border':mix(bg,acc,.13),'border-strong':mix(bg,acc,.3),
      'text':text,'text-2':mix(text,bg,.42),'text-3':mix(text,bg,.6),
@@ -51,7 +57,7 @@ for key,label,acc,pop,bg,text,note in SPECS:
      'ink':dtext,'ink-2':mix(dtext,dbg,.15),'on-ink':dbg,'on-ink-2':mix(dtext,dbg,.6),
      'protein':mix(dacc,W,.08),'carbs':dpop,'fat':mix(dacc,W,.4),'water':dpop,'steps':dacc,'sleep':mix(dacc,W,.18),
      'meal-morning':dacc,'meal-afternoon':dpop,'meal-evening':mix(dacc,W,.08),'meal-late':mix(dacc,W,.18),
-     'positive':'#8fcf8c' if key!='forest' else mix('#c7824f',W,.3),'warning':'#ffb75c','danger':'#ff7a8c','gold':'#fdd56a',
+     'positive':'#8fcf8c','warning':'#ffb75c','danger':'#ff7a8c','gold':'#fdd56a',
      'bg':dbg,'bg-top':dbg,'surface':mix(dbg,W,.05),'surface-2':mix(dbg,W,.08),'surface-3':mix(dbg,W,.14),
      'border':mix(dbg,W,.12),'border-strong':mix(dbg,W,.22),
      'text':dtext,'text-2':mix(dtext,dbg,.3),'text-3':mix(dtext,dbg,.52),

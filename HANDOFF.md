@@ -1624,3 +1624,17 @@ falls back to classic for a saved palette key that no longer exists.
   `#604734` as the second colour, vanilla wash) and Mint Choc (mint
   `#7dbda4`, dark chocolate `#3e3630`, cream wash). In `scripts/palettes.py`
   SPECS; nine looks now.
+
+## Night, 2026-11-05: every look on the Neapolitan recipe
+
+Phillip: Neapolitan and Mint Choc are "so far my favourite", redo the rest
+"to feel similar" (not in colour). What they share: a warm cream wash,
+white cards, a pastel main colour, one deep dark second colour (the
+chocolate) on the add button, links, picked day, icon tiles, water and
+carbs. All nine looks now come from SPECS in `scripts/palettes.py` on
+that recipe, Sakura and Matcha included (their hand-tuned blocks are
+gone; `git show 8af9182:src/styles/tokens.css` has them if he says undo).
+Pastel main + dark second per look: Sakura `#ec9ab9`/`#5a3a44`, Matcha
+`#9fc48f`/`#4a4a32`, Lavender `#b39adb`/`#4a3d5c`, Sky `#8fb8e6`/`#3a4658`,
+Honey `#e9b84a`/`#5c4320`, Slate `#8aa0bd`/`#2f3a4a`, Forest
+`#6fae8a`/`#2f3f33`. Neapolitan and Mint Choc untouched.
