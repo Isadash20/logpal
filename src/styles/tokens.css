@@ -885,6 +885,95 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
+/* Earth: his olive, forest, sand, brown set. */
+:root[data-palette='earth'] {
+  --accent: #b9ae66;
+  --accent-press: #a3995a;
+  --accent-soft: #f5f4ea;
+  --accent-ring: rgba(185, 174, 102, 0.16);
+  --pop: #163e11;
+  --pop-press: #13370f;
+  --pop-soft: #dee4de;
+  --pop-ring: rgba(22, 62, 17, 0.2);
+  --ink: #403e24;
+  --ink-2: #5d5833;
+  --on-ink: #ffffff;
+  --on-ink-2: #eae0c1;
+  --protein: #a69d5c;
+  --carbs: #163e11;
+  --fat: #886a5a;
+  --water: #73503d;
+  --steps: #b9ae66;
+  --sleep: #624434;
+  --meal-morning: #b9ae66;
+  --meal-afternoon: #163e11;
+  --meal-evening: #a69d5c;
+  --meal-late: #908850;
+  --positive: #6fa470;
+  --warning: #e2a23f;
+  --danger: #d95a6a;
+  --gold: #e9c45c;
+  --bg: #fbf1df;
+  --bg-top: #fbf1df;
+  --surface: #ffffff;
+  --surface-2: #fdf7ec;
+  --surface-3: #f3e9d0;
+  --border: #f2e8cf;
+  --border-strong: #e7ddbb;
+  --text: #2b2a18;
+  --text-2: #827e6c;
+  --text-3: #a8a18f;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(111, 104, 61, 0.05), 0 2px 8px rgba(111, 104, 61, 0.05);
+  --shadow-card: 0 2px 4px rgba(111, 104, 61, 0.08), 0 12px 32px rgba(111, 104, 61, 0.14);
+  --shadow-2: 0 2px 6px rgba(111, 104, 61, 0.06), 0 10px 30px rgba(111, 104, 61, 0.1);
+  --shadow-3: 0 16px 40px rgba(111, 104, 61, 0.16);
+}
+
+:root[data-theme='dark'][data-palette='earth'] {
+  --accent: #d2ca9c;
+  --accent-press: #d7d0a8;
+  --accent-soft: #464437;
+  --accent-ring: rgba(210, 202, 156, 0.2);
+  --pop: #5c7858;
+  --pop-press: #70886c;
+  --pop-soft: #2c3228;
+  --pop-ring: rgba(92, 120, 88, 0.22);
+  --ink: #f1f1f5;
+  --ink-2: #d2d1d4;
+  --on-ink: #1f1e1b;
+  --on-ink-2: #737272;
+  --protein: #d6cea4;
+  --carbs: #5c7858;
+  --fat: #ab968b;
+  --water: #967c6e;
+  --steps: #d2ca9c;
+  --sleep: #8f7364;
+  --meal-morning: #d2ca9c;
+  --meal-afternoon: #5c7858;
+  --meal-evening: #d6cea4;
+  --meal-late: #dad4ae;
+  --positive: #8fcf8c;
+  --warning: #ffb75c;
+  --danger: #ff7a8c;
+  --gold: #fdd56a;
+  --bg: #1f1e1b;
+  --bg-top: #1f1e1b;
+  --surface: #2a2926;
+  --surface-2: #31302d;
+  --surface-3: #3e3e3b;
+  --border: #3a3936;
+  --border-strong: #50504d;
+  --text: #f1f1f5;
+  --text-2: #b2b2b4;
+  --text-3: #848384;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
 /* Neapolitan: strawberry, chocolate and vanilla. */
 :root[data-palette='neapolitan'] {
   --accent: #e27ab0;

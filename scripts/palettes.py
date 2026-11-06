@@ -18,6 +18,7 @@ SPECS=[
  ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
  # An optional eighth value is a third colour, for water, fat and sleep.
  ('sherbet','Sherbet','#f29e99','#5a3b35','#fbf3e3','#3a2a24','his salmon, apricot, pale blue, lime set','#9fc3de'),
+ ('earth','Earth','#b9ae66','#163e11','#fbf1df','#2b2a18','his olive, forest, sand, brown set','#73503d'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
 ]
 out=[]

@@ -1661,3 +1661,7 @@ pale blue on water, fat and sleep, apricot cream wash. The lime is unused.
 Cut: Black Cherry, Rosewater, Pistachio, Red Velvet, Picnic. Nine looks:
 Classic, Sakura, Matcha, Lavender, Sky, Honey, Slate, Mocha, Sherbet,
 Neapolitan.
+
+Earth, from `73503D F7D5A3 B9AE66 163E11`: olive-khaki `#b9ae66` main, forest
+green `#163e11` as the dark second, brown `#73503d` on water, fat and
+sleep, sand lightened to cream. Ten looks.

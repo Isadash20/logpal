@@ -32,5 +32,6 @@ export const PALETTES: { key: Palette; label: string; bg: string; accent: string
   { key: 'slate', label: 'Slate', bg: '#f7f6f1', accent: '#8aa0bd', second: '#2f3a4a' },
   { key: 'mocha', label: 'Mocha', bg: '#fbf7f1', accent: '#bf8f70', second: '#3b2a22' },
   { key: 'sherbet', label: 'Sherbet', bg: '#fbf3e3', accent: '#f29e99', second: '#5a3b35' },
+  { key: 'earth', label: 'Earth', bg: '#fbf1df', accent: '#b9ae66', second: '#163e11' },
   { key: 'neapolitan', label: 'Neapolitan', bg: '#fcf7e4', accent: '#e27ab0', second: '#604734' },
 ]
