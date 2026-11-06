@@ -5199,3 +5199,65 @@ button.row:active {
   margin-top: 8px;
   line-height: 1.35;
 }
+
+/* The Connect tab's two doors. */
+.door {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: calc(100% - 2 * var(--gutter));
+  margin: 12px var(--gutter) 0;
+  padding: 18px 16px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: left;
+  color: var(--text);
+}
+
+.door:active {
+  transform: scale(0.985);
+}
+
+.door--crew {
+  background: color-mix(in srgb, var(--pop-soft) calc(70% * var(--tint-k, 1)), var(--surface));
+  border-color: transparent;
+}
+
+.door__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-card);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-content: center;
+  flex: none;
+}
+
+.door__icon--emoji {
+  font-size: 28px;
+  background: var(--surface);
+}
+
+.door__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.door__title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.door__sub {
+  font-size: 13.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -16,7 +16,6 @@ import {
   TopBar,
 } from '../components/ui'
 import { friendlyDate } from '../lib/dates'
-import { CrewsCard } from './Crews'
 import { NUDGES, fetchNudges, markNudgesSeen, sendNudge, type Nudge } from '../services/nudges'
 import {
   acceptFollower,
@@ -794,7 +793,6 @@ export function Friends({ asTab }: { asTab?: boolean } = {}) {
         {/* What came in while you were away, before the lists. It is the one
             thing on this screen that is addressed to you. */}
         {me && !query.trim() && tab === 'following' && <NudgeInbox me={me} />}
-        {me && !query.trim() && tab === 'following' && <CrewsCard />}
         {me && !query.trim() && tab === 'following' && conn && conn.following.length > 0 && (
           <Compete following={conn.following} />
         )}

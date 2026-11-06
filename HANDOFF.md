@@ -1717,3 +1717,7 @@ Built, web only, not uploaded:
 **Phillip ran the SQL at 2026-11-06 ~10:20** (crews block, the five `week_*` columns, and `logpal_days.sleep_min` / `.steps`); all probed 200 from the browser pane. The paragraph below is history. Run the whole "crews" block at the end of `supabase/schema.sql` in the LogPal SQL editor (six tables, `logpal_in_crew` / `logpal_owns_crew` helpers, two RPCs, and `social_visible_to_crew` so crew mates can read each other's published profile). Until then every crew screen reports the missing table. Also still pending: the five `week_*` columns from build 20 (the leaderboard and challenges read them).
 
 Not done: universal links (an `apple-app-site-association` on Vercel plus the associated-domains entitlement) so the link opens the installed app instead of Safari; realtime for the chat; i18n strings for the crew screens.
+
+## Afternoon, 2026-11-06: the Connect tab
+
+Phillip pictured a fork, not a card. The fifth tab is now **Connect** (`tabs.friends` string in all eight languages; `settings.friends` keeps "Friends" for the Settings banner). `src/screens/Connect.tsx` is two doors: Friends (following count, "n waiting" badge) → the old Friends screen with a back arrow; Crews ("challenge on" badge, crew names) → the Crews screen. The Crews card is gone from the Friends screen. Tab key stays `friends`.

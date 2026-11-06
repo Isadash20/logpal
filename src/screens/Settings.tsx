@@ -214,7 +214,7 @@ function FriendsBanner() {
   return (
     <Banner
       icon="user"
-      title={t('tabs.friends')}
+      title={t('settings.friends')}
       sub={session ? t('settings.friendsSub') : t('settings.friendsSignIn')}
       value={pending ? <span className="badge">{t('settings.waiting', { n: pending })}</span> : undefined}
       onClick={() => push({ name: 'friends' })}

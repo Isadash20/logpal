@@ -45,6 +45,7 @@ import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { CrewDashboard, Crews, InviteLanding } from './screens/Crews'
+import { Connect } from './screens/Connect'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
 import { useT, type StringKey } from './i18n'
@@ -179,7 +180,7 @@ function Shell() {
         ) : route.tab === 'plan' ? (
           <Plan />
         ) : route.tab === 'friends' ? (
-          <Friends asTab />
+          <Connect />
         ) : route.tab === 'progress' ? (
           <Progress />
         ) : (
