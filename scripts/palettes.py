@@ -16,12 +16,7 @@ SPECS=[
  ('honey','Honey','#e9b84a','#5c4320','#fcf7e4','#3a2c14','honey with dark caramel, on cream'),
  ('slate','Slate','#8aa0bd','#2f3a4a','#f7f6f1','#232b36','steel with charcoal, on cream'),
  ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
- ('cherry','Black Cherry','#d97b8c','#44202c','#fcf6f4','#36222a','cherry with dark cherry, on cream'),
  # An optional eighth value is a third colour, for water, fat and sleep.
- ('picnic','Picnic','#78a5ce','#7c5549','#fdf5e6','#2c2520','his blue, cream, pink, brown set','#dda4b4'),
- ('rosewater','Rosewater','#e0a9b2','#5a3a3e','#f9f4e1','#3a2a2c','his pink, rose, cream, mint set','#a9cfc9'),
- ('pistachio','Pistachio','#9ccbbd','#786c56','#fbf9ea','#2f2a22','his mint, cream, olive, brown set','#a1a34e'),
- ('velvet','Red Velvet','#9e5151','#260809','#f6ecea','#260809','his brick, dark red, pale pink set','#751d1d'),
  ('sherbet','Sherbet','#f29e99','#5a3b35','#fbf3e3','#3a2a24','his salmon, apricot, pale blue, lime set','#9fc3de'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
 ]
