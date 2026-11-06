@@ -15,15 +15,15 @@ SPECS=[
  ('sky','Sky','#8fb8e6','#3a4658','#f9f8f1','#26303c','sky blue with deep navy, on cream'),
  ('honey','Honey','#e9b84a','#5c4320','#fcf7e4','#3a2c14','honey with dark caramel, on cream'),
  ('slate','Slate','#8aa0bd','#2f3a4a','#f7f6f1','#232b36','steel with charcoal, on cream'),
+ ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
+ ('cherry','Black Cherry','#d97b8c','#44202c','#fcf6f4','#36222a','cherry with dark cherry, on cream'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
- ('mintchoc','Mint Choc','#7dbda4','#3e3630','#faf8ef','#3e3630','mint with dark chocolate, on cream'),
- ('forest','Forest','#6fae8a','#2f3f33','#f6f7ee','#233128','sage with dark pine, on cream'),
 ]
 out=[]
 out.append("""
 /* All the looks, 2026-11-05, generated from SPECS in scripts/palettes.py
-   (run from the repo root after cutting everything below the "palettes"
-   header; it appends). The recipe is the one Phillip picked out of
+   (run from the repo root after cutting everything from this comment
+   down; it appends). The recipe is the one Phillip picked out of
    Neapolitan and Mint Choc that night: a warm cream wash, white cards, a
    pastel main colour for the brand and the widgets, and one deep dark
    second colour that takes the add button, links, the picked day, the

@@ -401,9 +401,9 @@ export type Palette =
   | 'sky'
   | 'honey'
   | 'slate'
-  | 'forest'
+  | 'mocha'
+  | 'cherry'
   | 'neapolitan'
-  | 'mintchoc'
 
 export interface Settings {
   weightUnit: 'lb' | 'kg'

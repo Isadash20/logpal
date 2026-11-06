@@ -166,8 +166,8 @@
 }
 
 /* All the looks, 2026-11-05, generated from SPECS in scripts/palettes.py
-   (run from the repo root after cutting everything below the "palettes"
-   header; it appends). The recipe is the one Phillip picked out of
+   (run from the repo root after cutting everything from this comment
+   down; it appends). The recipe is the one Phillip picked out of
    Neapolitan and Mint Choc that night: a warm cream wash, white cards, a
    pastel main colour for the brand and the widgets, and one deep dark
    second colour that takes the add button, links, the picked day, the
@@ -707,6 +707,184 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
+/* Mocha: milk chocolate with espresso, on cream. */
+:root[data-palette='mocha'] {
+  --accent: #bf8f70;
+  --accent-press: #a87e63;
+  --accent-soft: #f6efeb;
+  --accent-ring: rgba(191, 143, 112, 0.16);
+  --pop: #3b2a22;
+  --pop-press: #34251e;
+  --pop-soft: #e4e1e0;
+  --pop-ring: rgba(59, 42, 34, 0.2);
+  --ink: #443229;
+  --ink-2: #614839;
+  --on-ink: #ffffff;
+  --on-ink-2: #ecddd1;
+  --protein: #ac8165;
+  --carbs: #3b2a22;
+  --fat: #d7baa6;
+  --water: #3b2a22;
+  --steps: #bf8f70;
+  --sleep: #957057;
+  --meal-morning: #bf8f70;
+  --meal-afternoon: #3b2a22;
+  --meal-evening: #ac8165;
+  --meal-late: #957057;
+  --positive: #6fa470;
+  --warning: #e2a23f;
+  --danger: #d95a6a;
+  --gold: #e9c45c;
+  --bg: #fbf7f1;
+  --bg-top: #fbf7f1;
+  --surface: #ffffff;
+  --surface-2: #fdfaf7;
+  --surface-3: #f4ebe2;
+  --border: #f3e9e0;
+  --border-strong: #e9d8ca;
+  --text: #2e221c;
+  --text-2: #847b75;
+  --text-3: #a9a29c;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(115, 86, 67, 0.05), 0 2px 8px rgba(115, 86, 67, 0.05);
+  --shadow-card: 0 2px 4px rgba(115, 86, 67, 0.08), 0 12px 32px rgba(115, 86, 67, 0.14);
+  --shadow-2: 0 2px 6px rgba(115, 86, 67, 0.06), 0 10px 30px rgba(115, 86, 67, 0.1);
+  --shadow-3: 0 16px 40px rgba(115, 86, 67, 0.16);
+}
+
+:root[data-theme='dark'][data-palette='mocha'] {
+  --accent: #d5b6a2;
+  --accent-press: #dabfad;
+  --accent-soft: #483e39;
+  --accent-ring: rgba(213, 182, 162, 0.2);
+  --pop: #766a64;
+  --pop-press: #867c77;
+  --pop-soft: #332d2b;
+  --pop-ring: rgba(118, 106, 100, 0.22);
+  --ink: #f1f1f5;
+  --ink-2: #d2d1d4;
+  --on-ink: #201c1b;
+  --on-ink-2: #747172;
+  --protein: #d8bca9;
+  --carbs: #766a64;
+  --fat: #e6d3c7;
+  --water: #766a64;
+  --steps: #d5b6a2;
+  --sleep: #ddc3b3;
+  --meal-morning: #d5b6a2;
+  --meal-afternoon: #766a64;
+  --meal-evening: #d8bca9;
+  --meal-late: #ddc3b3;
+  --positive: #8fcf8c;
+  --warning: #ffb75c;
+  --danger: #ff7a8c;
+  --gold: #fdd56a;
+  --bg: #201c1b;
+  --bg-top: #201c1b;
+  --surface: #2b2726;
+  --surface-2: #322e2d;
+  --surface-3: #3f3c3b;
+  --border: #3b3736;
+  --border-strong: #514e4d;
+  --text: #f1f1f5;
+  --text-2: #b2b1b4;
+  --text-3: #848284;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* Black Cherry: cherry with dark cherry, on cream. */
+:root[data-palette='cherry'] {
+  --accent: #d97b8c;
+  --accent-press: #bf6c7b;
+  --accent-soft: #faedef;
+  --accent-ring: rgba(217, 123, 140, 0.16);
+  --pop: #44202c;
+  --pop-press: #3c1c27;
+  --pop-soft: #e5e0e1;
+  --pop-ring: rgba(68, 32, 44, 0.2);
+  --ink: #4e2f39;
+  --ink-2: #6f414c;
+  --on-ink: #ffffff;
+  --on-ink-2: #f3d7da;
+  --protein: #c36f7e;
+  --carbs: #44202c;
+  --fat: #e7adb8;
+  --water: #44202c;
+  --steps: #d97b8c;
+  --sleep: #a9606d;
+  --meal-morning: #d97b8c;
+  --meal-afternoon: #44202c;
+  --meal-evening: #c36f7e;
+  --meal-late: #a9606d;
+  --positive: #6fa470;
+  --warning: #e2a23f;
+  --danger: #d95a6a;
+  --gold: #e9c45c;
+  --bg: #fcf6f4;
+  --bg-top: #fcf6f4;
+  --surface: #ffffff;
+  --surface-2: #fdfaf8;
+  --surface-3: #f8e7e8;
+  --border: #f7e6e6;
+  --border-strong: #f2d1d5;
+  --text: #36222a;
+  --text-2: #897b7f;
+  --text-3: #ada1a3;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(130, 74, 84, 0.05), 0 2px 8px rgba(130, 74, 84, 0.05);
+  --shadow-card: 0 2px 4px rgba(130, 74, 84, 0.08), 0 12px 32px rgba(130, 74, 84, 0.14);
+  --shadow-2: 0 2px 6px rgba(130, 74, 84, 0.06), 0 10px 30px rgba(130, 74, 84, 0.1);
+  --shadow-3: 0 16px 40px rgba(130, 74, 84, 0.16);
+}
+
+:root[data-theme='dark'][data-palette='cherry'] {
+  --accent: #e6a9b4;
+  --accent-press: #e9b3bd;
+  --accent-soft: #4d393f;
+  --accent-ring: rgba(230, 169, 180, 0.2);
+  --pop: #7c636b;
+  --pop-press: #8c767d;
+  --pop-soft: #362a2f;
+  --pop-ring: rgba(124, 99, 107, 0.22);
+  --ink: #f1f1f5;
+  --ink-2: #d2d1d5;
+  --on-ink: #221a1e;
+  --on-ink-2: #757074;
+  --protein: #e8b0ba;
+  --carbs: #7c636b;
+  --fat: #f0cbd2;
+  --water: #7c636b;
+  --steps: #e6a9b4;
+  --sleep: #eab8c2;
+  --meal-morning: #e6a9b4;
+  --meal-afternoon: #7c636b;
+  --meal-evening: #e8b0ba;
+  --meal-late: #eab8c2;
+  --positive: #8fcf8c;
+  --warning: #ffb75c;
+  --danger: #ff7a8c;
+  --gold: #fdd56a;
+  --bg: #221a1e;
+  --bg-top: #221a1e;
+  --surface: #2d2529;
+  --surface-2: #342c30;
+  --surface-3: #413a3e;
+  --border: #3d3539;
+  --border-strong: #534c50;
+  --text: #f1f1f5;
+  --text-2: #b3b0b4;
+  --text-3: #858185;
+  --tint-k: 0.8;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+
 /* Neapolitan: strawberry, chocolate and vanilla. */
 :root[data-palette='neapolitan'] {
   --accent: #e27ab0;
@@ -789,184 +967,6 @@
   --text: #f1f1f5;
   --text-2: #b3b0b5;
   --text-3: #868186;
-  --tint-k: 0.8;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
-}
-
-/* Mint Choc: mint with dark chocolate, on cream. */
-:root[data-palette='mintchoc'] {
-  --accent: #7dbda4;
-  --accent-press: #6ea690;
-  --accent-soft: #edf6f2;
-  --accent-ring: rgba(125, 189, 164, 0.16);
-  --pop: #3e3630;
-  --pop-press: #37302a;
-  --pop-soft: #e4e3e2;
-  --pop-ring: rgba(62, 54, 48, 0.2);
-  --ink: #474a41;
-  --ink-2: #546559;
-  --on-ink: #ffffff;
-  --on-ink-2: #dbe9dc;
-  --protein: #70aa94;
-  --carbs: #3e3630;
-  --fat: #aed6c7;
-  --water: #3e3630;
-  --steps: #7dbda4;
-  --sleep: #629380;
-  --meal-morning: #7dbda4;
-  --meal-afternoon: #3e3630;
-  --meal-evening: #70aa94;
-  --meal-late: #629380;
-  --positive: #6fa470;
-  --warning: #e2a23f;
-  --danger: #d95a6a;
-  --gold: #e9c45c;
-  --bg: #faf8ef;
-  --bg-top: #faf8ef;
-  --surface: #ffffff;
-  --surface-2: #fcfbf5;
-  --surface-3: #ebf1e6;
-  --border: #eaf0e5;
-  --border-strong: #d4e6d8;
-  --text: #3e3630;
-  --text-2: #8d8780;
-  --text-3: #afaaa3;
-  --tint-k: 0.8;
-  --shadow-1: 0 1px 2px rgba(75, 113, 98, 0.05), 0 2px 8px rgba(75, 113, 98, 0.05);
-  --shadow-card: 0 2px 4px rgba(75, 113, 98, 0.08), 0 12px 32px rgba(75, 113, 98, 0.14);
-  --shadow-2: 0 2px 6px rgba(75, 113, 98, 0.06), 0 10px 30px rgba(75, 113, 98, 0.1);
-  --shadow-3: 0 16px 40px rgba(75, 113, 98, 0.16);
-}
-
-:root[data-theme='dark'][data-palette='mintchoc'] {
-  --accent: #aad4c4;
-  --accent-press: #b4d9cb;
-  --accent-soft: #3a4844;
-  --accent-ring: rgba(170, 212, 196, 0.2);
-  --pop: #78726e;
-  --pop-press: #88837f;
-  --pop-soft: #2f3231;
-  --pop-ring: rgba(120, 114, 110, 0.22);
-  --ink: #f1f1f5;
-  --ink-2: #d1d2d5;
-  --on-ink: #1b2020;
-  --on-ink-2: #717475;
-  --protein: #b1d7c9;
-  --carbs: #78726e;
-  --fat: #cce5dc;
-  --water: #78726e;
-  --steps: #aad4c4;
-  --sleep: #b9dccf;
-  --meal-morning: #aad4c4;
-  --meal-afternoon: #78726e;
-  --meal-evening: #b1d7c9;
-  --meal-late: #b9dccf;
-  --positive: #8fcf8c;
-  --warning: #ffb75c;
-  --danger: #ff7a8c;
-  --gold: #fdd56a;
-  --bg: #1b2020;
-  --bg-top: #1b2020;
-  --surface: #262b2b;
-  --surface-2: #2d3232;
-  --surface-3: #3b3f3f;
-  --border: #363b3b;
-  --border-strong: #4d5151;
-  --text: #f1f1f5;
-  --text-2: #b1b2b5;
-  --text-3: #828486;
-  --tint-k: 0.8;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
-}
-
-/* Forest: sage with dark pine, on cream. */
-:root[data-palette='forest'] {
-  --accent: #6fae8a;
-  --accent-press: #629979;
-  --accent-soft: #ebf4ef;
-  --accent-ring: rgba(111, 174, 138, 0.16);
-  --pop: #2f3f33;
-  --pop-press: #29372d;
-  --pop-soft: #e2e4e2;
-  --pop-ring: rgba(47, 63, 51, 0.2);
-  --ink: #2e4437;
-  --ink-2: #3e5d4a;
-  --on-ink: #ffffff;
-  --on-ink-2: #d4e5d5;
-  --protein: #649d7c;
-  --carbs: #2f3f33;
-  --fat: #a6cdb6;
-  --water: #2f3f33;
-  --steps: #6fae8a;
-  --sleep: #57886c;
-  --meal-morning: #6fae8a;
-  --meal-afternoon: #2f3f33;
-  --meal-evening: #649d7c;
-  --meal-late: #57886c;
-  --positive: #6fa470;
-  --warning: #e2a23f;
-  --danger: #d95a6a;
-  --gold: #e9c45c;
-  --bg: #f6f7ee;
-  --bg-top: #f6f7ee;
-  --surface: #ffffff;
-  --surface-2: #fafaf5;
-  --surface-3: #e6eee2;
-  --border: #e4eee1;
-  --border-strong: #cee1d0;
-  --text: #233128;
-  --text-2: #7c847b;
-  --text-3: #a2a89f;
-  --tint-k: 0.8;
-  --shadow-1: 0 1px 2px rgba(67, 104, 83, 0.05), 0 2px 8px rgba(67, 104, 83, 0.05);
-  --shadow-card: 0 2px 4px rgba(67, 104, 83, 0.08), 0 12px 32px rgba(67, 104, 83, 0.14);
-  --shadow-2: 0 2px 6px rgba(67, 104, 83, 0.06), 0 10px 30px rgba(67, 104, 83, 0.1);
-  --shadow-3: 0 16px 40px rgba(67, 104, 83, 0.16);
-}
-
-:root[data-theme='dark'][data-palette='forest'] {
-  --accent: #a1cab3;
-  --accent-press: #acd0bc;
-  --accent-soft: #37443e;
-  --accent-ring: rgba(161, 202, 179, 0.2);
-  --pop: #6d7970;
-  --pop-press: #7f8981;
-  --pop-soft: #2b322f;
-  --pop-ring: rgba(109, 121, 112, 0.22);
-  --ink: #f1f1f5;
-  --ink-2: #d1d1d5;
-  --on-ink: #191e1d;
-  --on-ink-2: #6f7273;
-  --protein: #a9ceb9;
-  --carbs: #6d7970;
-  --fat: #c7dfd1;
-  --water: #6d7970;
-  --steps: #a1cab3;
-  --sleep: #b2d4c1;
-  --meal-morning: #a1cab3;
-  --meal-afternoon: #6d7970;
-  --meal-evening: #a9ceb9;
-  --meal-late: #b2d4c1;
-  --positive: #8fcf8c;
-  --warning: #ffb75c;
-  --danger: #ff7a8c;
-  --gold: #fdd56a;
-  --bg: #191e1d;
-  --bg-top: #191e1d;
-  --surface: #242928;
-  --surface-2: #2b302f;
-  --surface-3: #393e3d;
-  --border: #353938;
-  --border-strong: #4c504f;
-  --text: #f1f1f5;
-  --text-2: #b0b2b4;
-  --text-3: #818385;
   --tint-k: 0.8;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);

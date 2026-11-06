@@ -1638,3 +1638,11 @@ Pastel main + dark second per look: Sakura `#ec9ab9`/`#5a3a44`, Matcha
 `#9fc48f`/`#4a4a32`, Lavender `#b39adb`/`#4a3d5c`, Sky `#8fb8e6`/`#3a4658`,
 Honey `#e9b84a`/`#5c4320`, Slate `#8aa0bd`/`#2f3a4a`, Forest
 `#6fae8a`/`#2f3f33`. Neapolitan and Mint Choc untouched.
+
+Later that night: Mint Choc, Forest and Matcha read as one look. Matcha is
+his favourite, so Forest and Mint Choc were cut and two flavours added on
+the same recipe: Mocha (milk chocolate `#bf8f70`, espresso `#3b2a22`) and
+Black Cherry (`#d97b8c`, dark cherry `#44202c`). Nine looks: Classic,
+Sakura, Matcha, Lavender, Sky, Honey, Slate, Mocha, Black Cherry,
+Neapolitan. The generator now expects everything from its own "All the
+looks" comment down to be cut before a run (it appends).
