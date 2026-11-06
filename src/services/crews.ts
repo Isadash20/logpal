@@ -21,6 +21,8 @@ export interface Crew {
   id: string
   name: string
   emoji: string
+  /** A square JPEG data URL, or null for the emoji. */
+  photo: string | null
   visibility: Visibility
   inviteCode: string
   owner: string
@@ -81,6 +83,7 @@ export interface CrewPreview {
   id: string
   name: string
   emoji: string
+  photo: string | null
   visibility: Visibility
   members: number
   challengeTitle: string | null
@@ -94,6 +97,7 @@ interface CrewRow {
   id: string
   name: string
   emoji: string
+  photo?: string | null
   visibility: Visibility
   invite_code: string
   owner: string
@@ -104,6 +108,7 @@ const toCrew = (r: CrewRow): Crew => ({
   id: r.id,
   name: r.name,
   emoji: r.emoji,
+  photo: r.photo ?? null,
   visibility: r.visibility,
   inviteCode: r.invite_code,
   owner: r.owner,
@@ -189,15 +194,29 @@ export async function discoverCrews(me: string): Promise<CrewCard[]> {
 
 /* --------------------------------------------------------------- lifecycle -- */
 
-export async function createCrew(input: { name: string; emoji: string; visibility: Visibility }): Promise<Crew> {
+export async function createCrew(input: {
+  name: string
+  emoji: string
+  photo: string | null
+  visibility: Visibility
+}): Promise<Crew> {
   const db = requireClient()
-  for (let attempt = 0; attempt < 4; attempt++) {
-    const { data, error } = await db
-      .from('logpal_crews')
-      .insert({ name: input.name.trim(), emoji: input.emoji, visibility: input.visibility, invite_code: makeInviteCode() })
-      .select('*')
-      .single()
+  let withPhoto = input.photo !== null
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const row: Record<string, unknown> = {
+      name: input.name.trim(),
+      emoji: input.emoji,
+      visibility: input.visibility,
+      invite_code: makeInviteCode(),
+    }
+    if (withPhoto) row.photo = input.photo
+    const { data, error } = await db.from('logpal_crews').insert(row).select('*').single()
     if (error) {
+      /* The photo column is not on the server yet: make the crew without it. */
+      if (error.code === 'PGRST204' && withPhoto) {
+        withPhoto = false
+        continue
+      }
       // A code collision is a one in a trillion event, but it costs nothing to
       // try again rather than show someone an error for it.
       if (error.code === '23505' && attempt < 3) continue
@@ -211,8 +230,17 @@ export async function createCrew(input: { name: string; emoji: string; visibilit
   throw new Error('Could not make a crew')
 }
 
-export async function updateCrew(id: string, patch: Partial<Pick<Crew, 'name' | 'emoji' | 'visibility'>>): Promise<void> {
-  const { error } = await requireClient().from('logpal_crews').update(patch).eq('id', id)
+export async function updateCrew(
+  id: string,
+  patch: Partial<Pick<Crew, 'name' | 'emoji' | 'photo' | 'visibility'>>,
+): Promise<void> {
+  const db = requireClient()
+  let { error } = await db.from('logpal_crews').update(patch).eq('id', id)
+  if (error?.code === 'PGRST204' && 'photo' in patch) {
+    const { photo, ...rest } = patch
+    void photo
+    ;({ error } = await db.from('logpal_crews').update(rest).eq('id', id))
+  }
   if (error) throw error
 }
 
@@ -231,6 +259,7 @@ export async function previewCrew(code: string): Promise<CrewPreview | null> {
     id: row.id as string,
     name: row.name as string,
     emoji: row.emoji as string,
+    photo: (row.photo as string | null) ?? null,
     visibility: row.visibility as Visibility,
     members: row.members as number,
     challengeTitle: (row.challenge_title as string | null) ?? null,

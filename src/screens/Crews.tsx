@@ -3,6 +3,7 @@ import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { Empty, Row, SegmentedField, Sheet, Spinner, Tabs, TextField, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
+import { fileToAvatar } from '../lib/avatar'
 import {
   CHALLENGE_KINDS,
   achievements,
@@ -60,6 +61,17 @@ import {
 
 const KUDOS = ['👏', '🔥', '💪', '🎉'] as const
 const EMOJIS = ['🏁', '🔥', '💪', '🥦', '🏃', '🚴', '🧘', '🥗', '🏋️', '🌞', '🐢', '🦁']
+
+/** The crew's face: its photo when it has one, otherwise the emoji. */
+function CrewFace({ emoji, photo, className }: { emoji: string; photo: string | null; className: string }) {
+  return photo ? (
+    <span className={`${className} crew-face--photo`}>
+      <img src={photo} alt="" />
+    </span>
+  ) : (
+    <span className={className}>{emoji}</span>
+  )
+}
 
 function initialOf(p: Person): string {
   return (p.name || p.username).slice(0, 1).toUpperCase()
@@ -271,7 +283,7 @@ function CrewRow({ crew, right, onClick }: { crew: CrewCard; right?: React.React
   ].join(' · ')
   return (
     <Row
-      left={<span className="crew-badge">{crew.emoji}</span>}
+      left={<CrewFace emoji={crew.emoji} photo={crew.photo} className="crew-badge" />}
       title={crew.name}
       sub={sub}
       right={right}
@@ -323,12 +335,14 @@ function CrewSheet({
   onClose,
   onDone,
 }: {
-  existing?: { id: string; name: string; emoji: string; visibility: Visibility }
+  existing?: { id: string; name: string; emoji: string; photo: string | null; visibility: Visibility }
   onClose(): void
   onDone(id: string): void
 }) {
   const [name, setName] = useState(existing?.name ?? '')
   const [emoji, setEmoji] = useState(existing?.emoji ?? '🏁')
+  const [photo, setPhoto] = useState<string | null>(existing?.photo ?? null)
+  const fileRef = useRef<HTMLInputElement>(null)
   const [visibility, setVisibility] = useState<Visibility>(existing?.visibility ?? 'private')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -338,10 +352,10 @@ function CrewSheet({
     setBusy(true)
     try {
       if (existing) {
-        await updateCrew(existing.id, { name: name.trim(), emoji, visibility })
+        await updateCrew(existing.id, { name: name.trim(), emoji, photo, visibility })
         onDone(existing.id)
       } else {
-        const crew = await createCrew({ name, emoji, visibility })
+        const crew = await createCrew({ name, emoji, photo, visibility })
         onDone(crew.id)
       }
     } catch (err) {
@@ -354,14 +368,43 @@ function CrewSheet({
     <Sheet title={existing ? 'Edit crew' : 'Start a crew'} onClose={onClose}>
       <TextField label="Name" value={name} onChange={setName} placeholder="Morning Walkers" autoFocus />
       <div className="field field--stack">
-        <span className="field__label">Badge</span>
-        <div className="chips chips--wrap">
-          {EMOJIS.map((e) => (
-            <button key={e} className={`chip crew-emoji ${emoji === e ? 'chip--active' : ''}`} onClick={() => setEmoji(e)}>
-              {e}
+        <span className="field__label">Icon</span>
+        <div className="crew-pick">
+          <CrewFace emoji={emoji} photo={photo} className="crew-pick__face" />
+          <div className="avatarpick__actions">
+            <button className="btn btn--ghost btn--sm" onClick={() => fileRef.current?.click()}>
+              {photo ? 'Change photo' : 'Upload a photo'}
             </button>
-          ))}
+            {photo && (
+              <button className="btn btn--ghost btn--sm" onClick={() => setPhoto(null)}>
+                Use an emoji instead
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              e.target.value = ''
+              if (!f) return
+              fileToAvatar(f)
+                .then(setPhoto)
+                .catch(() => setError('That photo could not be read.'))
+            }}
+          />
         </div>
+        {!photo && (
+          <div className="chips chips--wrap">
+            {EMOJIS.map((e) => (
+              <button key={e} className={`chip crew-emoji ${emoji === e ? 'chip--active' : ''}`} onClick={() => setEmoji(e)}>
+                {e}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <SegmentedField<Visibility>
         label="Who can join"
@@ -525,7 +568,7 @@ export function CrewDashboard({ id }: { id: string }) {
       />
       <div className="scroll">
         <div className="crew-hero">
-          <div className="crew-hero__emoji">{crew.emoji}</div>
+          <CrewFace emoji={crew.emoji} photo={crew.photo} className="crew-hero__emoji" />
           <div className="crew-hero__main">
             <div className="crew-hero__name">{crew.name}</div>
             <div className="crew-hero__sub">
@@ -646,7 +689,7 @@ export function CrewDashboard({ id }: { id: string }) {
 
       {editing && (
         <CrewSheet
-          existing={{ id: crew.id, name: crew.name, emoji: crew.emoji, visibility: crew.visibility }}
+          existing={{ id: crew.id, name: crew.name, emoji: crew.emoji, photo: crew.photo, visibility: crew.visibility }}
           onClose={() => setEditing(false)}
           onDone={() => {
             setEditing(false)
@@ -1213,7 +1256,7 @@ export function InviteLanding({ code, onContinue, onDismiss }: { code: string; o
 
   useEffect(() => {
     if (import.meta.env.DEV && code === 'DEMODEMO') {
-      setPreview({ id: 'demo', name: 'Morning Walkers', emoji: '🏃', visibility: 'private', members: 4, challengeTitle: '7-Day Steps Challenge', challengeKind: 'steps', challengeEnds: addDays(today(), 3) })
+      setPreview({ id: 'demo', name: 'Morning Walkers', emoji: '🏃', photo: null, visibility: 'private', members: 4, challengeTitle: '7-Day Steps Challenge', challengeKind: 'steps', challengeEnds: addDays(today(), 3) })
       return
     }
     previewCrew(code)
@@ -1239,7 +1282,7 @@ export function InviteLanding({ code, onContinue, onDismiss }: { code: string; o
           </>
         ) : (
           <>
-            <div className="landing__emoji">{preview.emoji}</div>
+            <CrewFace emoji={preview.emoji} photo={preview.photo} className="landing__emoji" />
             <div className="landing__kicker">You’re invited to</div>
             <div className="landing__title">{preview.name}</div>
             <div className="landing__sub">

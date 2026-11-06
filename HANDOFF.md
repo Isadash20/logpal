@@ -1721,3 +1721,7 @@ Not done: universal links (an `apple-app-site-association` on Vercel plus the as
 ## Afternoon, 2026-11-06: the Connect tab
 
 Phillip pictured a fork, not a card. The fifth tab is now **Connect** (`tabs.friends` string in all eight languages; `settings.friends` keeps "Friends" for the Settings banner). `src/screens/Connect.tsx` is two doors: Friends (following count, "n waiting" badge) → the old Friends screen with a back arrow; Crews ("challenge on" badge, crew names) → the Crews screen. The Crews card is gone from the Friends screen. Tab key stays `friends`.
+
+## Afternoon, 2026-11-06: crew icon, emoji or photo
+
+The crew sheet's "Badge" is now "Icon": pick an emoji, or Upload a photo (`fileToAvatar`, 256px JPEG data URL, stored in `logpal_crews.photo`; "Use an emoji instead" clears it). `CrewFace` renders the photo wherever the emoji appeared (row, hero, landing). **SQL to run** (copied to Phillip's clipboard, also at the end of `supabase/schema.sql`): `alter table logpal_crews add column if not exists photo text …` plus the re-created `logpal_crew_preview` that returns it. Until it runs, `createCrew`/`updateCrew` catch PGRST204 and save without the photo.

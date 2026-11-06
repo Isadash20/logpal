@@ -42,6 +42,7 @@ export function demoCrew(me: string): CrewDetail {
       id: 'demo',
       name: 'Morning Walkers',
       emoji: '🏃',
+      photo: null,
       visibility: 'private',
       inviteCode: 'KQ7M3HTD',
       owner: me,

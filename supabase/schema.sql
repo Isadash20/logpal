@@ -811,3 +811,40 @@ create policy social_visible_to_crew on logpal_social_profile for select
       where a.user_id = auth.uid() and b.user_id = logpal_social_profile.user_id
     )
   );
+
+-- A crew can wear a photo instead of an emoji: a square JPEG data URL made on
+-- the device (`lib/avatar.ts`, 256px). Safe to re-run.
+alter table logpal_crews add column if not exists photo text
+  check (photo is null or (photo like 'data:image/%' and char_length(photo) <= 120000));
+
+drop function if exists logpal_crew_preview(text);
+create or replace function logpal_crew_preview(code text)
+returns table (
+  id uuid,
+  name text,
+  emoji text,
+  photo text,
+  visibility text,
+  members integer,
+  challenge_title text,
+  challenge_kind text,
+  challenge_ends date
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select c.id, c.name, c.emoji, c.photo, c.visibility,
+    (select count(*)::integer from logpal_crew_members m where m.crew_id = c.id) as members,
+    ch.title, ch.kind, ch.ends
+  from logpal_crews c
+  left join lateral (
+    select title, kind, ends from logpal_crew_challenges x
+    where x.crew_id = c.id and x.ends >= current_date
+    order by x.starts asc limit 1
+  ) ch on true
+  where c.invite_code = upper(code);
+$$;
+
+grant execute on function logpal_crew_preview(text) to anon, authenticated;
