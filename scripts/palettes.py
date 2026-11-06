@@ -14,10 +14,10 @@ SPECS=[
  # The 2026-11-05 set (near-white washes, pastel mains of the same hue) read
  # as washed out next to it; that set is in git before this commit.
  ('sakura','Sakura','#ea7fa6','#3e4b40','#eef3fb','#2b3336','cherry pink with deep leaf green, on pale sky'),
- ('matcha','Matcha','#7fb86a','#5a3838','#fcecec','#2f3a28','matcha with azuki, on strawberry milk'),
- ('lavender','Lavender','#a483dc','#3d2e4f','#fbf8d8','#332c3e','lilac with deep plum, on lemon'),
+ ('matcha','Matcha','#7fb86a','#4a3626','#fbf5e1','#2f3a28','matcha with dark chocolate, on vanilla'),
+ ('lavender','Lavender','#a483dc','#3d2e4f','#fbf8ec','#332c3e','lilac with deep plum, on soft cream'),
  ('sky','Sky','#5fa3e6','#243247','#fdf0e3','#26303c','sky blue with navy, on peach'),
- ('honey','Honey','#e8ae2e','#4e3414','#eaf1f8','#3a2c14','honey with dark caramel, on pale blue'),
+ ('honey','Honey','#e8ae2e','#4e3414','#eff4e7','#3a2c14','honey with dark caramel, on pale sage'),
  ('slate','Slate','#6b90c0','#26303c','#f5efe3','#232b36','steel with charcoal, on sand'),
  ('mocha','Mocha','#c7845a','#3a2820','#eaf3ec','#2e221c','caramel with espresso, on mint'),
  # An optional eighth value is a third colour, for water, fat and sleep.

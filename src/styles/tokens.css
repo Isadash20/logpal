@@ -262,44 +262,44 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* Matcha: matcha with azuki, on strawberry milk. */
+/* Matcha: matcha with dark chocolate, on vanilla. */
 :root[data-palette='matcha'] {
   --accent: #7fb86a;
   --accent-press: #70a25d;
   --accent-soft: #edf5ea;
   --accent-ring: rgba(127, 184, 106, 0.16);
-  --pop: #5a3838;
-  --pop-press: #4f3131;
-  --pop-soft: #e8e3e3;
-  --pop-ring: rgba(90, 56, 56, 0.2);
+  --pop: #4a3626;
+  --pop-press: #413021;
+  --pop-soft: #e6e3e1;
+  --pop-ring: rgba(74, 54, 38, 0.2);
   --ink: #3b4d32;
   --ink-2: #4b663f;
   --on-ink: #ffffff;
-  --on-ink-2: #dddfcc;
+  --on-ink-2: #dce6c3;
   --protein: #72a65f;
-  --carbs: #5a3838;
+  --carbs: #4a3626;
   --fat: #b0d3a3;
-  --water: #5a3838;
+  --water: #4a3626;
   --steps: #7fb86a;
   --sleep: #639053;
   --meal-morning: #7fb86a;
-  --meal-afternoon: #5a3838;
+  --meal-afternoon: #4a3626;
   --meal-evening: #72a65f;
   --meal-late: #639053;
   --positive: #6fa470;
   --warning: #e2a23f;
   --danger: #d95a6a;
   --gold: #e9c45c;
-  --bg: #fcecec;
-  --bg-top: #fcecec;
+  --bg: #fbf5e1;
+  --bg-top: #fbf5e1;
   --surface: #ffffff;
-  --surface-2: #fdf4f4;
-  --surface-3: #ede6dc;
-  --border: #ece5db;
-  --border-strong: #d6dcc5;
+  --surface-2: #fdf9ed;
+  --surface-3: #eceed3;
+  --border: #ebedd2;
+  --border-strong: #d6e3bd;
   --text: #2f3a28;
-  --text-2: #85857a;
-  --text-3: #aaa59e;
+  --text-2: #858976;
+  --text-3: #a9aa97;
   --tint-k: 0.8;
   --shadow-1: 0 1px 2px rgba(76, 110, 64, 0.05), 0 2px 8px rgba(76, 110, 64, 0.05);
   --shadow-card: 0 2px 4px rgba(76, 110, 64, 0.08), 0 12px 32px rgba(76, 110, 64, 0.14);
@@ -312,22 +312,22 @@
   --accent-press: #b6d7aa;
   --accent-soft: #3b4638;
   --accent-ring: rgba(172, 209, 158, 0.2);
-  --pop: #8c7474;
-  --pop-press: #9a8585;
-  --pop-soft: #34322f;
-  --pop-ring: rgba(140, 116, 116, 0.22);
+  --pop: #807267;
+  --pop-press: #8f8379;
+  --pop-soft: #31312c;
+  --pop-ring: rgba(128, 114, 103, 0.22);
   --ink: #f1f1f5;
   --ink-2: #d1d2d4;
   --on-ink: #1b1f1b;
   --on-ink-2: #717372;
   --protein: #b3d5a6;
-  --carbs: #8c7474;
+  --carbs: #807267;
   --fat: #cde3c5;
-  --water: #8c7474;
+  --water: #807267;
   --steps: #acd19e;
   --sleep: #bbd9af;
   --meal-morning: #acd19e;
-  --meal-afternoon: #8c7474;
+  --meal-afternoon: #807267;
   --meal-evening: #b3d5a6;
   --meal-late: #bbd9af;
   --positive: #8fcf8c;
@@ -351,7 +351,7 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* Lavender: lilac with deep plum, on lemon. */
+/* Lavender: lilac with deep plum, on soft cream. */
 :root[data-palette='lavender'] {
   --accent: #a483dc;
   --accent-press: #9073c2;
@@ -364,7 +364,7 @@
   --ink: #443956;
   --ink-2: #5b4a75;
   --on-ink: #ffffff;
-  --on-ink-2: #e5dbd9;
+  --on-ink-2: #e5dbe8;
   --protein: #9476c6;
   --carbs: #3d2e4f;
   --fat: #c7b2e9;
@@ -379,16 +379,16 @@
   --warning: #e2a23f;
   --danger: #d95a6a;
   --gold: #e9c45c;
-  --bg: #fbf8d8;
-  --bg-top: #fbf8d8;
+  --bg: #fbf8ec;
+  --bg-top: #fbf8ec;
   --surface: #ffffff;
-  --surface-2: #fdfbe8;
-  --surface-3: #f1ead8;
-  --border: #f0e9d9;
-  --border-strong: #e1d5d9;
+  --surface-2: #fdfbf4;
+  --surface-3: #f1eaea;
+  --border: #f0e9ea;
+  --border-strong: #e1d5e7;
   --text: #332c3e;
-  --text-2: #87827f;
-  --text-3: #aba69a;
+  --text-2: #878287;
+  --text-3: #aba6a6;
   --tint-k: 0.8;
   --shadow-1: 0 1px 2px rgba(98, 79, 132, 0.05), 0 2px 8px rgba(98, 79, 132, 0.05);
   --shadow-card: 0 2px 4px rgba(98, 79, 132, 0.08), 0 12px 32px rgba(98, 79, 132, 0.14);
@@ -529,7 +529,7 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* Honey: honey with dark caramel, on pale blue. */
+/* Honey: honey with dark caramel, on pale sage. */
 :root[data-palette='honey'] {
   --accent: #e8ae2e;
   --accent-press: #cc9928;
@@ -542,7 +542,7 @@
   --ink: #544018;
   --ink-2: #775a1d;
   --on-ink: #ffffff;
-  --on-ink-2: #eae0c6;
+  --on-ink-2: #ede2b9;
   --protein: #d19d29;
   --carbs: #4e3414;
   --fat: #f1cd7d;
@@ -557,16 +557,16 @@
   --warning: #e2a23f;
   --danger: #d95a6a;
   --gold: #e9c45c;
-  --bg: #eaf1f8;
-  --bg-top: #eaf1f8;
+  --bg: #eff4e7;
+  --bg-top: #eff4e7;
   --surface: #ffffff;
-  --surface-2: #f2f7fb;
-  --surface-3: #eae9e0;
-  --border: #eae8de;
-  --border-strong: #e9ddbb;
+  --surface-2: #f5f8f1;
+  --surface-3: #eeecd1;
+  --border: #eeebcf;
+  --border-strong: #eddfb0;
   --text: #3a2c14;
-  --text-2: #847f74;
-  --text-3: #a4a29d;
+  --text-2: #86806d;
+  --text-3: #a7a493;
   --tint-k: 0.8;
   --shadow-1: 0 1px 2px rgba(139, 104, 28, 0.05), 0 2px 8px rgba(139, 104, 28, 0.05);
   --shadow-card: 0 2px 4px rgba(139, 104, 28, 0.08), 0 12px 32px rgba(139, 104, 28, 0.14);

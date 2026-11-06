@@ -25,10 +25,10 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
 export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string }[] = [
   { key: 'classic', label: 'Classic', bg: '#f4f4f7', accent: '#5b5bd6', second: '#16a34a' },
   { key: 'sakura', label: 'Sakura', bg: '#eef3fb', accent: '#ea7fa6', second: '#3e4b40' },
-  { key: 'matcha', label: 'Matcha', bg: '#fcecec', accent: '#7fb86a', second: '#5a3838' },
-  { key: 'lavender', label: 'Lavender', bg: '#fbf8d8', accent: '#a483dc', second: '#3d2e4f' },
+  { key: 'matcha', label: 'Matcha', bg: '#fbf5e1', accent: '#7fb86a', second: '#4a3626' },
+  { key: 'lavender', label: 'Lavender', bg: '#fbf8ec', accent: '#a483dc', second: '#3d2e4f' },
   { key: 'sky', label: 'Sky', bg: '#fdf0e3', accent: '#5fa3e6', second: '#243247' },
-  { key: 'honey', label: 'Honey', bg: '#eaf1f8', accent: '#e8ae2e', second: '#4e3414' },
+  { key: 'honey', label: 'Honey', bg: '#eff4e7', accent: '#e8ae2e', second: '#4e3414' },
   { key: 'slate', label: 'Slate', bg: '#f5efe3', accent: '#6b90c0', second: '#26303c' },
   { key: 'mocha', label: 'Mocha', bg: '#eaf3ec', accent: '#c7845a', second: '#3a2820' },
   { key: 'earth', label: 'Earth', bg: '#fbf1df', accent: '#b9ae66', second: '#163e11' },
