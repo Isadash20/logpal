@@ -65,6 +65,7 @@ const en = {
   'home.allRecipes': 'All recipes',
   'home.ideasHintProtein': 'High in protein and under {cal} calories, which is what is left today.',
   'home.ideasHint': 'Each one fits inside the {cal} calories left today.',
+  'home.ideasHintTailored': 'Picked for your plan and what you have been eating, inside the {cal} calories left.',
   'home.ideaMeta': '{cal} cal · {protein} g protein',
   'home.dayComplete': 'Day complete',
   'home.completeDiary': 'Complete diary',

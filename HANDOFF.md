@@ -1603,3 +1603,24 @@ Sakura/Matcha untouched at 0.5 since he liked them).
 
 Seventh note: Peach, Ocean and Mono cut. Seven looks remain. `applyLook`
 falls back to classic for a saved palette key that no longer exists.
+
+## Evening, 2026-11-05: meal ideas ranked, tab labels, two ice creams
+
+- **Meal ideas are ranked, not filtered.** `src/lib/mealIdeas.ts`,
+  `rankIdeas(candidates, ctx)`: room left for this meal by hour, protein
+  need (weighted up for gain-muscle/recomp, losing, and age ≥ 50), the plan
+  (losing favours lighter, fibre-rich, low-sugar plates; gaining favours
+  using the room; maintaining leans on health score), carb/fat overage
+  penalties, familiarity with the last 14 days of logged food names and
+  ingredients, a markdown for what was eaten today, a daily seeded
+  rotation, breakfasts before eleven. Home builds the context from totals,
+  macro targets, `profile.goal.kind`, `profile.sex`, `age(birthDate)`,
+  `data.foodEntries`, and pools the catalogue with the user's own recipes.
+  Seven tests in `mealIdeas.test.ts`. Hint string `home.ideasHintTailored`.
+- Food search tabs read "Favorite foods / Favorite meals" (the D dropped,
+  by request) and the row scrolls sideways, because five tabs never fit a
+  390 px phone at 14 px; "My foods" shows its edge.
+- Two looks from his hex codes: Neapolitan (strawberry `#e27ab0`, chocolate
+  `#604734` as the second colour, vanilla wash) and Mint Choc (mint
+  `#7dbda4`, dark chocolate `#3e3630`, cream wash). In `scripts/palettes.py`
+  SPECS; nine looks now.

@@ -181,8 +181,8 @@ export function FoodSearch({ date, meal }: { date: string; meal?: MealKey }) {
             /* Between All and My Meals, where the shortest path back to
                something you eat every day belongs. It used to be a section
                inside All, which meant it scrolled away the moment you typed. */
-            ['favorites', 'Favorited foods'],
-            ['meals', 'Favorited meals'],
+            ['favorites', 'Favorite foods'],
+            ['meals', 'Favorite meals'],
             ['recipes', 'My recipes'],
             ['myfoods', 'My foods'],
           ] as [Tab, string][]

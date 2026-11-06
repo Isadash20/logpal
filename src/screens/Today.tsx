@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { MEAL_KEYS, PERIOD_LABELS, type FoodEntry, type MealKey, type Recipe } from '../types'
+import { MEAL_KEYS, PERIOD_LABELS, type FoodEntry, type MealKey } from '../types'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { WeekStrip } from '../components/charts'
@@ -15,6 +15,8 @@ import { lbToDisplay, mlToDisplay, waterUnitLabel } from '../lib/units'
 import { dayInsight, type InsightAction } from '../lib/dayInsight'
 import { catalogRecipes, catalogSize, loadCatalog, onCatalogLoaded } from '../services/recipeDb'
 import { summarise } from '../services/recipes'
+import { rankIdeas, type Idea, type IdeaCandidate } from '../lib/mealIdeas'
+import { age } from '../lib/nutrition'
 
 /**
  * Home.
@@ -241,28 +243,40 @@ export function Today() {
   }, [catalogReady])
 
   const proteinBehind = totals.nutrients.protein < macroTargets.protein * 0.6
-  const ideas = useMemo((): { recipe: Recipe; calories: number; protein: number }[] => {
+  /* Ranked by `rankIdeas`: room left, protein need, the plan, what has been
+     eaten lately and today, the hour. The catalogue is the pool; the user's
+     own recipes are in it too. */
+  const ideas = useMemo((): Idea[] => {
     if (!catalogReady || !isToday) return []
-    const room = Math.max(350, goal - consumed)
     const extra = [...data.customFoods, ...Object.values(data.foodCache)]
-    const fits = catalogRecipes()
-      .filter((r) => r.imageUrl && r.tags?.includes('Main dish'))
+    const cands: IdeaCandidate[] = [...catalogRecipes(), ...data.recipes]
+      .filter((r) => r.imageUrl)
       .map((r) => {
-        const n = summarise(r, extra).perServing
-        return { recipe: r, calories: n.calories, protein: n.protein }
+        const sum = summarise(r, extra)
+        return { recipe: r, n: sum.perServing, health: sum.health.score }
       })
-      .filter((x) => x.calories >= 180 && x.calories <= room)
-    if (fits.length === 0) return []
-    /* When protein is behind, the richest in protein. Otherwise a slice of
-       the catalogue that moves on each day, so the rail is not the same six
-       dishes every evening. */
-    if (proteinBehind) {
-      fits.sort((a, b) => b.protein - a.protein)
-      return fits.slice(0, 8)
-    }
-    const seed = Number(date.replace(/-/g, '')) % fits.length
-    return [...fits.slice(seed), ...fits.slice(0, seed)].slice(0, 8)
-  }, [catalogReady, isToday, goal, consumed, data.customFoods, data.foodCache, proteinBehind, date])
+    const since = addDays(date, -14)
+    const recentNames = [...data.foodEntries]
+      .filter((e) => e.date >= since && e.date < date)
+      .sort((a, b) => b.loggedAt - a.loggedAt)
+      .map((e) => e.name)
+    const todayNames = data.foodEntries.filter((e) => e.date === date).map((e) => e.name)
+    return rankIdeas(cands, {
+      caloriesLeft: goal - consumed,
+      calorieGoal: goal,
+      proteinLeft: macroTargets.protein - totals.nutrients.protein,
+      proteinTarget: macroTargets.protein,
+      carbsLeft: macroTargets.carbs - totals.nutrients.carbs,
+      fatLeft: macroTargets.fat - totals.nutrients.fat,
+      goalKind: profile.goal.kind,
+      sex: profile.sex,
+      age: age(profile.birthDate),
+      recentNames,
+      todayNames,
+      hour,
+      seed: Number(date.replace(/-/g, '')),
+    })
+  }, [catalogReady, isToday, goal, consumed, data.customFoods, data.foodCache, data.recipes, data.foodEntries, date, hour, macroTargets, totals.nutrients, profile])
 
   const ideasTitle =
     hour < 11 ? t('home.ideasToday') : hour < 15 ? t('home.ideasLunch') : t('home.ideasDinner')
@@ -445,7 +459,7 @@ export function Today() {
               </button>
             </div>
             <div className="hint" style={{ paddingTop: 0, paddingBottom: 10 }}>
-              {t(proteinBehind ? 'home.ideasHintProtein' : 'home.ideasHint', {
+              {t(proteinBehind ? 'home.ideasHintProtein' : 'home.ideasHintTailored', {
                 cal: cal(Math.max(350, goal - consumed)),
               })}
             </div>

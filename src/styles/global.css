@@ -763,11 +763,20 @@ button.row:active {
   position: sticky;
   top: 0;
   z-index: 10;
+  /* Five tabs do not fit a phone at a readable size, so the row scrolls
+     sideways and the last tab shows its edge as the invitation. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tabs__item {
-  flex: 1;
-  padding: 13px 6px 11px;
+  flex: 1 0 auto;
+  padding: 13px 11px 11px;
   font-size: 14px;
   font-weight: 600;
   color: var(--text-2);

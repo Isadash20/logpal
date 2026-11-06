@@ -30,5 +30,7 @@ export const PALETTES: { key: Palette; label: string; bg: string; accent: string
   { key: 'sky', label: 'Sky', bg: '#f1f6fc', accent: '#4f8fe0', second: '#e09a4a' },
   { key: 'honey', label: 'Honey', bg: '#fcf7ea', accent: '#d9961f', second: '#4d6fb3' },
   { key: 'slate', label: 'Slate', bg: '#f0f3f8', accent: '#44679f', second: '#e08f2f' },
+  { key: 'neapolitan', label: 'Neapolitan', bg: '#fcf7e4', accent: '#e27ab0', second: '#604734' },
+  { key: 'mintchoc', label: 'Mint Choc', bg: '#faf8ef', accent: '#7dbda4', second: '#3e3630' },
   { key: 'forest', label: 'Forest', bg: '#f0f6f1', accent: '#2f8457', second: '#d07a3a' },
 ]

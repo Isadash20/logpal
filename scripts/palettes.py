@@ -10,6 +10,8 @@ SPECS=[
  ('sky','Sky','#4f8fe0','#e09a4a','#f1f6fc','#1b2534','blue with sand'),
  ('honey','Honey','#d9961f','#4d6fb3','#fcf7ea','#2a2414','mustard with slate blue'),
  ('slate','Slate','#44679f','#e08f2f','#f0f3f8','#161c27','steel blue with amber'),
+ ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
+ ('mintchoc','Mint Choc','#7dbda4','#3e3630','#faf8ef','#3e3630','mint with dark chocolate, on cream'),
  ('forest','Forest','#2f8457','#d07a3a','#f0f6f1','#15221a','deep green with copper'),
 ]
 out=[]
