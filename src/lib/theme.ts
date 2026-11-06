@@ -13,7 +13,7 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
   const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.dataset.theme = dark ? 'dark' : 'light'
   /* A save may name a look that was since cut (Peach, Ocean, Mono went on
-     2026-11-05); that falls back to classic rather than to no tokens. */
+     2026-11-05, Sky on 2026-11-06); that falls back to classic rather than to no tokens. */
   root.dataset.palette = PALETTES.some((p) => p.key === palette) ? palette : 'classic'
   /* The browser chrome (and the PWA's status bar) takes the wash colour. */
   const bg = getComputedStyle(root).getPropertyValue('--bg').trim()
@@ -24,13 +24,12 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
     the wash, the brand colour, and the second colour that is splashed about. */
 export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string }[] = [
   { key: 'classic', label: 'Classic', bg: '#f4f4f7', accent: '#5b5bd6', second: '#16a34a' },
-  { key: 'sakura', label: 'Sakura', bg: '#eef3fb', accent: '#ea7fa6', second: '#3e4b40' },
+  { key: 'sakura', label: 'Sakura', bg: '#fcf6f3', accent: '#ec9ab9', second: '#5a3a44' },
   { key: 'matcha', label: 'Matcha', bg: '#fbf5e1', accent: '#7fb86a', second: '#4a3626' },
-  { key: 'lavender', label: 'Lavender', bg: '#fbf8ec', accent: '#a483dc', second: '#3d2e4f' },
-  { key: 'sky', label: 'Sky', bg: '#fdf0e3', accent: '#5fa3e6', second: '#243247' },
-  { key: 'honey', label: 'Honey', bg: '#eff4e7', accent: '#e8ae2e', second: '#4e3414' },
+  { key: 'lavender', label: 'Lavender', bg: '#fbf7f6', accent: '#b39adb', second: '#4a3d5c' },
+  { key: 'honey', label: 'Honey', bg: '#fcf7e4', accent: '#e9b84a', second: '#5c4320' },
   { key: 'slate', label: 'Slate', bg: '#f5efe3', accent: '#6b90c0', second: '#26303c' },
-  { key: 'mocha', label: 'Mocha', bg: '#eaf3ec', accent: '#c7845a', second: '#3a2820' },
+  { key: 'mocha', label: 'Mocha', bg: '#fbf7f1', accent: '#bf8f70', second: '#3b2a22' },
   { key: 'earth', label: 'Earth', bg: '#fbf1df', accent: '#b9ae66', second: '#163e11' },
   { key: 'neapolitan', label: 'Neapolitan', bg: '#fcf7e4', accent: '#e27ab0', second: '#604734' },
 ]

@@ -398,7 +398,6 @@ export type Palette =
   | 'sakura'
   | 'matcha'
   | 'lavender'
-  | 'sky'
   | 'honey'
   | 'slate'
   | 'mocha'

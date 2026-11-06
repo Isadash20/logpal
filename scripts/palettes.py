@@ -7,19 +7,16 @@ W,K='#ffffff','#000000'
 # key, label, accent, pop, bg (light), textbase, note
 SPECS=[
  # key, label, main colour, deep second colour, tinted wash, text, note.
- # Re-tuned 2026-11-06 around what Phillip said works in Neapolitan: four
- # colours that go together but CONTRAST. The wash is a real tint of a
- # different hue from the main colour (vanilla under strawberry), the main
- # colour is as saturated as the strawberry, and the second colour is deep.
- # The 2026-11-05 set (near-white washes, pastel mains of the same hue) read
- # as washed out next to it; that set is in git before this commit.
- ('sakura','Sakura','#ea7fa6','#3e4b40','#eef3fb','#2b3336','cherry pink with deep leaf green, on pale sky'),
+ # 2026-11-06: Matcha and Slate re-tuned to Neapolitan's recipe (a wash of a
+ # different hue, a saturated main, a deep second) and kept; Sakura,
+ # Lavender, Honey and Mocha went back to the 2026-11-05 cream set after
+ # Phillip saw the re-tuned ones full size; Sky was cut (too orange).
+ ('sakura','Sakura','#ec9ab9','#5a3a44','#fcf6f3','#3a2a2e','strawberry pink with dark rose-brown, on cream'),
  ('matcha','Matcha','#7fb86a','#4a3626','#fbf5e1','#2f3a28','matcha with dark chocolate, on vanilla'),
- ('lavender','Lavender','#a483dc','#3d2e4f','#fbf8ec','#332c3e','lilac with deep plum, on soft cream'),
- ('sky','Sky','#5fa3e6','#243247','#fdf0e3','#26303c','sky blue with navy, on peach'),
- ('honey','Honey','#e8ae2e','#4e3414','#eff4e7','#3a2c14','honey with dark caramel, on pale sage'),
+ ('lavender','Lavender','#b39adb','#4a3d5c','#fbf7f6','#342c3e','lilac with deep plum, on cream'),
+ ('honey','Honey','#e9b84a','#5c4320','#fcf7e4','#3a2c14','honey with dark caramel, on cream'),
  ('slate','Slate','#6b90c0','#26303c','#f5efe3','#232b36','steel with charcoal, on sand'),
- ('mocha','Mocha','#c7845a','#3a2820','#eaf3ec','#2e221c','caramel with espresso, on mint'),
+ ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
  # An optional eighth value is a third colour, for water, fat and sleep.
  ('earth','Earth','#b9ae66','#163e11','#fbf1df','#2b2a18','his olive, forest, sand, brown set','#73503d'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
