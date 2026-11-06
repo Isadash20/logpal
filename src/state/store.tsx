@@ -247,6 +247,7 @@ export type Route =
   | { name: 'weightEntry' }
   | { name: 'measurement'; key: string }
   | { name: 'lift'; exercise: string }
+  | { name: 'weekReview'; start: string }
   | { name: 'progressPhotos' }
   | { name: 'fasting' }
   | { name: 'foodsHub' }

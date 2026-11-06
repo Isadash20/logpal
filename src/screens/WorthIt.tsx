@@ -3,6 +3,7 @@ import type { Food, Nutrients } from '../types'
 import { useApp } from '../state/store'
 import { useWorthSession, worthSession } from '../state/worthSession'
 import { Icon } from '../components/Icon'
+import { ScoreDial, scoreColor } from '../components/ScoreDial'
 import { Empty, Row, TopBar } from '../components/ui'
 import { NUTRIENT_BY_KEY } from '../data/nutrients'
 import { cal } from '../lib/format'
@@ -312,10 +313,6 @@ function FoodRow({ food, onPick }: { food: Food; onPick(): void }) {
 
 /* The dial carries the reading, not a word for it. Green, amber and red say
    how the number sits without the screen telling anyone what to do. */
-function scoreColor(score: number): string {
-  return score >= 7 ? 'var(--positive)' : score >= 4.5 ? 'var(--warning)' : 'var(--danger)'
-}
-
 function healthWord(score: number): string {
   return score >= 8.5 ? 'Excellent' : score >= 7 ? 'Good' : score >= 4.5 ? 'Average' : 'Poor'
 }
@@ -555,48 +552,3 @@ function Face({ side }: { side: Side }) {
   )
 }
 
-function ScoreDial({
-  value,
-  color,
-  size,
-  stroke,
-  fontSize,
-}: {
-  value: number
-  color: string
-  size: number
-  stroke: number
-  fontSize: number
-}) {
-  const r = 38 - stroke / 2
-  const c = 2 * Math.PI * r
-  const filled = Math.min(1, Math.max(0, value / 10))
-  return (
-    <svg width={size} height={size} viewBox="0 0 76 76" role="img" aria-label={`${value} out of 10`}>
-      <circle cx="38" cy="38" r={r} fill="none" stroke="var(--border-strong)" strokeWidth={stroke} opacity={0.6} />
-      {filled > 0 && (
-        <circle
-          cx="38"
-          cy="38"
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={`${filled * c} ${c}`}
-          transform="rotate(-90 38 38)"
-        />
-      )}
-      <text
-        x="38"
-        y="39"
-        textAnchor="middle"
-        dominantBaseline="central"
-        className="num"
-        style={{ fontSize: (fontSize * 76) / size, fontWeight: 800, fill: color, letterSpacing: '-0.03em' }}
-      >
-        {value.toFixed(1)}
-      </text>
-    </svg>
-  )
-}

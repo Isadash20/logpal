@@ -7,6 +7,7 @@ import { Plan } from './screens/Plan'
 import { MealScan } from './screens/MealScan'
 import { NutriScan } from './screens/NutriScan'
 import { Progress, MeasurementDetail, WeightEntry, LiftDetail } from './screens/Progress'
+import { WeekReview } from './screens/WeekReview'
 import {
   About,
   FoodsHub,
@@ -263,6 +264,9 @@ function Shell() {
 
       case 'lift':
         return <LiftDetail exercise={route.exercise} />
+
+      case 'weekReview':
+        return <WeekReview start={route.start} />
 
       case 'fasting':
         return <Fasting />

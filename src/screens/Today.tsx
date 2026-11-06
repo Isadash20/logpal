@@ -17,6 +17,7 @@ import { catalogRecipes, catalogSize, loadCatalog, onCatalogLoaded } from '../se
 import { summarise } from '../services/recipes'
 import { rankIdeas, type Idea, type IdeaCandidate } from '../lib/mealIdeas'
 import { ideaContextFor } from '../lib/ideaContext'
+import { WeekBanner } from './WeekReview'
 
 /**
  * Home.
@@ -315,6 +316,8 @@ export function Today() {
             </div>
           </div>
         )}
+
+        {isToday && <WeekBanner />}
 
         <div className="boardbar">
           <button className="boardbar__btn" onClick={() => setEditing((v) => !v)}>

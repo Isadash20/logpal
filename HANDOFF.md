@@ -1697,3 +1697,7 @@ alter table logpal_social_profile
 ```
 
 Until then `publishProfile` catches PGRST204 and republishes without the week fields, so sharing keeps working and the race shows only you. The friend-profile Macros card has 6px more under its bars. Build 20 uploaded; lifts tab rides along.
+
+## Midday, 2026-11-06: your week, read back (web only)
+
+Phillip showed MyFitnessPal's Weekly Digest and asked for one that fits LogPal and beats it; not for TestFlight yet. Home now carries a "Your week" banner under the greeting card (last week Mon–Wed, the week so far from Thursday) with the week's score on NutriScan's dial (`components/ScoreDial.tsx`, moved out of WorthIt), a word, and seven dots. It opens `screens/WeekReview.tsx`: week switcher; hero (score, word, one-sentence headline, dots); Calories (seven bars coloured in/over/light with a goal line, average, goal, best day); On the plate (macro averages vs target, "Your stars" and "Worth a swap" from food health scores, with how often and how many calories); Body tiles (weight change, water days, steps with best day, sleep average, exercise); New PRs from the lifts tab; Next week (one thing to do, picked from the weakest part of the score) and "Against last week" chips. All reading is pure in `lib/weekReview.ts` (score weights: logged .3, calories .25, protein .15, water .1, steps .1 and sleep .1 only for people who record them; under half the days logged, the advice is always to log). Tests in `lib/weekReview.test.ts`.
