@@ -184,6 +184,7 @@ function migrate(data: Partial<AppData>): AppData {
     pantry: data.pantry ?? [],
     savedRecipeIds: data.savedRecipeIds ?? [],
     recentSearches: data.recentSearches ?? [],
+    lifts: data.lifts ?? [],
   }
 }
 
@@ -282,5 +283,6 @@ export function defaultData(): AppData {
     pantry: [],
     savedRecipeIds: [],
     recentSearches: [],
+    lifts: [],
   }
 }

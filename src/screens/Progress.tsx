@@ -7,6 +7,27 @@ import { cal, signed, weight as fmtWeight } from '../lib/format'
 import { addDays, lastNDays, shortDate, today } from '../lib/dates'
 import { displayToIn, displayToLb, inToDisplay, lbToDisplay } from '../lib/units'
 import { bmi, bmiCategory } from '../lib/nutrition'
+import { celebrate } from '../components/Confetti'
+import type { LiftEntry } from '../types'
+
+/* The lifts most people track. Anything else is typed in and remembered. */
+const COMMON_LIFTS = [
+  'Bench press', 'Squat', 'Deadlift', 'Overhead press', 'Barbell row', 'Hip thrust',
+  'Romanian deadlift', 'Leg press', 'Pull-up', 'Lat pulldown', 'Incline bench', 'Dumbbell curl',
+]
+
+/** One lift's rows in date order, each marked if it beat everything before it. */
+function withPr(entries: LiftEntry[]): (LiftEntry & { pr: boolean })[] {
+  const sorted = [...entries].sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : a.loggedAt - b.loggedAt
+  )
+  let best = 0
+  return sorted.map((e) => {
+    const pr = e.weightLb > best
+    if (pr) best = e.weightLb
+    return { ...e, pr }
+  })
+}
 
 const RANGES = [
   { key: 30, label: '30 Days' },
@@ -28,7 +49,26 @@ export function Progress() {
   const app = useApp()
   const { data, settings, profile, latestWeight, push, totalsFor } = app
   const [days, setDays] = useState<number>(30)
-  const [tab, setTab] = useState<'weight' | 'calories'>('weight')
+  const [tab, setTab] = useState<'weight' | 'calories' | 'exercise'>('weight')
+  const [liftOpen, setLiftOpen] = useState(false)
+  const unit = settings.weightUnit
+
+  /* Lifts grouped by name, each group flagged; plus the last ten rows overall. */
+  const liftGroups = useMemo(() => {
+    const m = new Map<string, LiftEntry[]>()
+    for (const l of data.lifts) m.set(l.exercise, [...(m.get(l.exercise) ?? []), l])
+    return [...m.entries()]
+      .map(([name, rows]) => ({ name, rows: withPr(rows) }))
+      .sort((a, b) => (a.rows[a.rows.length - 1].date < b.rows[b.rows.length - 1].date ? 1 : -1))
+  }, [data.lifts])
+  const recentLifts = useMemo(
+    () =>
+      liftGroups
+        .flatMap((g) => g.rows)
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.loggedAt - a.loggedAt))
+        .slice(0, 10),
+    [liftGroups]
+  )
 
   const keys = useMemo(() => lastNDays(days), [days])
 
@@ -61,8 +101,8 @@ export function Progress() {
         right={
           <button
             className="iconbtn iconbtn--accent"
-            onClick={() => push({ name: 'weightEntry' })}
-            aria-label="Add weight"
+            onClick={() => (tab === 'exercise' ? setLiftOpen(true) : push({ name: 'weightEntry' }))}
+            aria-label={tab === 'exercise' ? 'Log a lift' : 'Add weight'}
           >
             <Icon name="plus" size={22} strokeWidth={2.4} />
           </button>
@@ -82,6 +122,12 @@ export function Progress() {
             onClick={() => setTab('calories')}
           >
             Calories
+          </button>
+          <button
+            className={`tabs__item ${tab === 'exercise' ? 'tabs__item--active' : ''}`}
+            onClick={() => setTab('exercise')}
+          >
+            Exercise
           </button>
         </div>
 
@@ -258,7 +304,271 @@ export function Progress() {
             </div>
           </>
         )}
+
+        {tab === 'exercise' && (
+          <>
+            <div className="card">
+              <div className="card__head">
+                <span className="card__title">Personal records</span>
+              </div>
+              {liftGroups.length === 0 ? (
+                <Empty title="No lifts yet">
+                  Tap + to add a lift and the heaviest weight you moved. Beat it later and it counts as a PR.
+                </Empty>
+              ) : (
+                liftGroups.map(({ name, rows }) => {
+                  const best = rows.reduce((m, r) => (r.weightLb > m.weightLb ? r : m), rows[0])
+                  const n = rows.filter((r) => r.pr).length
+                  return (
+                    <Row
+                      key={name}
+                      title={name}
+                      sub={`${n} PR${n === 1 ? '' : 's'} · best on ${shortDate(best.date)}`}
+                      value={`${fmtWeight(lbToDisplay(best.weightLb, unit))} ${unit}`}
+                      chevron
+                      onClick={() => push({ name: 'lift', exercise: name })}
+                    />
+                  )
+                })
+              )}
+            </div>
+
+            {recentLifts.length > 0 && (
+              <div className="card">
+                <div className="card__head">
+                  <span className="card__title">Recent</span>
+                </div>
+                {recentLifts.map((r) => (
+                  <Row
+                    key={r.id}
+                    title={r.exercise}
+                    sub={`${shortDate(r.date)}${r.reps ? ` · ${r.reps} reps` : ''}`}
+                    value={`${fmtWeight(lbToDisplay(r.weightLb, unit))} ${unit}`}
+                    right={r.pr ? <span className="prbadge">PR</span> : undefined}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
+
+      {liftOpen && <LiftSheet onClose={() => setLiftOpen(false)} />}
+    </>
+  )
+}
+
+/* ---------------------------------------------------------------- lifts -- */
+
+function LiftSheet({ preset, onClose }: { preset?: string; onClose(): void }) {
+  const { addLift, settings, data } = useApp()
+  const unit = settings.weightUnit
+  const known = [...new Set(data.lifts.map((l) => l.exercise))]
+  const choices = [...known, ...COMMON_LIFTS.filter((c) => !known.some((k) => k.toLowerCase() === c.toLowerCase()))]
+  const [exercise, setExercise] = useState(preset ?? '')
+  const [custom, setCustom] = useState(false)
+  const [weight, setWeight] = useState('')
+  const [reps, setReps] = useState('')
+  const [date, setDate] = useState(today())
+
+  const best = data.lifts
+    .filter((l) => l.exercise.toLowerCase() === exercise.trim().toLowerCase())
+    .reduce((m, l) => Math.max(m, l.weightLb), 0)
+  const v = parseFloat(weight)
+  const ok = exercise.trim().length > 0 && Number.isFinite(v) && v > 0
+
+  return (
+    <Sheet title={preset ? `Log ${preset}` : 'Log a lift'} onClose={onClose}>
+      {!preset && (
+        <>
+          <div className="chips chips--wrap">
+            {choices.map((c) => (
+              <button
+                key={c}
+                className={`chip ${!custom && exercise === c ? 'chip--active' : ''}`}
+                onClick={() => {
+                  setCustom(false)
+                  setExercise(c)
+                }}
+              >
+                {c}
+              </button>
+            ))}
+            <button
+              className={`chip ${custom ? 'chip--active' : ''}`}
+              onClick={() => {
+                setCustom(true)
+                setExercise('')
+              }}
+            >
+              Other…
+            </button>
+          </div>
+          {custom && (
+            <label className="field">
+              <span className="field__label">Exercise</span>
+              <span className="field__control">
+                <input
+                  className="input"
+                  type="text"
+                  autoFocus
+                  placeholder="Cable fly"
+                  value={exercise}
+                  onChange={(e) => setExercise(e.target.value)}
+                />
+              </span>
+            </label>
+          )}
+        </>
+      )}
+      {best > 0 && (
+        <div className="hint" style={{ paddingTop: 0 }}>
+          Your best so far is {fmtWeight(lbToDisplay(best, unit))} {unit}.
+        </div>
+      )}
+      <label className="field">
+        <span className="field__label">Weight</span>
+        <span className="field__control">
+          <input
+            className="input"
+            type="number"
+            inputMode="decimal"
+            step="0.5"
+            autoFocus={!!preset}
+            placeholder={best > 0 ? String(Math.round(lbToDisplay(best, unit))) : '0'}
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+          />
+          <span className="unit">{unit}</span>
+        </span>
+      </label>
+      <label className="field">
+        <span className="field__label">Reps</span>
+        <span className="field__control">
+          <input
+            className="input"
+            type="number"
+            inputMode="numeric"
+            placeholder="optional"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+          />
+        </span>
+      </label>
+      <label className="field">
+        <span className="field__label">Date</span>
+        <span className="field__control">
+          <input className="input" type="date" value={date} max={today()} onChange={(e) => setDate(e.target.value)} />
+        </span>
+      </label>
+      <div className="btn-wrap">
+        <button
+          className="btn"
+          disabled={!ok}
+          onClick={() => {
+            if (!ok) return
+            const lb = displayToLb(v, unit)
+            const r = parseInt(reps, 10)
+            const { pr, prevBest } = addLift({
+              exercise: exercise.trim(),
+              date,
+              weightLb: lb,
+              reps: Number.isFinite(r) && r > 0 ? r : undefined,
+            })
+            if (pr && prevBest > 0) {
+              celebrate([
+                {
+                  key: 'weight',
+                  id: `lift-${exercise.trim().toLowerCase()}-${date}-${lb}`,
+                  title: 'New PR!',
+                  detail: `${exercise.trim()} · ${fmtWeight(v)} ${unit}, up from ${fmtWeight(lbToDisplay(prevBest, unit))}`,
+                },
+              ])
+            }
+            onClose()
+          }}
+        >
+          Save
+        </button>
+      </div>
+    </Sheet>
+  )
+}
+
+export function LiftDetail({ exercise }: { exercise: string }) {
+  const { pop, data, settings, deleteLift } = useApp()
+  const unit = settings.weightUnit
+  const [open, setOpen] = useState(false)
+  const rows = useMemo(() => withPr(data.lifts.filter((l) => l.exercise === exercise)), [data.lifts, exercise])
+  const best = rows.reduce((m, r) => Math.max(m, r.weightLb), 0)
+  const first = rows[0]?.weightLb ?? 0
+  const points = rows.slice(-30).map((r) => ({ x: shortDate(r.date), y: lbToDisplay(r.weightLb, unit) }))
+
+  return (
+    <>
+      <TopBar
+        title={exercise}
+        onBack={pop}
+        right={
+          <button className="iconbtn iconbtn--accent" onClick={() => setOpen(true)} aria-label="Log a lift">
+            <Icon name="plus" size={22} strokeWidth={2.4} />
+          </button>
+        }
+      />
+      <div className="scroll">
+        <div className="card">
+          {rows.length > 0 && (
+            <div style={{ padding: '10px 8px 0' }}>
+              <LineChart points={points} unit={unit} />
+            </div>
+          )}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3,1fr)',
+              textAlign: 'center',
+              borderTop: rows.length ? '1px solid var(--border)' : undefined,
+            }}
+          >
+            <Metric label="PR" value={fmtWeight(lbToDisplay(best, unit))} unit={unit} />
+            <Metric label="First" value={fmtWeight(lbToDisplay(first, unit))} unit={unit} />
+            <Metric
+              label="Gain"
+              value={signed(lbToDisplay(best - first, unit))}
+              unit={unit}
+              tone={best > first ? 'var(--positive)' : undefined}
+            />
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card__head">
+            <span className="card__title">History</span>
+          </div>
+          {rows.length === 0 ? (
+            <Empty title="No entries yet">Tap + to log this lift.</Empty>
+          ) : (
+            [...rows].reverse().map((r) => (
+              <Row
+                key={r.id}
+                title={shortDate(r.date)}
+                sub={r.reps ? `${r.reps} reps` : undefined}
+                value={`${fmtWeight(lbToDisplay(r.weightLb, unit))} ${unit}`}
+                right={
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {r.pr && <span className="prbadge">PR</span>}
+                    <button className="iconbtn" aria-label="Delete" onClick={() => deleteLift(r.id)}>
+                      <Icon name="trash" size={18} strokeWidth={2} />
+                    </button>
+                  </span>
+                }
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {open && <LiftSheet preset={exercise} onClose={() => setOpen(false)} />}
     </>
   )
 }

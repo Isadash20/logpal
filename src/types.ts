@@ -563,4 +563,21 @@ export interface AppData {
   savedRecipeIds: string[]
   /** Most recent searches first, so the box can offer them back. */
   recentSearches: string[]
+  /**
+   * Strength PRs, device-local like the planner. One row per lift per day:
+   * the heaviest weight moved. Phillip's ask (2026-11-06): "I do bench press
+   * a lot, what's my PR? 120. Next time, oh my god, I just PR'd 150."
+   */
+  lifts: LiftEntry[]
+}
+
+export interface LiftEntry {
+  id: string
+  /** "Bench press", "Squat", or whatever they typed. */
+  exercise: string
+  date: string
+  /** Heaviest weight that day, stored in lb. */
+  weightLb: number
+  reps?: number
+  loggedAt: number
 }

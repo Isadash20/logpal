@@ -52,6 +52,7 @@ export function mergeEdits(synced: AppData, local: AppData, remote: AppData): Ap
     pantry: local.pantry,
     savedRecipeIds: local.savedRecipeIds,
     recentSearches: local.recentSearches,
+    lifts: local.lifts,
   }
 }
 

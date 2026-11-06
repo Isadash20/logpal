@@ -745,6 +745,25 @@ button.row:active {
   border: 1px solid var(--border-strong);
 }
 
+/* Inside a sheet the chips wrap instead of scrolling off the edge. */
+.chips--wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding: 4px 0 12px;
+}
+
+/* The little "PR" mark on a lift that beat everything before it. */
+.prbadge {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 3px 7px;
+  border-radius: var(--r-full);
+  background: var(--pop-soft);
+  color: var(--text);
+}
+
 /* Selected reads as filled-dark, the way the reference apps mark a chosen
    range or quantity. An accent-filled chip would compete with the one accent
    button a screen is allowed. */

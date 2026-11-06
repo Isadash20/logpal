@@ -6,7 +6,7 @@ import { Today } from './screens/Today'
 import { Plan } from './screens/Plan'
 import { MealScan } from './screens/MealScan'
 import { NutriScan } from './screens/NutriScan'
-import { Progress, MeasurementDetail, WeightEntry } from './screens/Progress'
+import { Progress, MeasurementDetail, WeightEntry, LiftDetail } from './screens/Progress'
 import {
   About,
   FoodsHub,
@@ -260,6 +260,9 @@ function Shell() {
 
       case 'measurement':
         return <MeasurementDetail measureKey={route.key} />
+
+      case 'lift':
+        return <LiftDetail exercise={route.exercise} />
 
       case 'fasting':
         return <Fasting />

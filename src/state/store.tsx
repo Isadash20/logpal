@@ -18,6 +18,7 @@ import type {
   MealItem,
   MealKey,
   MeasurementEntry,
+  LiftEntry,
   Nutrients,
   PlanEntry,
   Profile,
@@ -244,6 +245,7 @@ export type Route =
   | { name: 'goals' }
   | { name: 'weightEntry' }
   | { name: 'measurement'; key: string }
+  | { name: 'lift'; exercise: string }
   | { name: 'progressPhotos' }
   | { name: 'fasting' }
   | { name: 'foodsHub' }
@@ -332,6 +334,9 @@ interface Ctx {
   addWeight(date: string, lb: number): void
   deleteWeight(date: string): void
   addMeasurement(m: MeasurementEntry): void
+  /** Returns whether this beat every earlier weight for the lift. */
+  addLift(e: Omit<LiftEntry, 'id' | 'loggedAt'>): { pr: boolean; prevBest: number }
+  deleteLift(id: string): void
   saveProfile(p: Partial<Profile>): void
   saveSettings(s: Partial<Settings>): void
   /* Apple Health. `healthSupported` is false outside the iOS app. */
@@ -558,6 +563,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 pantry: local.pantry,
                 savedRecipeIds: local.savedRecipeIds,
                 recentSearches: local.recentSearches,
+                lifts: local.lifts,
               }
         hydratingRef.current = true
         setData(merged)
@@ -1270,6 +1276,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (i >= 0) d.measurements[i] = m
         else d.measurements.push(m)
         d.measurements.sort((a, b) => (a.date < b.date ? -1 : 1))
+      }),
+
+    addLift: (e) => {
+      const exercise = e.exercise.trim()
+      const prevBest = data.lifts
+        .filter((l) => l.exercise.toLowerCase() === exercise.toLowerCase())
+        .reduce((m, l) => Math.max(m, l.weightLb), 0)
+      update((d) => {
+        const i = d.lifts.findIndex((l) => l.exercise.toLowerCase() === exercise.toLowerCase() && l.date === e.date)
+        const rec: LiftEntry = {
+          id: i >= 0 ? d.lifts[i].id : uid('lift_'),
+          exercise: i >= 0 ? d.lifts[i].exercise : exercise,
+          date: e.date,
+          weightLb: i >= 0 ? Math.max(d.lifts[i].weightLb, e.weightLb) : e.weightLb,
+          reps: e.reps,
+          loggedAt: Date.now(),
+        }
+        if (i >= 0) d.lifts[i] = rec
+        else d.lifts.push(rec)
+        d.lifts.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.loggedAt - b.loggedAt))
+      })
+      return { pr: e.weightLb > prevBest, prevBest }
+    },
+
+    deleteLift: (id) =>
+      update((d) => {
+        d.lifts = d.lifts.filter((l) => l.id !== id)
       }),
 
     saveProfile: (p) =>

@@ -1676,3 +1676,7 @@ Build 18 (1.1) uploaded 00:25 with everything since 17: the nine looks, meal ide
 ## Small hours, 2026-11-06: the feed is personal now (build 19)
 
 Phillip: "I keep on saying the same food feed for everybody." Home now shows a "why" strip (sex + age, weight + goal, the three words they log most) above two rails: Ideas for today (room-fit, `rankIdeas`) and Recipes you may like (taste-fit, `rankLikes`, no room gate, skips the first rail). Ranking now uses body weight (plate size, protein per lb), salt past 40/50, a stronger familiarity term, and a per-person seed so two people never get the same near-tie order. Label words (greek, nonfat, grilled) are stop words. Build 19 uploaded.
+
+## Small hours, 2026-11-06: lifts and PRs in Progress, web only
+
+Progress has a third tab, Exercise: personal records per lift (Bench press, Squat, … or typed), a Recent list with PR badges, a detail page per lift (line chart, PR / First / Gain, history with delete), and a sheet to log weight + reps + date. Beating the best fires the confetti card "New PR!". Data is `AppData.lifts` (`LiftEntry`, lb), device-local like the planner (carried across sign-in reconcile, not in any cloud table). Same lift + same day merges to the heavier weight. Not uploaded; Phillip wants to try it on Vercel first.
