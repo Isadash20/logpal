@@ -635,9 +635,13 @@ $$;
 
 -- crews: members see theirs; anyone signed in sees public ones (for Discover).
 drop policy if exists crews_visible on logpal_crews;
+-- `owner` is listed on its own because the insert returns the new row before
+-- the owner's membership exists, and a select policy that fails there
+-- surfaces as "new row violates row-level security policy".
 create policy crews_visible on logpal_crews for select
   using (
-    logpal_in_crew(id)
+    owner = auth.uid()
+    or logpal_in_crew(id)
     or (auth.uid() is not null and visibility = 'public')
   );
 
