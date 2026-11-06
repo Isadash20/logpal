@@ -17,6 +17,11 @@ SPECS=[
  ('slate','Slate','#8aa0bd','#2f3a4a','#f7f6f1','#232b36','steel with charcoal, on cream'),
  ('mocha','Mocha','#bf8f70','#3b2a22','#fbf7f1','#2e221c','milk chocolate with espresso, on cream'),
  ('cherry','Black Cherry','#d97b8c','#44202c','#fcf6f4','#36222a','cherry with dark cherry, on cream'),
+ # An optional eighth value is a third colour, for water, fat and sleep.
+ ('picnic','Picnic','#78a5ce','#7c5549','#fdf5e6','#2c2520','his blue, cream, pink, brown set','#dda4b4'),
+ ('rosewater','Rosewater','#e0a9b2','#5a3a3e','#f9f4e1','#3a2a2c','his pink, rose, cream, mint set','#a9cfc9'),
+ ('pistachio','Pistachio','#9ccbbd','#786c56','#fbf9ea','#2f2a22','his mint, cream, olive, brown set','#a1a34e'),
+ ('velvet','Red Velvet','#9e5151','#260809','#f6ecea','#260809','his brick, dark red, pale pink set','#751d1d'),
  ('neapolitan','Neapolitan','#e27ab0','#604734','#fcf7e4','#3a2a22','strawberry, chocolate and vanilla'),
 ]
 out=[]
@@ -29,12 +34,13 @@ out.append("""
    second colour that takes the add button, links, the picked day, the
    icon tiles, water and carbs. Each has a dark half. */
 """)
-for key,label,acc,pop,bg,text,note in SPECS:
+for key,label,acc,pop,bg,text,note,*rest in SPECS:
+    third=rest[0] if rest else None
     L={
      'accent':acc,'accent-press':mix(acc,K,.12),'accent-soft':mix(acc,W,.86),'accent-ring':rgba(acc,.16),
      'pop':pop,'pop-press':mix(pop,K,.12),'pop-soft':mix(pop,W,.86),'pop-ring':rgba(pop,.2),
      'ink':mix(text,acc,.15),'ink-2':mix(text,acc,.35),'on-ink':W,'on-ink-2':mix(bg,acc,.25),
-     'protein':mix(acc,K,.1),'carbs':pop,'fat':mix(acc,W,.38),'water':pop,'steps':acc,'sleep':mix(acc,K,.22),
+     'protein':mix(acc,K,.1),'carbs':pop,'fat':(mix(third,W,.15) if third else mix(acc,W,.38)),'water':(third or pop),'steps':acc,'sleep':(mix(third,K,.15) if third else mix(acc,K,.22)),
      'meal-morning':acc,'meal-afternoon':pop,'meal-evening':mix(acc,K,.1),'meal-late':mix(acc,K,.22),
      'positive':'#6fa470','warning':'#e2a23f','danger':'#d95a6a','gold':'#e9c45c',
      'bg':bg,'bg-top':bg,'surface':W,'surface-2':mix(bg,W,.4),'surface-3':mix(bg,acc,.12),
@@ -55,7 +61,7 @@ for key,label,acc,pop,bg,text,note in SPECS:
      'accent':dacc,'accent-press':mix(dacc,W,.12),'accent-soft':mix(dbg,dacc,.22),'accent-ring':rgba(dacc,.2),
      'pop':dpop,'pop-press':mix(dpop,W,.12),'pop-soft':mix(dbg,dpop,.22),'pop-ring':rgba(dpop,.22),
      'ink':dtext,'ink-2':mix(dtext,dbg,.15),'on-ink':dbg,'on-ink-2':mix(dtext,dbg,.6),
-     'protein':mix(dacc,W,.08),'carbs':dpop,'fat':mix(dacc,W,.4),'water':dpop,'steps':dacc,'sleep':mix(dacc,W,.18),
+     'protein':mix(dacc,W,.08),'carbs':dpop,'fat':(mix(third,W,.4) if third else mix(dacc,W,.4)),'water':(mix(third,W,.25) if third else dpop),'steps':dacc,'sleep':(mix(third,W,.2) if third else mix(dacc,W,.18)),
      'meal-morning':dacc,'meal-afternoon':dpop,'meal-evening':mix(dacc,W,.08),'meal-late':mix(dacc,W,.18),
      'positive':'#8fcf8c','warning':'#ffb75c','danger':'#ff7a8c','gold':'#fdd56a',
      'bg':dbg,'bg-top':dbg,'surface':mix(dbg,W,.05),'surface-2':mix(dbg,W,.08),'surface-3':mix(dbg,W,.14),
@@ -72,10 +78,10 @@ open('src/styles/tokens.css','a').write(css)
 p='src/lib/theme.ts'; s=open(p).read()
 if "'lavender'" in s:
     import re
-    for k,l,a,pp,bg,_,_ in SPECS:
+    for k,l,a,pp,bg,*_ in SPECS:
         s=re.sub(r"  \{ key: '%s',[^\n]*\n"%k, "  { key: '%s', label: '%s', bg: '%s', accent: '%s', second: '%s' },\n"%(k,l,bg,a,pp), s)
     open(p,'w').write(s); print('swatches updated'); sys.exit(0)
-rows=''.join("  { key: '%s', label: '%s', bg: '%s', accent: '%s', second: '%s' },\n"%(k,l,bg,a,pp) for k,l,a,pp,bg,_,_ in SPECS)
+rows=''.join("  { key: '%s', label: '%s', bg: '%s', accent: '%s', second: '%s' },\n"%(k,l,bg,a,pp) for k,l,a,pp,bg,*_ in SPECS)
 s=s.replace("  { key: 'matcha', label: 'Matcha', bg: '#f5f8f3', accent: '#83a97f', second: '#d98ba3' },\n",
             "  { key: 'matcha', label: 'Matcha', bg: '#f5f8f3', accent: '#83a97f', second: '#d98ba3' },\n"+rows)
 open(p,'w').write(s)

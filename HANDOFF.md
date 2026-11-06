@@ -1646,3 +1646,10 @@ Black Cherry (`#d97b8c`, dark cherry `#44202c`). Nine looks: Classic,
 Sakura, Matcha, Lavender, Sky, Honey, Slate, Mocha, Black Cherry,
 Neapolitan. The generator now expects everything from its own "All the
 looks" comment down to be cut before a run (it appends).
+
+Then: four from his own hex sets, to nitpick, on the same recipe. SPECS
+can carry an eighth value, a third colour, that goes on water, fat and
+sleep. Picnic (blue `#78a5ce`, brown `#7c5549`, pink `#dda4b4`), Rosewater
+(rose `#e0a9b2`, dark rose `#5a3a3e`, mint `#a9cfc9`), Pistachio (mint
+`#9ccbbd`, brown `#786c56`, olive `#a1a34e`), Red Velvet (brick `#9e5151`,
+near-black red `#260809`, dark red `#751d1d`). Thirteen looks now.

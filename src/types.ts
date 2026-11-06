@@ -403,6 +403,10 @@ export type Palette =
   | 'slate'
   | 'mocha'
   | 'cherry'
+  | 'picnic'
+  | 'rosewater'
+  | 'pistachio'
+  | 'velvet'
   | 'neapolitan'
 
 export interface Settings {
