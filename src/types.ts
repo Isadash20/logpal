@@ -402,7 +402,6 @@ export type Palette =
   | 'honey'
   | 'slate'
   | 'mocha'
-  | 'sherbet'
   | 'earth'
   | 'neapolitan'
 
