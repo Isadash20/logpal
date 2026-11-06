@@ -36,5 +36,6 @@ export const PALETTES: { key: Palette; label: string; bg: string; accent: string
   { key: 'rosewater', label: 'Rosewater', bg: '#f9f4e1', accent: '#e0a9b2', second: '#5a3a3e' },
   { key: 'pistachio', label: 'Pistachio', bg: '#fbf9ea', accent: '#9ccbbd', second: '#786c56' },
   { key: 'velvet', label: 'Red Velvet', bg: '#f6ecea', accent: '#9e5151', second: '#260809' },
+  { key: 'sherbet', label: 'Sherbet', bg: '#fbf3e3', accent: '#f29e99', second: '#5a3b35' },
   { key: 'neapolitan', label: 'Neapolitan', bg: '#fcf7e4', accent: '#e27ab0', second: '#604734' },
 ]

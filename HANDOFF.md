@@ -1653,3 +1653,7 @@ sleep. Picnic (blue `#78a5ce`, brown `#7c5549`, pink `#dda4b4`), Rosewater
 (rose `#e0a9b2`, dark rose `#5a3a3e`, mint `#a9cfc9`), Pistachio (mint
 `#9ccbbd`, brown `#786c56`, olive `#a1a34e`), Red Velvet (brick `#9e5151`,
 near-black red `#260809`, dark red `#751d1d`). Thirteen looks now.
+
+And Sherbet, from `D5D98F CEE1F2 F7A9A5 F0D9A3`: salmon `#f29e99` main, a
+dark terracotta-brown `#5a3b35` as the second (the set had no dark), the
+pale blue on water, fat and sleep, apricot cream wash. The lime is unused.

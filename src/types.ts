@@ -407,6 +407,7 @@ export type Palette =
   | 'rosewater'
   | 'pistachio'
   | 'velvet'
+  | 'sherbet'
   | 'neapolitan'
 
 export interface Settings {
