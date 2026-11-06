@@ -1668,3 +1668,7 @@ sleep, sand lightened to cream. Ten looks.
 
 Sherbet cut. Nine looks: Classic, Sakura, Matcha, Lavender, Sky, Honey,
 Slate, Mocha, Earth, Neapolitan.
+
+## Night, 2026-11-06: build 18 to TestFlight
+
+Build 18 (1.1) uploaded 00:25 with everything since 17: the nine looks, meal ideas ranked, tab labels. Same recipe, derived data in the scratchpad.
