@@ -1725,3 +1725,7 @@ Phillip pictured a fork, not a card. The fifth tab is now **Connect** (`tabs.fri
 ## Afternoon, 2026-11-06: crew icon, emoji or photo
 
 The crew sheet's "Badge" is now "Icon": pick an emoji, or Upload a photo (`fileToAvatar`, 256px JPEG data URL, stored in `logpal_crews.photo`; "Use an emoji instead" clears it). `CrewFace` renders the photo wherever the emoji appeared (row, hero, landing). **SQL to run** (copied to Phillip's clipboard, also at the end of `supabase/schema.sql`): `alter table logpal_crews add column if not exists photo text …` plus the re-created `logpal_crew_preview` that returns it. Until it runs, `createCrew`/`updateCrew` catch PGRST204 and save without the photo.
+
+## Afternoon, 2026-11-06: build 22 to TestFlight
+
+Build 22 (1.1) uploaded 13:38: Crews, the Connect tab, crew photo icons, the owner-read policy fix. Two notes for next time: the archive command takes `-project App.xcodeproj` (there is no workspace), and `npm run build` runs `tsc -b` first, which hung at 0% CPU while iCloud Drive was syncing the project folder; `npx vite build` alone got through. tsc and tests had already passed on the same commit.
