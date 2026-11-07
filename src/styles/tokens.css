@@ -165,6 +165,37 @@
   --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.7);
 }
 
+/* Classic Blue, 2026-11-07: Classic with a true blue where the blue violet
+   was. Everything else is Classic's. Fat moves to the violet so the macro
+   does not read as the brand colour; the afternoon meal takes the blue. */
+:root[data-palette='blue'] {
+  --accent: #2f6fe4;
+  --accent-press: #2559c4;
+  --accent-soft: #e8effd;
+  --accent-ring: rgba(47, 111, 228, 0.2);
+  --pop: #2f6fe4;
+  --pop-press: #2559c4;
+  --pop-soft: #e8effd;
+  --pop-ring: rgba(47, 111, 228, 0.2);
+  --fat: #5b5bd6;
+  --meal-afternoon: #2f6fe4;
+  --meal-evening: #5b5bd6;
+}
+
+:root[data-theme='dark'][data-palette='blue'] {
+  --accent: #6ea0ff;
+  --accent-press: #86b0ff;
+  --accent-soft: #1b2a4d;
+  --accent-ring: rgba(110, 160, 255, 0.25);
+  --pop: #6ea0ff;
+  --pop-press: #86b0ff;
+  --pop-soft: #1b2a4d;
+  --pop-ring: rgba(110, 160, 255, 0.25);
+  --fat: #8d8dff;
+  --meal-afternoon: #6ea0ff;
+  --meal-evening: #8d8dff;
+}
+
 /* All the looks, 2026-11-05, generated from SPECS in scripts/palettes.py
    (run from the repo root after cutting everything from this comment
    down; it appends). The recipe is the one Phillip picked out of

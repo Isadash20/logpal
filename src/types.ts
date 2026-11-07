@@ -395,6 +395,7 @@ export type ShareLevel = 'off' | 'percent' | 'exact'
 
 export type Palette =
   | 'classic'
+  | 'blue'
   | 'sakura'
   | 'matcha'
   | 'lavender'
