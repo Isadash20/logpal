@@ -1774,3 +1774,5 @@ Phillip asked for Strava and Renpho. Strava's "Create An Application" form at st
 So the Health import grew instead: `HealthPlugin.swift` `readWorkouts` now returns `distanceMi` (from the workout's distance statistics on iOS 16+, else `totalDistance`) and `elevationFt` (from `HKMetadataKeyElevationAscended`), and the activity names are spelled the way the catalog spells them (plus ~25 more HKWorkoutActivityTypes). `mergeHealth` matches the name to `EXERCISES`, fills `kind`/`exerciseId`/`distanceMi`/`elevationFt`, and when the recording app sent no calories it runs the same three-tier `estimate` a typed entry gets, at `profile.currentWeight`. Unknown names stay as plain cardio with no calories, as before. Settings → Apple Health has a line saying other apps land here through Health. Tests in `services/health.test.ts`.
 
 Build 24 (1.1) has it; script at the scratchpad's `build24.sh`. Web side deploys from main as usual, but distance/climb only arrive on the phone since Health is iOS-only.
+
+Build 25 (1.1) uploaded: Connect had no `<TopBar />`, so its title sat under the status bar on the phone; it has one now like Settings and Plan.
