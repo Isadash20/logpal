@@ -933,6 +933,7 @@ export function PrefsHealth() {
             <div className="hint">{lastLine}</div>
           </>
         )}
+        <div className="hint">{t('settings.healthVia')}</div>
         <div className="hint">{t('settings.healthHint')}</div>
       </div>
     </>

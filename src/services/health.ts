@@ -1,6 +1,8 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import type { AppData, ExerciseEntry, WeightEntry } from '../types'
 import { LB_PER_KG } from '../lib/units'
+import { EXERCISES } from '../data/exercises'
+import { estimate } from '../lib/exercise'
 
 /**
  * Apple Health, through the `HealthPlugin.swift` bridge in the iOS app.
@@ -20,6 +22,10 @@ import { LB_PER_KG } from '../lib/units'
  *
  * Weigh-ins LogPal wrote come back flagged `own` and are skipped on the way
  * in, which is what stops the loop.
+ *
+ * Health is also how Strava, Garmin, Renpho and the rest reach LogPal: each
+ * of them writes to Health, and a sync here picks the workout or weigh-in
+ * up with the distance and climb they recorded. No per-app integration.
  */
 
 export interface HealthSteps {
@@ -42,6 +48,10 @@ export interface HealthWorkout {
   end: string
   minutes: number
   calories?: number
+  /** Distance covered in miles, when the app that recorded it kept one. */
+  distanceMi?: number
+  /** Elevation gain in feet, from the workout's metadata. */
+  elevationFt?: number
   activity: string
   source: string
   own: boolean
@@ -190,19 +200,37 @@ export function mergeHealth(d: AppData, r: HealthReading, today: string): Health
     if (have.has(id)) continue
     const minutes = Math.round(w.minutes)
     if (minutes < 1) continue
+    const def = catalogMatch(w.activity)
     const e: ExerciseEntry = {
       id,
       date: w.date,
-      kind: 'cardio',
-      name: w.activity,
+      kind: def?.kind ?? 'cardio',
+      name: def?.name ?? w.activity,
+      exerciseId: def?.id,
       minutes,
       loggedAt: Date.parse(w.start) || Date.now(),
     }
+    if (w.distanceMi && w.distanceMi > 0) e.distanceMi = Math.round(w.distanceMi * 1000) / 1000
+    if (w.elevationFt && w.elevationFt > 0 && def?.climbs) e.elevationFt = Math.round(w.elevationFt)
     if (w.calories != null && w.calories > 0) e.caloriesBurned = Math.round(w.calories)
+    else if (def?.met && e.kind !== 'strength')
+      /* No energy from the recording app: cost it the way a typed entry is. */
+      e.caloriesBurned = estimate(def, {
+        minutes,
+        distanceMi: e.distanceMi,
+        elevationFt: e.elevationFt,
+        weightLb: d.profile.currentWeight,
+      }).kcal
     d.exerciseEntries.push(e)
     have.add(id)
     workouts++
   }
 
   return { steps, weights, workouts }
+}
+
+/** The catalog entry whose name matches the Health activity, if any. */
+function catalogMatch(activity: string) {
+  const key = activity.trim().toLowerCase()
+  return EXERCISES.find((e) => e.name.toLowerCase() === key)
 }

@@ -226,6 +226,12 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
                 if let kcal = HealthPlugin.energy(of: w) {
                     row["calories"] = kcal
                 }
+                if let mi = HealthPlugin.distanceMiles(of: w) {
+                    row["distanceMi"] = mi
+                }
+                if let ft = HealthPlugin.elevationFeet(of: w) {
+                    row["elevationFt"] = ft
+                }
                 return row
             }
             call.resolve(["workouts": out])
@@ -240,6 +246,37 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
         return w.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie())
+    }
+
+    /// Distance the workout covered, from whichever distance type the
+    /// activity records (Strava, Garmin and the Watch all fill one of them).
+    private static func distanceMiles(of w: HKWorkout) -> Double? {
+        if #available(iOS 16.0, *) {
+            let ids: [HKQuantityTypeIdentifier] = [
+                .distanceWalkingRunning, .distanceCycling, .distanceSwimming,
+                .distanceDownhillSnowSports, .distanceWheelchair, .distancePaddleSports,
+                .distanceRowing, .distanceSkatingSports, .distanceCrossCountrySkiing,
+            ]
+            for id in ids {
+                if let q = w.statistics(for: qty(id))?.sumQuantity() {
+                    let m = q.doubleValue(for: HKUnit.meter())
+                    if m > 0 { return m / 1609.344 }
+                }
+            }
+        }
+        if let m = w.totalDistance?.doubleValue(for: HKUnit.meter()), m > 0 {
+            return m / 1609.344
+        }
+        return nil
+    }
+
+    /// Elevation gain, which apps store in the workout's metadata.
+    private static func elevationFeet(of w: HKWorkout) -> Double? {
+        if let q = w.metadata?[HKMetadataKeyElevationAscended] as? HKQuantity {
+            let m = q.doubleValue(for: HKUnit.meter())
+            if m > 0 { return m / 0.3048 }
+        }
+        return nil
     }
 
     // MARK: - writes
@@ -316,28 +353,52 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
     private static func activityName(_ t: HKWorkoutActivityType) -> String {
         switch t {
         case .running: return "Running"
-        case .walking: return "Walking"
+        case .trackAndField: return "Track & Field"
+        case .wrestling: return "Wrestling"
+        case .waterPolo: return "Water Polo"
+        case .lacrosse: return "Lacrosse"
+        case .rugby: return "Rugby"
+        case .cricket: return "Cricket"
+        case .handball: return "Handball"
+        case .fencing: return "Fencing"
+        case .gymnastics: return "Gymnastics"
+        case .archery: return "Archery"
+        case .bowling: return "Bowling"
+        case .curling: return "Curling"
+        case .sailing: return "Sailing"
+        case .equestrianSports: return "Horseback Riding"
+        case .stairs: return "Stair Climbing"
+        case .stepTraining: return "Step Aerobics"
+        case .discSports: return "Ultimate Frisbee"
+        case .swimBikeRun: return "Triathlon"
+        case .hunting, .fishing: return "Workout"
+        case .snowSports: return "Downhill Skiing"
+        case .waterFitness: return "Water Aerobics"
+        case .waterSports: return "Paddleboarding"
+        case .australianFootball: return "Football"
+        case .preparationAndRecovery: return "Mobility Work"
+                case .walking: return "Walking"
         case .cycling: return "Cycling"
         case .hiking: return "Hiking"
         case .swimming: return "Swimming"
         case .rowing: return "Rowing"
         case .elliptical: return "Elliptical"
-        case .stairClimbing: return "Stair climbing"
-        case .traditionalStrengthTraining: return "Strength training"
-        case .functionalStrengthTraining: return "Functional training"
+        case .stairClimbing: return "Stair Climber"
+        case .traditionalStrengthTraining: return "Strength Training"
+        case .functionalStrengthTraining: return "Functional Training"
         case .highIntensityIntervalTraining: return "HIIT"
         case .yoga: return "Yoga"
         case .pilates: return "Pilates"
-        case .dance, .socialDance, .cardioDance: return "Dance"
-        case .coreTraining: return "Core training"
+        case .dance, .socialDance, .cardioDance: return "Dancing"
+        case .coreTraining: return "Core Training"
         case .flexibility: return "Stretching"
         case .cooldown: return "Cooldown"
         case .mixedCardio: return "Cardio"
-        case .crossTraining: return "Cross training"
-        case .jumpRope: return "Jump rope"
+        case .crossTraining: return "Circuit Training"
+        case .jumpRope: return "Jump Rope"
         case .kickboxing: return "Kickboxing"
         case .boxing: return "Boxing"
-        case .martialArts: return "Martial arts"
+        case .martialArts: return "Martial Arts"
         case .soccer: return "Soccer"
         case .basketball: return "Basketball"
         case .tennis: return "Tennis"
@@ -347,25 +408,25 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
         case .softball: return "Softball"
         case .volleyball: return "Volleyball"
         case .americanFootball: return "Football"
-        case .hockey: return "Hockey"
-        case .skatingSports: return "Skating"
+        case .hockey: return "Ice Hockey"
+        case .skatingSports: return "Ice Skating"
         case .snowboarding: return "Snowboarding"
-        case .downhillSkiing: return "Skiing"
-        case .crossCountrySkiing: return "Cross-country skiing"
+        case .downhillSkiing: return "Downhill Skiing"
+        case .crossCountrySkiing: return "Cross-Country Skiing"
         case .surfingSports: return "Surfing"
-        case .paddleSports: return "Paddling"
-        case .climbing: return "Climbing"
+        case .paddleSports: return "Kayaking"
+        case .climbing: return "Rock Climbing"
         case .wheelchairWalkPace, .wheelchairRunPace: return "Wheelchair"
-        case .handCycling: return "Hand cycling"
-        case .tableTennis: return "Table tennis"
+        case .handCycling: return "Cycling"
+        case .tableTennis: return "Table Tennis"
         case .badminton: return "Badminton"
         case .racquetball: return "Racquetball"
         case .squash: return "Squash"
-        case .taiChi: return "Tai chi"
+        case .taiChi: return "Tai Chi"
         case .barre: return "Barre"
-        case .mindAndBody: return "Mind and body"
+        case .mindAndBody: return "Stretching"
         case .play: return "Play"
-        case .fitnessGaming: return "Fitness gaming"
+        case .fitnessGaming: return "Workout"
         case .other: return "Workout"
         default: return "Workout"
         }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { defaultData } from '../lib/storage'
 import { mergeHealth, type HealthReading } from './health'
+import { estimate } from '../lib/exercise'
 
 const empty: HealthReading = { steps: [], weights: [], workouts: [] }
 const TODAY = '2026-11-02'
@@ -55,6 +56,35 @@ describe('mergeHealth', () => {
     expect(mergeHealth(d, reading, TODAY).workouts).toBe(1)
     expect(mergeHealth(d, reading, TODAY).workouts).toBe(0)
     expect(d.exerciseEntries).toHaveLength(1)
-    expect(d.exerciseEntries[0]).toMatchObject({ id: 'hk:A', kind: 'cardio', name: 'Running', minutes: 32, caloriesBurned: 287 })
+    expect(d.exerciseEntries[0]).toMatchObject({
+      id: 'hk:A',
+      kind: 'cardio',
+      name: 'Running',
+      exerciseId: 'cardio:running',
+      minutes: 32,
+      caloriesBurned: 287,
+    })
+  })
+
+  it('keeps the distance and climb a Strava-style workout carries, and costs one that has no calories', () => {
+    const d = defaultData()
+    d.profile.currentWeight = 176
+    const reading: HealthReading = {
+      ...empty,
+      workouts: [
+        { id: 'S', date: '2026-11-01', start: '', end: '', minutes: 60, distanceMi: 3, elevationFt: 1000, activity: 'Walking', source: 'Strava', own: false },
+        { id: 'P', date: '2026-11-01', start: '', end: '', minutes: 30, distanceMi: 2, activity: 'Water Polo', source: 'Garmin', own: false },
+        { id: 'U', date: '2026-11-01', start: '', end: '', minutes: 20, activity: 'Fitness gaming', source: 'Watch', own: false },
+      ],
+    }
+    mergeHealth(d, reading, TODAY)
+    const [walk, polo, odd] = d.exerciseEntries
+    expect(walk).toMatchObject({ exerciseId: 'cardio:walking', distanceMi: 3, elevationFt: 1000 })
+    expect(walk.caloriesBurned).toBe(estimate({ met: 3.5, curve: 'walking', climbs: true, kind: 'cardio' }, { minutes: 60, distanceMi: 3, elevationFt: 1000, weightLb: 176 }).kcal)
+    expect(polo).toMatchObject({ kind: 'sports', exerciseId: 'sports:water-polo', distanceMi: 2 })
+    expect(polo.elevationFt).toBeUndefined()
+    expect(odd).toMatchObject({ kind: 'cardio', name: 'Fitness gaming' })
+    expect(odd.exerciseId).toBeUndefined()
+    expect(odd.caloriesBurned).toBeUndefined()
   })
 })
