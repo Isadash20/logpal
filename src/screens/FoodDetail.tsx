@@ -1,12 +1,19 @@
-import { useMemo, useState } from 'react'
-import { MEAL_KEYS, PERIOD_LABELS, periodForDate, type Food, type MealKey } from '../types'
-import { useApp } from '../state/store'
-import { Icon } from '../components/Icon'
-import { TopBar } from '../components/ui'
-import { MacroSummary, NutritionLabel } from '../components/nutrition'
-import { Donut } from '../components/charts'
-import { cal } from '../lib/format'
-import { macroPercents, scaleNutrients } from '../lib/nutrition'
+import { useMemo, useState } from "react";
+import {
+  MEAL_KEYS,
+  PERIOD_LABELS,
+  periodForDate,
+  type Food,
+  type MealKey,
+} from "../types";
+import { useApp } from "../state/store";
+import { Icon } from "../components/Icon";
+import { TopBar } from "../components/ui";
+import { MacroSummary, NutritionLabel } from "../components/nutrition";
+import { Donut } from "../components/charts";
+import { cal } from "../lib/format";
+import { macroPercents, scaleNutrients } from "../lib/nutrition";
+import { servingChoice } from "../lib/servingLabel";
 
 export function FoodDetail({
   food,
@@ -16,42 +23,44 @@ export function FoodDetail({
   servings: initialServings,
   servingLabel,
 }: {
-  food: Food
-  date: string
-  meal?: MealKey
-  entryId?: string
-  servings?: number
-  servingLabel?: string
+  food: Food;
+  date: string;
+  meal?: MealKey;
+  entryId?: string;
+  servings?: number;
+  servingLabel?: string;
 }) {
-  const app = useApp()
-  const { pop, data } = app
+  const app = useApp();
+  const { pop, data } = app;
 
   const [servingIdx, setServingIdx] = useState(() => {
-    const i = food.servings.findIndex((s) => s.label === servingLabel)
-    return i >= 0 ? i : 0
-  })
-  const [count, setCount] = useState(String(initialServings ?? 1))
+    const i = food.servings.findIndex((s) => s.label === servingLabel);
+    return i >= 0 ? i : 0;
+  });
+  const [count, setCount] = useState(String(initialServings ?? 1));
 
   /* The clock still guesses, but it only guesses. Editing an entry keeps the
      meal it is already in; anything new opens on wherever it was started from,
      or on the hour's best guess, and either can be changed before saving. */
-  const existing = entryId ? data.foodEntries.find((e) => e.id === entryId) : undefined
+  const existing = entryId
+    ? data.foodEntries.find((e) => e.id === entryId)
+    : undefined;
   const [meal, setMeal] = useState<MealKey>(
-    existing?.meal ?? initialMeal ?? periodForDate(Date.now()),
-  )
+    existing?.meal ?? initialMeal ?? periodForDate(Date.now())
+  );
 
-  const serving = food.servings[servingIdx] ?? food.servings[0]
+  const serving = food.servings[servingIdx] ?? food.servings[0];
   const n = useMemo(() => {
-    const qty = parseFloat(count)
-    const factor = (Number.isFinite(qty) ? qty : 0) * serving.multiplier
-    return scaleNutrients(food.nutrients, factor)
-  }, [food.nutrients, serving.multiplier, count])
+    const qty = parseFloat(count);
+    const factor = (Number.isFinite(qty) ? qty : 0) * serving.multiplier;
+    return scaleNutrients(food.nutrients, factor);
+  }, [food.nutrients, serving.multiplier, count]);
 
-  const percents = macroPercents(n)
-  const isFavorite = data.favoriteFoodIds.includes(food.id)
+  const percents = macroPercents(n);
+  const isFavorite = data.favoriteFoodIds.includes(food.id);
   function save() {
-    const qty = parseFloat(count)
-    if (!Number.isFinite(qty) || qty <= 0) return
+    const qty = parseFloat(count);
+    if (!Number.isFinite(qty) || qty <= 0) return;
     app.logFood({
       food,
       date,
@@ -60,17 +69,17 @@ export function FoodDetail({
       servingLabel: serving.label,
       nutrients: n,
       entryId,
-    })
-    pop()
+    });
+    pop();
   }
 
   /** Common portions, so the usual case is one tap rather than typing. */
-  const quickCounts = [0.5, 1, 1.5, 2, 3]
+  const quickCounts = [0.5, 1, 1.5, 2, 3];
 
   return (
     <>
       <TopBar
-        title={entryId ? 'Edit Entry' : 'Add Food'}
+        title={entryId ? "Edit Entry" : "Add Food"}
         onBack={pop}
         right={
           <>
@@ -78,13 +87,19 @@ export function FoodDetail({
                 on, so "saved" reads the same way in either place without the
                 two ever becoming the same control. */}
             <button
-              className={`iconbtn ${isFavorite ? 'iconbtn--saved' : ''}`}
+              className={`iconbtn ${isFavorite ? "iconbtn--saved" : ""}`}
               onClick={() => app.toggleFavorite(food.id)}
-              aria-label={isFavorite ? 'Remove from favourites' : 'Add to favourites'}
+              aria-label={
+                isFavorite ? "Remove from favourites" : "Add to favourites"
+              }
             >
-              <Icon name={isFavorite ? 'star-filled' : 'star'} size={21} />
+              <Icon name={isFavorite ? "star-filled" : "star"} size={21} />
             </button>
-            <button className="iconbtn iconbtn--accent" onClick={save} aria-label="Save">
+            <button
+              className="iconbtn iconbtn--accent"
+              onClick={save}
+              aria-label="Save"
+            >
               <Icon name="check" size={24} strokeWidth={2.6} />
             </button>
           </>
@@ -93,29 +108,45 @@ export function FoodDetail({
 
       <div className="scroll">
         {isFavorite && (
-          <div className="hint" style={{ color: 'var(--text-2)', paddingBottom: 0 }}>
+          <div
+            className="hint"
+            style={{ color: "var(--text-2)", paddingBottom: 0 }}
+          >
             Starred, find it under My Favourites when you search for a food.
           </div>
         )}
-        <div style={{ padding: '18px 16px 12px', background: 'var(--surface)' }}>
-          <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>{food.name}</div>
+        <div
+          style={{ padding: "18px 16px 12px", background: "var(--surface)" }}
+        >
+          <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>
+            {food.name}
+          </div>
           {food.brand && (
-            <div style={{ color: 'var(--text-2)', marginTop: 2, fontSize: 14 }}>
+            <div style={{ color: "var(--text-2)", marginTop: 2, fontSize: 14 }}>
               {food.brand}
             </div>
           )}
-          {food.source === 'off' && (
-            <span className="badge" style={{ display: 'inline-block', marginTop: 8 }}>
+          {food.source === "off" && (
+            <span
+              className="badge"
+              style={{ display: "inline-block", marginTop: 8 }}
+            >
               OPEN FOOD FACTS
             </span>
           )}
-          {food.source === 'usda' && (
-            <span className="badge" style={{ display: 'inline-block', marginTop: 8 }}>
+          {food.source === "usda" && (
+            <span
+              className="badge"
+              style={{ display: "inline-block", marginTop: 8 }}
+            >
               USDA
             </span>
           )}
-          {food.source === 'seed' && (
-            <span className="badge" style={{ display: 'inline-block', marginTop: 8 }}>
+          {food.source === "seed" && (
+            <span
+              className="badge"
+              style={{ display: "inline-block", marginTop: 8 }}
+            >
               VERIFIED
             </span>
           )}
@@ -124,10 +155,10 @@ export function FoodDetail({
         <div
           className="card"
           style={{
-            display: 'flex',
-            alignItems: 'center',
+            display: "flex",
+            alignItems: "center",
             gap: 20,
-            padding: '18px 16px',
+            padding: "18px 16px",
             marginBottom: 12,
           }}
         >
@@ -135,19 +166,29 @@ export function FoodDetail({
             size={116}
             thickness={20}
             slices={[
-              { label: 'Carbs', value: percents.carbs, color: 'var(--carbs)' },
-              { label: 'Fat', value: percents.fat, color: 'var(--fat)' },
-              { label: 'Protein', value: percents.protein, color: 'var(--protein)' },
+              { label: "Carbs", value: percents.carbs, color: "var(--carbs)" },
+              { label: "Fat", value: percents.fat, color: "var(--fat)" },
+              {
+                label: "Protein",
+                value: percents.protein,
+                color: "var(--protein)",
+              },
             ]}
             center={
               <>
                 <div
                   className="num"
-                  style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 800,
+                    letterSpacing: "-0.02em",
+                  }}
                 >
                   {cal(n.calories)}
                 </div>
-                <div style={{ fontSize: 10.5, color: 'var(--text-2)' }}>cal</div>
+                <div style={{ fontSize: 10.5, color: "var(--text-2)" }}>
+                  cal
+                </div>
               </>
             }
           />
@@ -171,7 +212,7 @@ export function FoodDetail({
                   </option>
                 ))}
               </select>
-              <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+              <span style={{ color: "var(--text-3)", display: "flex" }}>
                 <Icon name="down" size={16} strokeWidth={2.4} />
               </span>
             </span>
@@ -187,11 +228,11 @@ export function FoodDetail({
               >
                 {food.servings.map((s, i) => (
                   <option key={i} value={i}>
-                    {s.label}
+                    {servingChoice(s, i)}
                   </option>
                 ))}
               </select>
-              <span style={{ color: 'var(--text-3)', display: 'flex' }}>
+              <span style={{ color: "var(--text-3)", display: "flex" }}>
                 <Icon name="down" size={16} strokeWidth={2.4} />
               </span>
             </span>
@@ -212,17 +253,18 @@ export function FoodDetail({
               />
             </span>
           </label>
-
         </div>
 
         <div className="chips">
           {quickCounts.map((q) => (
             <button
               key={q}
-              className={`chip ${parseFloat(count) === q ? 'chip--active' : ''}`}
+              className={`chip ${
+                parseFloat(count) === q ? "chip--active" : ""
+              }`}
               onClick={() => setCount(String(q))}
             >
-              {q} {q === 1 ? 'serving' : 'servings'}
+              {q} {q === 1 ? "serving" : "servings"}
             </button>
           ))}
         </div>
@@ -230,16 +272,16 @@ export function FoodDetail({
         <div className="section-label">Nutrition Facts</div>
         <NutritionLabel n={n} />
 
-        <div className="btn-wrap" style={{ display: 'grid', gap: 10 }}>
+        <div className="btn-wrap" style={{ display: "grid", gap: 10 }}>
           <button className="btn" onClick={save}>
-            {entryId ? 'Save changes' : 'Log this food'}
+            {entryId ? "Save changes" : "Log this food"}
           </button>
           {entryId && (
             <button
               className="btn btn--danger"
               onClick={() => {
-                app.deleteEntry(entryId)
-                pop()
+                app.deleteEntry(entryId);
+                pop();
               }}
             >
               Delete Entry
@@ -248,5 +290,5 @@ export function FoodDetail({
         </div>
       </div>
     </>
-  )
+  );
 }
