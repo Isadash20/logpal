@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  achievements,
   challengeState,
   challengeWhen,
   inviteMessage,
@@ -81,22 +80,5 @@ describe('leaderboard', () => {
     expect(s[1].detail).toBe('3 logged · 1 cheer')
     expect(s[2].detail).toBe('Shares nothing yet')
     expect(s[3].detail).toBe('0 logged')
-  })
-})
-
-describe('achievements', () => {
-  it('earns team badges from everyone and personal ones from me', () => {
-    const me = member({ userId: 'me', loggedDays: 7, streak: 9, waterDays: 5, kudos: 2 })
-    const list = achievements({
-      memberCount: 3,
-      members: [me, member({ userId: 'b', loggedDays: 7, steps: 60_000 }), member({ userId: 'c' })],
-      me,
-      ageDays: 10,
-      recipesShared: 1,
-      challengesRun: 0,
-    })
-    const earned = list.filter((a) => a.earned).map((a) => a.id)
-    expect(earned).toEqual(['founded', 'roll-call', 'clean-sweep', 'week-logged', 'streak-7', 'hydrated'])
-    expect(list.find((a) => a.id === 'hundred-k')?.earned).toBe(false)
   })
 })

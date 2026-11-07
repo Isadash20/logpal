@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon'
 import { Empty, Row, SegmentedField, Sheet, Spinner, Tabs, TextField, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { fileToAvatar } from '../lib/avatar'
-import { achievements, challengeState, inviteLink, inviteMessage, parseInvite, standings, type MemberWeek } from '../lib/crews'
+import { challengeState, inviteLink, inviteMessage, parseInvite, standings, type MemberWeek } from '../lib/crews'
 import { kindOf, type ChallengeKind } from '../lib/challenges'
 import { ChallengeCard, NewChallengeSheet } from './Challenges'
 import { catalogRecipes, loadCatalog } from '../services/recipeDb'
@@ -587,7 +587,7 @@ export function CrewDashboard({ id }: { id: string }) {
         <Tabs
           tabs={[
             { key: 'feed' as CrewTab, label: 'Feed' },
-            { key: 'compete' as CrewTab, label: 'Compete' },
+            { key: 'compete' as CrewTab, label: 'Challenges' },
             { key: 'recipes' as CrewTab, label: `Recipes ${recipes.length || ''}`.trim() },
             { key: 'members' as CrewTab, label: 'Members' },
           ]}
@@ -605,14 +605,6 @@ export function CrewDashboard({ id }: { id: string }) {
             weeks={weeks}
             people={people}
             challenges={challenges}
-            facts={{
-              memberCount: members.length,
-              members: weeks,
-              me: weeks.find((w) => w.userId === me) ?? null,
-              ageDays: Math.max(0, Math.round((Date.now() - new Date(crew.createdAt).getTime()) / 86_400_000)),
-              recipesShared: recipes.length,
-              challengesRun: challenges.length,
-            }}
             onChange={refresh}
           />
         )}
@@ -833,7 +825,6 @@ function Compete({
   weeks,
   people,
   challenges,
-  facts,
   onChange,
 }: {
   crewId: string
@@ -841,7 +832,6 @@ function Compete({
   weeks: MemberWeek[]
   people: Map<string, Person>
   challenges: Challenge[]
-  facts: Parameters<typeof achievements>[0]
   onChange(): Promise<void>
 }) {
   const { push } = useApp()
@@ -850,9 +840,6 @@ function Compete({
   const board = standings(weeks)
   const live = challenges.filter((c) => challengeState(c.starts, c.ends) !== 'ended')
   const past = challenges.filter((c) => challengeState(c.starts, c.ends) === 'ended').slice(0, 3)
-  const badges = achievements(facts)
-  const team = badges.filter((b) => b.team)
-  const own = badges.filter((b) => !b.team)
 
   return (
     <>
@@ -903,24 +890,6 @@ function Compete({
         </div>
       </div>
 
-      <div className="card">
-        <div className="card__head">
-          <div className="card__title">Crew achievements</div>
-          <span className="card__meta">
-            {team.filter((b) => b.earned).length} of {team.length}
-          </span>
-        </div>
-        <Badges list={team} />
-      </div>
-      <div className="card">
-        <div className="card__head">
-          <div className="card__title">Yours</div>
-          <span className="card__meta">
-            {own.filter((b) => b.earned).length} of {own.length}
-          </span>
-        </div>
-        <Badges list={own} />
-      </div>
 
       {past.length > 0 && (
         <div className="card">
@@ -944,20 +913,6 @@ function Compete({
         />
       )}
     </>
-  )
-}
-
-function Badges({ list }: { list: ReturnType<typeof achievements> }) {
-  return (
-    <div className="crew-badges">
-      {list.map((b) => (
-        <div key={b.id} className={`crew-badge-tile ${b.earned ? 'crew-badge-tile--on' : ''}`}>
-          <span className="crew-badge-tile__emoji">{b.emoji}</span>
-          <span className="crew-badge-tile__title">{b.title}</span>
-          <span className="crew-badge-tile__detail">{b.detail}</span>
-        </div>
-      ))}
-    </div>
   )
 }
 

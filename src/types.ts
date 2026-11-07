@@ -121,14 +121,20 @@ export interface FoodEntry {
   loggedAt: number
 }
 
-export type ExerciseKind = 'cardio' | 'strength'
+export type ExerciseKind = 'cardio' | 'strength' | 'sports'
 
 export interface ExerciseDef {
   id: string
   name: string
+  /** The tab it is filed under first; `also` lists any other tab it shows on. */
   kind: ExerciseKind
-  /** Metabolic equivalent; kcal/kg/hour. Cardio only. */
+  also?: ExerciseKind[]
+  /** Metabolic equivalent; kcal/kg/hour. Cardio and sports. */
   met?: number
+  /** Speed-to-MET curve in lib/exercise.ts, for activities that take a distance. */
+  curve?: string
+  /** True when elevation gain makes sense (walking, riding, climbing routes). */
+  climbs?: boolean
 }
 
 export interface ExerciseEntry {
@@ -138,6 +144,10 @@ export interface ExerciseEntry {
   name: string
   exerciseId?: string
   minutes?: number
+  /** Distance covered, stored in miles whatever the display unit. */
+  distanceMi?: number
+  /** Elevation gain, stored in feet. */
+  elevationFt?: number
   caloriesBurned?: number
   sets?: number
   reps?: number

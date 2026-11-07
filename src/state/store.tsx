@@ -13,6 +13,7 @@ import type {
   DayLog,
   ShareLevel,
   ExerciseEntry,
+  ExerciseKind,
   Food,
   FoodEntry,
   MealItem,
@@ -230,11 +231,11 @@ export type Route =
   | { name: 'scan'; date: string; mode?: 'log' | 'worth' }
   | { name: 'worthIt'; date: string; food?: Food }
   | { name: 'mealScan'; date: string }
-  | { name: 'exerciseSearch'; date: string; kind: 'cardio' | 'strength' }
+  | { name: 'exerciseSearch'; date: string; kind: ExerciseKind }
   | {
       name: 'exerciseDetail'
       date: string
-      kind: 'cardio' | 'strength'
+      kind: ExerciseKind
       exerciseId?: string
       name_: string
       entryId?: string
