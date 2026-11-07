@@ -5299,3 +5299,168 @@ button.row:active {
   font-size: 34px;
   flex: none;
 }
+
+/* ---------------------------------------------------------- challenges -- */
+
+/* Head-to-head contests (Connect → Challenges, and a crew's Compete tab).
+   A duel gets the Apple Fitness framing, you against them with a bar each;
+   a group falls back to the crew-challenge ranked rows. */
+.door--challenge {
+  background: color-mix(in srgb, var(--accent-soft) calc(70% * var(--tint-k, 1)), var(--surface));
+  border-color: transparent;
+}
+
+.challenge--tap {
+  cursor: pointer;
+}
+
+.challenge--tap:active {
+  transform: scale(0.99);
+}
+
+.challenge__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.challenge__emoji {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  flex: none;
+}
+
+.challenge__sub {
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 1px;
+}
+
+.crew-challenge__when--over {
+  color: var(--text-3);
+}
+
+.challenge__invite {
+  padding: 0 18px 14px;
+}
+
+.challenge__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.challenge__body {
+  padding: 0 18px 12px;
+}
+
+.duel {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.duel__side {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  align-items: baseline;
+}
+
+.duel__name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.duel__side--them .duel__name {
+  color: var(--text-2);
+}
+
+.duel__n {
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.duel__bar {
+  grid-column: 1 / -1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.duel__fill {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.duel__fill--them {
+  background: var(--text-3);
+}
+
+.duel__margin {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+  padding-top: 2px;
+}
+
+.duel__margin--up {
+  color: var(--positive);
+}
+
+.daytable {
+  padding: 0 18px 12px;
+  font-size: 13.5px;
+}
+
+.daytable__row {
+  display: grid;
+  grid-template-columns: 72px repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.daytable__row > span:first-child {
+  text-align: left;
+}
+
+.daytable__row--head {
+  border-top: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.daytable__day {
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.daytable small {
+  color: var(--text-3);
+}
+
+.pick {
+  margin: 4px calc(-1 * var(--gutter)) 0;
+  max-height: 240px;
+  overflow-y: auto;
+}

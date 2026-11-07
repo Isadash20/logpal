@@ -45,6 +45,7 @@ import { Auth } from './screens/Auth'
 import { AccountSetup } from './screens/AccountSetup'
 import { FriendProfile, Friends, FriendsSharing } from './screens/Friends'
 import { CrewDashboard, Crews, InviteLanding } from './screens/Crews'
+import { Challenges, ChallengeScreen } from './screens/Challenges'
 import { Connect } from './screens/Connect'
 import { MealPlanner, RecipeBrowse, RecipeView, ShoppingList } from './screens/Planner'
 import { cloudEnabled } from './lib/supabase'
@@ -320,6 +321,10 @@ function Shell() {
         return <Crews />
       case 'crew':
         return <CrewDashboard id={route.id} />
+      case 'challenges':
+        return <Challenges />
+      case 'challenge':
+        return <ChallengeScreen id={route.id} />
 
       case 'mealPlanner':
         return <MealPlanner />

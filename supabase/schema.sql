@@ -768,7 +768,7 @@ as $$
     ch.title, ch.kind, ch.ends
   from logpal_crews c
   left join lateral (
-    select title, kind, ends from logpal_crew_challenges x
+    select title, kind, ends from logpal_challenges x
     where x.crew_id = c.id and x.ends >= current_date
     order by x.starts asc limit 1
   ) ch on true
@@ -844,7 +844,7 @@ as $$
     ch.title, ch.kind, ch.ends
   from logpal_crews c
   left join lateral (
-    select title, kind, ends from logpal_crew_challenges x
+    select title, kind, ends from logpal_challenges x
     where x.crew_id = c.id and x.ends >= current_date
     order by x.starts asc limit 1
   ) ch on true
@@ -852,3 +852,117 @@ as $$
 $$;
 
 grant execute on function logpal_crew_preview(text) to anon, authenticated;
+
+-- ---------------------------------------------------------- challenges --
+-- 2026-11-07. Head-to-head contests the way Apple Fitness does them: steps
+-- or water, totalled over a date range, between friends (invited, and they
+-- accept) or across a whole crew (everyone is in). Scored from
+-- logpal_social_days, a per-day copy of steps and water that each client
+-- publishes for its last fourteen days whenever those are shared at all.
+
+create table if not exists logpal_social_days (
+  user_id    uuid not null default auth.uid() references auth.users on delete cascade,
+  day        date not null,
+  steps      integer,
+  water_ml   integer,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, day)
+);
+alter table logpal_social_days enable row level security;
+
+create table if not exists logpal_challenges (
+  id         uuid primary key default gen_random_uuid(),
+  kind       text not null check (kind in ('steps', 'water')),
+  title      text not null check (char_length(title) between 2 and 60),
+  starts     date not null,
+  ends       date not null check (ends >= starts),
+  crew_id    uuid references logpal_crews on delete cascade,
+  created_by uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now()
+);
+create index if not exists logpal_challenges_by_crew on logpal_challenges (crew_id, ends desc);
+alter table logpal_challenges enable row level security;
+
+create table if not exists logpal_challenge_members (
+  challenge_id uuid not null references logpal_challenges on delete cascade,
+  user_id      uuid not null references auth.users on delete cascade,
+  status       text not null default 'invited' check (status in ('invited', 'in', 'declined')),
+  invited_by   uuid references auth.users on delete set null,
+  joined_at    timestamptz not null default now(),
+  primary key (challenge_id, user_id)
+);
+create index if not exists logpal_challenge_members_by_user on logpal_challenge_members (user_id);
+alter table logpal_challenge_members enable row level security;
+
+-- Helpers the policies call without recursing into their own tables.
+create or replace function logpal_in_challenge(ch uuid)
+returns boolean language sql security definer set search_path = public stable as $$
+  select exists (select 1 from logpal_challenge_members m where m.challenge_id = ch and m.user_id = auth.uid());
+$$;
+
+create or replace function logpal_made_challenge(ch uuid)
+returns boolean language sql security definer set search_path = public stable as $$
+  select exists (select 1 from logpal_challenges c where c.id = ch and c.created_by = auth.uid());
+$$;
+
+create or replace function logpal_challenge_crew(ch uuid)
+returns uuid language sql security definer set search_path = public stable as $$
+  select c.crew_id from logpal_challenges c where c.id = ch;
+$$;
+
+-- Who may read someone's day rows: the same people who may read their
+-- profile, plus crew-mates and anyone lined up in a challenge with them.
+create or replace function logpal_shares_days_with(owner uuid)
+returns boolean language sql security definer set search_path = public stable as $$
+  select owner = auth.uid()
+    or (auth.uid() is not null and (
+      exists (select 1 from logpal_social_profile p where p.user_id = owner and not p.private)
+      or exists (select 1 from logpal_follows f where f.followee = owner and f.follower = auth.uid() and f.status = 'accepted')
+      or exists (select 1 from logpal_crew_members a join logpal_crew_members b on a.crew_id = b.crew_id
+                 where a.user_id = owner and b.user_id = auth.uid())
+      or exists (select 1 from logpal_challenge_members a join logpal_challenge_members b on a.challenge_id = b.challenge_id
+                 where a.user_id = owner and b.user_id = auth.uid())
+    ));
+$$;
+
+drop policy if exists days_visible on logpal_social_days;
+create policy days_visible on logpal_social_days for select
+  using (logpal_shares_days_with(user_id));
+drop policy if exists days_own_write on logpal_social_days;
+create policy days_own_write on logpal_social_days for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- challenges: the maker, anyone lined up in it, and the crew it belongs to.
+-- `created_by` on its own so the insert's RETURNING passes before the
+-- maker's member row exists.
+drop policy if exists challenges_visible on logpal_challenges;
+create policy challenges_visible on logpal_challenges for select
+  using (created_by = auth.uid() or logpal_in_challenge(id) or (crew_id is not null and logpal_in_crew(crew_id)));
+drop policy if exists challenges_create on logpal_challenges;
+create policy challenges_create on logpal_challenges for insert
+  with check (created_by = auth.uid() and (crew_id is null or logpal_in_crew(crew_id)));
+drop policy if exists challenges_delete on logpal_challenges;
+create policy challenges_delete on logpal_challenges for delete
+  using (created_by = auth.uid());
+
+-- members: the maker lines people up; a crew-mate can put themself into a
+-- crew challenge; everyone changes only their own status.
+drop policy if exists challenge_members_visible on logpal_challenge_members;
+create policy challenge_members_visible on logpal_challenge_members for select
+  using (
+    logpal_in_challenge(challenge_id)
+    or logpal_made_challenge(challenge_id)
+    or (logpal_challenge_crew(challenge_id) is not null and logpal_in_crew(logpal_challenge_crew(challenge_id)))
+  );
+drop policy if exists challenge_members_insert on logpal_challenge_members;
+create policy challenge_members_insert on logpal_challenge_members for insert
+  with check (
+    logpal_made_challenge(challenge_id)
+    or (user_id = auth.uid() and logpal_challenge_crew(challenge_id) is not null and logpal_in_crew(logpal_challenge_crew(challenge_id)))
+  );
+drop policy if exists challenge_members_update on logpal_challenge_members;
+create policy challenge_members_update on logpal_challenge_members for update
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+drop policy if exists challenge_members_delete on logpal_challenge_members;
+create policy challenge_members_delete on logpal_challenge_members for delete
+  using (user_id = auth.uid() or logpal_made_challenge(challenge_id));

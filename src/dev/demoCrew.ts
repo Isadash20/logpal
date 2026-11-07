@@ -55,8 +55,8 @@ export function demoCrew(me: string): CrewDetail {
       { person: person('u4', 'dani', null, { weekLoggedDays: null, weekStepDays: null, weekWaterDays: null, weekCalorieDays: null, weekSteps: null, streak: null }), role: 'member', joinedAt: h(30) },
     ],
     challenges: [
-      { id: 'c1', crewId: 'demo', kind: 'steps', title: '7-Day Steps Challenge', starts: d(-3), ends: d(3), createdBy: me },
-      { id: 'c0', crewId: 'demo', kind: 'logging', title: '14-Day Log Every Day Challenge', starts: d(-30), ends: d(-17), createdBy: 'u2' },
+      { id: 'c1', crewId: 'demo', kind: 'steps', title: '7-Day Steps Challenge', starts: d(-3), ends: d(3), createdBy: me, createdAt: h(24 * 3), members: [me, 'u2', 'u3', 'u4'].map((userId) => ({ userId, status: 'in' as const, invitedBy: me })) },
+      { id: 'c0', crewId: 'demo', kind: 'water', title: '14-Day Water Challenge', starts: d(-30), ends: d(-17), createdBy: 'u2', createdAt: h(24 * 30), members: [me, 'u2'].map((userId) => ({ userId, status: 'in' as const, invitedBy: 'u2' })) },
     ],
     posts: [
       { id: 'p1', userId: 'u2', kind: 'chat', body: 'Who is walking before work tomorrow? 6:45 at the park.', createdAt: h(26), kudos: { '👏': ['u3'] } },

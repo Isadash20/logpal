@@ -47,15 +47,6 @@ export function inviteMessage(crewName: string, code: string, challenge?: string
 
 /* ---------------------------------------------------------- challenges -- */
 
-export type ChallengeKind = 'steps' | 'water' | 'calories' | 'logging'
-
-export const CHALLENGE_KINDS: { kind: ChallengeKind; label: string; unit: string; blurb: string }[] = [
-  { kind: 'logging', label: 'Log every day', unit: 'days logged', blurb: 'Most days with food logged wins.' },
-  { kind: 'steps', label: 'Steps', unit: 'step days', blurb: 'Most days at your step goal wins.' },
-  { kind: 'water', label: 'Water', unit: 'water days', blurb: 'Most days at your water goal wins.' },
-  { kind: 'calories', label: 'Calories', unit: 'days on target', blurb: 'Most days landing the calorie goal wins.' },
-]
-
 export type ChallengeState = 'upcoming' | 'active' | 'ended'
 
 export function challengeState(starts: string, ends: string, on = today()): ChallengeState {
@@ -131,20 +122,6 @@ export function standings(members: MemberWeek[]): Standing[] {
       }
     })
     .sort((a, b) => b.points - a.points)
-}
-
-/** The count a challenge is scored on, for one member. */
-export function challengeCount(kind: ChallengeKind, m: MemberWeek): number | null {
-  switch (kind) {
-    case 'logging':
-      return m.loggedDays
-    case 'steps':
-      return m.stepDays
-    case 'water':
-      return m.waterDays
-    case 'calories':
-      return m.calorieDays
-  }
 }
 
 /* --------------------------------------------------------- achievements -- */

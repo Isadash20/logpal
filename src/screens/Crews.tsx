@@ -4,26 +4,14 @@ import { Icon } from '../components/Icon'
 import { Empty, Row, SegmentedField, Sheet, Spinner, Tabs, TextField, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
 import { fileToAvatar } from '../lib/avatar'
-import {
-  CHALLENGE_KINDS,
-  achievements,
-  challengeCount,
-  challengeState,
-  challengeWhen,
-  inviteLink,
-  inviteMessage,
-  parseInvite,
-  standings,
-  type ChallengeKind,
-  type MemberWeek,
-} from '../lib/crews'
+import { achievements, challengeState, inviteLink, inviteMessage, parseInvite, standings, type MemberWeek } from '../lib/crews'
+import { kindOf, type ChallengeKind } from '../lib/challenges'
+import { ChallengeCard, NewChallengeSheet } from './Challenges'
 import { catalogRecipes, loadCatalog } from '../services/recipeDb'
 import { searchRecipes } from '../services/recipes'
 import type { Person } from '../services/social'
 import {
-  createChallenge,
   createCrew,
-  deleteChallenge,
   deleteCrew,
   deletePost,
   discoverCrews,
@@ -617,7 +605,6 @@ export function CrewDashboard({ id }: { id: string }) {
             weeks={weeks}
             people={people}
             challenges={challenges}
-            isOwner={isOwner}
             facts={{
               memberCount: members.length,
               members: weeks,
@@ -846,7 +833,6 @@ function Compete({
   weeks,
   people,
   challenges,
-  isOwner,
   facts,
   onChange,
 }: {
@@ -855,10 +841,10 @@ function Compete({
   weeks: MemberWeek[]
   people: Map<string, Person>
   challenges: Challenge[]
-  isOwner: boolean
   facts: Parameters<typeof achievements>[0]
   onChange(): Promise<void>
 }) {
+  const { push } = useApp()
   const [adding, setAdding] = useState(false)
   const nameOf = (id: string) => (id === me ? 'You' : people.get(id) ? displayName(people.get(id)!) : 'Someone')
   const board = standings(weeks)
@@ -871,16 +857,14 @@ function Compete({
   return (
     <>
       {live.length ? (
-        live.map((c) => (
-          <ChallengeCard key={c.id} challenge={c} weeks={weeks} nameOf={nameOf} me={me} canEnd={isOwner || c.createdBy === me} onEnd={() => void deleteChallenge(c.id).then(onChange)} />
-        ))
+        live.map((c) => <ChallengeCard key={c.id} challenge={c} me={me} people={people} onOpen={() => push({ name: 'challenge', id: c.id })} onChange={() => void onChange()} />)
       ) : (
         <div className="card" style={{ marginTop: 12 }}>
           <div className="card__head">
             <div className="card__title">Challenge</div>
           </div>
           <div className="hint" style={{ paddingTop: 0 }}>
-            No challenge running. Pick a contest and a length, and the crew races from the start date.
+            No challenge running. Most steps or most water by the end wins, and everyone in the crew is in.
           </div>
         </div>
       )}
@@ -950,7 +934,7 @@ function Compete({
       )}
 
       {adding && (
-        <ChallengeSheet
+        <NewChallengeSheet
           crewId={crewId}
           onClose={() => setAdding(false)}
           onDone={() => {
@@ -974,138 +958,6 @@ function Badges({ list }: { list: ReturnType<typeof achievements> }) {
         </div>
       ))}
     </div>
-  )
-}
-
-function ChallengeCard({
-  challenge,
-  weeks,
-  nameOf,
-  me,
-  canEnd,
-  onEnd,
-}: {
-  challenge: Challenge
-  weeks: MemberWeek[]
-  nameOf(id: string): string
-  me: string
-  canEnd: boolean
-  onEnd(): void
-}) {
-  const kind = CHALLENGE_KINDS.find((k) => k.kind === challenge.kind)!
-  const state = challengeState(challenge.starts, challenge.ends)
-  const rows = weeks
-    .map((w) => ({ id: w.userId, n: challengeCount(challenge.kind, w) }))
-    .filter((r): r is { id: string; n: number } => r.n !== null)
-    .sort((a, b) => b.n - a.n)
-  const top = rows[0]?.n ?? 0
-  return (
-    <div className="card crew-challenge" style={{ marginTop: 12 }}>
-      <div className="card__head">
-        <div className="card__title">{challenge.title}</div>
-        <span className={`crew-challenge__when ${state === 'upcoming' ? 'crew-challenge__when--soon' : ''}`}>
-          {challengeWhen(challenge.starts, challenge.ends)}
-        </span>
-      </div>
-      <div className="hint" style={{ paddingTop: 0 }}>
-        {kind.blurb} {friendlyDate(challenge.starts)} to {friendlyDate(challenge.ends)}.
-      </div>
-      {state === 'active' && (
-        <div className="crew-challenge__rows">
-          {rows.length === 0 && <div className="hint">Nobody is sharing {kind.unit} yet.</div>}
-          {rows.map((r, i) => (
-            <div key={r.id} className={`crew-challenge__row ${r.id === me ? 'crew-challenge__row--you' : ''}`}>
-              <span className="crew-challenge__name">
-                {i === 0 && r.n > 0 ? '👑 ' : ''}
-                {nameOf(r.id)}
-              </span>
-              <span className="tile__bar crew-challenge__bar">
-                <span className="tile__fill" style={{ width: `${top ? Math.round((r.n / Math.max(top, 7)) * 100) : 0}%` }} />
-              </span>
-              <span className="crew-challenge__n">
-                {r.n} <small>{kind.unit}</small>
-              </span>
-            </div>
-          ))}
-          <div className="hint" style={{ paddingTop: 6 }}>
-            Counted over the last seven days from what each member shares.
-          </div>
-        </div>
-      )}
-      {canEnd && (
-        <div className="btn-wrap" style={{ paddingTop: 4 }}>
-          <button className="chip" onClick={onEnd}>
-            {state === 'upcoming' ? 'Cancel' : 'End early'}
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ChallengeSheet({ crewId, onClose, onDone }: { crewId: string; onClose(): void; onDone(): void }) {
-  const [kind, setKind] = useState<ChallengeKind>('logging')
-  const [length, setLength] = useState<'7' | '14' | '30'>('7')
-  const [starts, setStarts] = useState(today())
-  const [title, setTitle] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const def = CHALLENGE_KINDS.find((k) => k.kind === kind)!
-  const suggested = `${length}-Day ${def.label} Challenge`
-  const ends = addDays(starts, Number(length) - 1)
-
-  const save = async () => {
-    setBusy(true)
-    try {
-      await createChallenge({ crewId, kind, title: title.trim() || suggested, starts, ends })
-      onDone()
-    } catch (err) {
-      setError((err as Error).message)
-      setBusy(false)
-    }
-  }
-
-  return (
-    <Sheet title="Start a challenge" onClose={onClose}>
-      <div className="field field--stack">
-        <span className="field__label">Contest</span>
-        <div className="chips chips--wrap">
-          {CHALLENGE_KINDS.map((k) => (
-            <button key={k.kind} className={`chip ${kind === k.kind ? 'chip--active' : ''}`} onClick={() => setKind(k.kind)}>
-              {k.label}
-            </button>
-          ))}
-        </div>
-        <div className="hint" style={{ padding: '6px 0 0' }}>{def.blurb}</div>
-      </div>
-      <SegmentedField<'7' | '14' | '30'>
-        label="Length"
-        value={length}
-        options={[
-          { value: '7', label: '7 days' },
-          { value: '14', label: '14 days' },
-          { value: '30', label: '30 days' },
-        ]}
-        onChange={setLength}
-      />
-      <label className="field">
-        <span className="field__label">Starts</span>
-        <span className="field__control">
-          <input className="input" type="date" value={starts} min={today()} onChange={(e) => setStarts(e.target.value)} />
-        </span>
-      </label>
-      <TextField label="Name" value={title} onChange={setTitle} placeholder={suggested} />
-      {error && (
-        <div className="hint" style={{ color: 'var(--danger)' }}>
-          {error}
-        </div>
-      )}
-      <div className="btn-wrap">
-        <button className="btn" disabled={busy} onClick={() => void save()}>
-          Start
-        </button>
-      </div>
-    </Sheet>
   )
 }
 
@@ -1264,7 +1116,7 @@ export function InviteLanding({ code, onContinue, onDismiss }: { code: string; o
       .catch(() => setPreview(null))
   }, [code])
 
-  const kind = preview?.challengeKind ? CHALLENGE_KINDS.find((k) => k.kind === preview.challengeKind) : null
+  const kind = preview?.challengeKind ? kindOf(preview.challengeKind as ChallengeKind) : null
 
   return (
     <div className="landing">
@@ -1292,7 +1144,7 @@ export function InviteLanding({ code, onContinue, onDismiss }: { code: string; o
             <ul className="landing__list">
               <li>
                 <span>🏁</span>
-                {kind ? `${kind.blurb.replace(/\.$/, '')}, ${preview.challengeEnds ? `until ${friendlyDate(preview.challengeEnds)}` : 'this week'}.` : 'Step, water and logging challenges with the crew.'}
+                {kind ? `${kind.blurb.replace(/\.$/, '')}, ${preview.challengeEnds ? `until ${friendlyDate(preview.challengeEnds)}` : 'this week'}.` : 'Step and water challenges with the crew.'}
               </li>
               <li>
                 <span>👏</span>Kudos, a crew feed, and a leaderboard that counts showing up.

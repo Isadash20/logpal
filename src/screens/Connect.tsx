@@ -3,18 +3,21 @@ import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { useT } from '../i18n'
 import { pendingRequestCount } from '../services/social'
+import { pendingChallengeCount } from '../services/challenges'
 
-/** The Connect tab: two doors, Friends and Crews. */
+/** The Connect tab: three doors, Friends, Crews and Challenges. */
 export function Connect() {
   const { push, session } = useApp()
   const t = useT()
   const me = session?.user.id ?? null
   const [pending, setPending] = useState(0)
+  const [invites, setInvites] = useState(0)
 
   useEffect(() => {
     if (!me) return
     let live = true
     pendingRequestCount(me).then((n) => live && setPending(n)).catch(() => {})
+    pendingChallengeCount(me).then((n) => live && setInvites(n)).catch(() => {})
     return () => {
       live = false
     }
@@ -40,6 +43,15 @@ export function Connect() {
         <span className="door__main">
           <span className="door__title">Crews</span>
         </span>
+        <Icon name="forward" size={18} />
+      </button>
+
+      <button className="door door--challenge" onClick={() => push({ name: 'challenges' })}>
+        <span className="door__icon door__icon--emoji">🏆</span>
+        <span className="door__main">
+          <span className="door__title">Challenges</span>
+        </span>
+        {invites > 0 && <span className="badge">{invites} invite{invites === 1 ? '' : 's'}</span>}
         <Icon name="forward" size={18} />
       </button>
     </div>

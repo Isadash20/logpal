@@ -47,6 +47,7 @@ import {
 } from '../services/cloud'
 import { NOTHING_PUBLISHED, publishProfile, type PublishedProfile } from '../services/social'
 import { announce, joinCrew } from '../services/crews'
+import { publishDays } from '../services/challenges'
 import { parseInvite } from '../lib/crews'
 import { weekCounts } from '../lib/weekly'
 import { addDays, today, lastNDays } from '../lib/dates'
@@ -265,6 +266,8 @@ export type Route =
   | { name: 'friendsSharing' }
   | { name: 'crews' }
   | { name: 'crew'; id: string }
+  | { name: 'challenges' }
+  | { name: 'challenge'; id: string }
   | { name: 'mealPlanner' }
   | { name: 'recipeBrowse'; slot?: MealSlot; date?: string }
   | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
@@ -1153,6 +1156,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       publishedRef.current = null
     })
   }, [userId, reconciledFor, published])
+
+  /* The last fourteen days of steps and water, for challenges. Same gate as
+     the profile, same "only when it changed" hold. A metric that is not
+     shared at all goes up as null, which the scorer reads as "not sharing". */
+  const publishedDays = useMemo(() => {
+    const s = data.settings
+    return lastNDays(14).map((day) => {
+      const dl = data.days[day]
+      return {
+        day,
+        steps: s.shareSteps !== 'off' && dl?.steps !== undefined ? dl.steps : null,
+        water_ml: s.shareWater !== 'off' && dl ? Math.round(dl.water) : null,
+      }
+    })
+  }, [data.settings, data.days])
+  const publishedDaysRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!userId || !cloudEnabled() || reconciledFor !== userId) {
+      publishedDaysRef.current = null
+      return
+    }
+    const json = JSON.stringify(publishedDays)
+    if (publishedDaysRef.current === json) return
+    publishedDaysRef.current = json
+    publishDays(publishedDays).catch(() => {
+      publishedDaysRef.current = null
+    })
+  }, [userId, reconciledFor, publishedDays])
 
   /* The invite, redeemed: once there is a session, a handle and an onboarded
      profile, join and open the crew. A failed join (a stale code) is dropped

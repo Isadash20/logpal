@@ -1,5 +1,8 @@
 import { requireClient } from '../lib/supabase'
-import { makeInviteCode, type ChallengeKind } from '../lib/crews'
+import { makeInviteCode } from '../lib/crews'
+import type { ChallengeKind } from '../lib/challenges'
+import { fetchCrewChallenges, type Challenge } from './challenges'
+export type { Challenge }
 import { hydrate, type Person } from './social'
 
 /**
@@ -39,16 +42,6 @@ export interface Member {
   person: Person
   role: 'owner' | 'member'
   joinedAt: string
-}
-
-export interface Challenge {
-  id: string
-  crewId: string
-  kind: ChallengeKind
-  title: string
-  starts: string
-  ends: string
-  createdBy: string
 }
 
 export type PostKind = 'chat' | 'milestone' | 'cheer'
@@ -115,26 +108,6 @@ const toCrew = (r: CrewRow): Crew => ({
   createdAt: r.created_at,
 })
 
-interface ChallengeRow {
-  id: string
-  crew_id: string
-  kind: ChallengeKind
-  title: string
-  starts: string
-  ends: string
-  created_by: string
-}
-
-const toChallenge = (r: ChallengeRow): Challenge => ({
-  id: r.id,
-  crewId: r.crew_id,
-  kind: r.kind,
-  title: r.title,
-  starts: r.starts,
-  ends: r.ends,
-  createdBy: r.created_by,
-})
-
 /* ---------------------------------------------------------------- listing -- */
 
 async function cardsFor(crews: Crew[]): Promise<CrewCard[]> {
@@ -145,7 +118,7 @@ async function cardsFor(crews: Crew[]): Promise<CrewCard[]> {
   const [members, challenges] = await Promise.all([
     db.from('logpal_crew_members').select('crew_id').in('crew_id', ids),
     db
-      .from('logpal_crew_challenges')
+      .from('logpal_challenges')
       .select('crew_id, title, starts')
       .in('crew_id', ids)
       .gte('ends', today)
@@ -327,7 +300,7 @@ export async function fetchCrew(crewId: string): Promise<CrewDetail> {
   const [crew, members, challenges, posts, recipes] = await Promise.all([
     db.from('logpal_crews').select('*').eq('id', crewId).single(),
     db.from('logpal_crew_members').select('user_id, role, joined_at').eq('crew_id', crewId).order('joined_at'),
-    db.from('logpal_crew_challenges').select('*').eq('crew_id', crewId).order('starts', { ascending: false }),
+    fetchCrewChallenges(crewId),
     db
       .from('logpal_crew_posts')
       .select('id, user_id, kind, body, created_at')
@@ -336,7 +309,7 @@ export async function fetchCrew(crewId: string): Promise<CrewDetail> {
       .limit(POST_LIMIT),
     db.from('logpal_crew_recipes').select('recipe_id, user_id, title, note, created_at').eq('crew_id', crewId).order('created_at', { ascending: false }),
   ])
-  for (const r of [crew, members, challenges, posts, recipes]) if (r.error) throw r.error
+  for (const r of [crew, members, posts, recipes]) if (r.error) throw r.error
 
   const memberRows = (members.data ?? []) as MemberRow[]
   const people = await hydrate(memberRows.map((m) => m.user_id))
@@ -364,7 +337,7 @@ export async function fetchCrew(crewId: string): Promise<CrewDetail> {
         return person ? { person, role: m.role, joinedAt: m.joined_at } : null
       })
       .filter((m): m is Member => m !== null),
-    challenges: ((challenges.data ?? []) as ChallengeRow[]).map(toChallenge),
+    challenges,
     posts: postRows.map((p) => ({
       id: p.id,
       userId: p.user_id,
@@ -432,28 +405,6 @@ export async function announce(me: string, body: string): Promise<void> {
 }
 
 /* ------------------------------------------------------------- challenges -- */
-
-export async function createChallenge(input: {
-  crewId: string
-  kind: ChallengeKind
-  title: string
-  starts: string
-  ends: string
-}): Promise<void> {
-  const { error } = await requireClient().from('logpal_crew_challenges').insert({
-    crew_id: input.crewId,
-    kind: input.kind,
-    title: input.title.trim(),
-    starts: input.starts,
-    ends: input.ends,
-  })
-  if (error) throw error
-}
-
-export async function deleteChallenge(id: string): Promise<void> {
-  const { error } = await requireClient().from('logpal_crew_challenges').delete().eq('id', id)
-  if (error) throw error
-}
 
 /* ---------------------------------------------------------------- recipes -- */
 
