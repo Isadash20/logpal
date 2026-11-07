@@ -196,6 +196,83 @@
   --meal-evening: #8d8dff;
 }
 
+/* Classic Green, Pink and Yellow, 2026-11-07: the same idea, one brand
+   colour swapped; whichever widget colour collided with it moves to the
+   violet (or teal) so it stays its own thing. */
+:root[data-palette='green'] {
+  --accent: #16a34a;
+  --accent-press: #128a3e;
+  --accent-soft: #e4f6ea;
+  --accent-ring: rgba(22, 163, 74, 0.2);
+  --pop: #16a34a;
+  --pop-press: #128a3e;
+  --pop-soft: #e4f6ea;
+  --pop-ring: rgba(22, 163, 74, 0.2);
+  --steps: #5b5bd6;
+}
+
+:root[data-theme='dark'][data-palette='green'] {
+  --accent: #3ddc84;
+  --accent-press: #5ee89a;
+  --accent-soft: #123a26;
+  --accent-ring: rgba(61, 220, 132, 0.25);
+  --pop: #3ddc84;
+  --pop-press: #5ee89a;
+  --pop-soft: #123a26;
+  --pop-ring: rgba(61, 220, 132, 0.25);
+  --steps: #8d8dff;
+}
+
+:root[data-palette='pink'] {
+  --accent: #ec4899;
+  --accent-press: #d13a86;
+  --accent-soft: #fde8f2;
+  --accent-ring: rgba(236, 72, 153, 0.2);
+  --pop: #ec4899;
+  --pop-press: #d13a86;
+  --pop-soft: #fde8f2;
+  --pop-ring: rgba(236, 72, 153, 0.2);
+}
+
+:root[data-theme='dark'][data-palette='pink'] {
+  --accent: #f472b6;
+  --accent-press: #f78cc4;
+  --accent-soft: #4a1f36;
+  --accent-ring: rgba(244, 114, 182, 0.25);
+  --pop: #f472b6;
+  --pop-press: #f78cc4;
+  --pop-soft: #4a1f36;
+  --pop-ring: rgba(244, 114, 182, 0.25);
+}
+
+:root[data-palette='yellow'] {
+  --accent: #e3a008;
+  --accent-press: #c98f05;
+  --accent-soft: #fdf3dc;
+  --accent-ring: rgba(227, 160, 8, 0.2);
+  --pop: #e3a008;
+  --pop-press: #c98f05;
+  --pop-soft: #fdf3dc;
+  --pop-ring: rgba(227, 160, 8, 0.2);
+  --carbs: #0d9488;
+  --meal-morning: #5b5bd6;
+  --warning: #5b5bd6;
+}
+
+:root[data-theme='dark'][data-palette='yellow'] {
+  --accent: #fbbf24;
+  --accent-press: #fcd34d;
+  --accent-soft: #3d2f0f;
+  --accent-ring: rgba(251, 191, 36, 0.25);
+  --pop: #fbbf24;
+  --pop-press: #fcd34d;
+  --pop-soft: #3d2f0f;
+  --pop-ring: rgba(251, 191, 36, 0.25);
+  --carbs: #2dd4bf;
+  --meal-morning: #8d8dff;
+  --warning: #8d8dff;
+}
+
 /* All the looks, 2026-11-05, generated from SPECS in scripts/palettes.py
    (run from the repo root after cutting everything from this comment
    down; it appends). The recipe is the one Phillip picked out of
