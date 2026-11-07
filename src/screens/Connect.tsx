@@ -46,7 +46,7 @@ export function Connect() {
         </button>
 
         <button
-          className="door door--crew"
+          className="door"
           onClick={() => push({ name: "crews" })}
         >
           <span className="door__icon door__icon--emoji">🏁</span>
@@ -57,7 +57,7 @@ export function Connect() {
         </button>
 
         <button
-          className="door door--challenge"
+          className="door"
           onClick={() => push({ name: "challenges" })}
         >
           <span className="door__icon door__icon--emoji">🏆</span>

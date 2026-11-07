@@ -5219,11 +5219,6 @@ button.row:active {
   transform: scale(0.985);
 }
 
-.door--crew {
-  background: color-mix(in srgb, var(--pop-soft) calc(70% * var(--tint-k, 1)), var(--surface));
-  border-color: transparent;
-}
-
 .door__icon {
   width: 52px;
   height: 52px;
@@ -5237,7 +5232,6 @@ button.row:active {
 
 .door__icon--emoji {
   font-size: 28px;
-  background: var(--surface);
 }
 
 .door__main {
@@ -5305,11 +5299,6 @@ button.row:active {
 /* Head-to-head contests (Connect → Challenges, and a crew's Compete tab).
    A duel gets the Apple Fitness framing, you against them with a bar each;
    a group falls back to the crew-challenge ranked rows. */
-.door--challenge {
-  background: color-mix(in srgb, var(--accent-soft) calc(70% * var(--tint-k, 1)), var(--surface));
-  border-color: transparent;
-}
-
 .challenge--tap {
   cursor: pointer;
 }
