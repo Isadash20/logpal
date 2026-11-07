@@ -1766,3 +1766,11 @@ Burn estimate (`src/lib/exercise.ts`, tests) has three tiers shown on the detail
 ## Late morning, 2026-11-07: build 23 to TestFlight
 
 Build 23 (1.1) uploaded 11:09: Challenges, Connect's third door, the exercise rebuild (Cardio/Strength/Sports, three-tier burn, indoor variants), crew achievements cut, Classic Blue, the re-tuned Matcha and Slate, Sky cut. One trap: the first archive failed with "Could not resolve package dependencies … capacitor-swift-pm/Package.swift doesn't exist" because the scratchpad's `dd/SourcePackages` checkout was stale; `rm -rf dd/SourcePackages` and re-archiving fixed it. The build script lives at the scratchpad's `build23.sh` for this session only; the recipe is unchanged otherwise.
+
+## 2026-11-07, afternoon: Strava is Apple Health
+
+Phillip asked for Strava and Renpho. Strava's "Create An Application" form at strava.com/settings/api is locked for free accounts now ("The Strava API is available to subscribers"): the whole form sits in a disabled fieldset, so registration needs a paid Strava subscription. He chose to skip it and go through Apple Health, which Strava, Garmin and Renpho all write to anyway.
+
+So the Health import grew instead: `HealthPlugin.swift` `readWorkouts` now returns `distanceMi` (from the workout's distance statistics on iOS 16+, else `totalDistance`) and `elevationFt` (from `HKMetadataKeyElevationAscended`), and the activity names are spelled the way the catalog spells them (plus ~25 more HKWorkoutActivityTypes). `mergeHealth` matches the name to `EXERCISES`, fills `kind`/`exerciseId`/`distanceMi`/`elevationFt`, and when the recording app sent no calories it runs the same three-tier `estimate` a typed entry gets, at `profile.currentWeight`. Unknown names stay as plain cardio with no calories, as before. Settings → Apple Health has a line saying other apps land here through Health. Tests in `services/health.test.ts`.
+
+Build 24 (1.1) has it; script at the scratchpad's `build24.sh`. Web side deploys from main as usual, but distance/climb only arrive on the phone since Health is iOS-only.
