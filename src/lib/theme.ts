@@ -13,7 +13,7 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
   const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   root.dataset.theme = dark ? 'dark' : 'light'
   /* A save may name a look that was since cut (Peach, Ocean, Mono went on
-     2026-11-05, Sky on 2026-11-06); that falls back to classic rather than to no tokens. */
+     2026-11-05, Sky on 2026-11-06, Classic Green/Pink/Yellow on 2026-11-07); that falls back to classic rather than to no tokens. */
   root.dataset.palette = PALETTES.some((p) => p.key === palette) ? palette : 'classic'
   /* The browser chrome (and the PWA's status bar) takes the wash colour. */
   const bg = getComputedStyle(root).getPropertyValue('--bg').trim()
@@ -25,9 +25,6 @@ export function applyLook(theme: Settings['theme'], palette: Palette): void {
 export const PALETTES: { key: Palette; label: string; bg: string; accent: string; second: string }[] = [
   { key: 'classic', label: 'Classic', bg: '#f4f4f7', accent: '#5b5bd6', second: '#16a34a' },
   { key: 'blue', label: 'Classic Blue', bg: '#f4f4f7', accent: '#2f6fe4', second: '#16a34a' },
-  { key: 'green', label: 'Classic Green', bg: '#f4f4f7', accent: '#16a34a', second: '#5b5bd6' },
-  { key: 'pink', label: 'Classic Pink', bg: '#f4f4f7', accent: '#ec4899', second: '#16a34a' },
-  { key: 'yellow', label: 'Classic Yellow', bg: '#f4f4f7', accent: '#e3a008', second: '#16a34a' },
   { key: 'sakura', label: 'Sakura', bg: '#fcf6f3', accent: '#ec9ab9', second: '#5a3a44' },
   { key: 'matcha', label: 'Matcha', bg: '#fbf5e1', accent: '#7fb86a', second: '#4a3626' },
   { key: 'lavender', label: 'Lavender', bg: '#fbf7f6', accent: '#b39adb', second: '#4a3d5c' },

@@ -1745,3 +1745,4 @@ Not a code bug. iCloud Drive's Optimize Mac Storage had evicted the project from
 Also 2026-11-07: a **Classic Blue** look (key `blue`), Classic with a true blue (#2f6fe4, dark #6ea0ff) in place of the blue violet; fat moves to the violet so it does not read as the brand colour. Hand-written block in tokens.css above the generated section, so the palette script's cut-and-append leaves it alone.
 
 Then Classic Green (`green`, #16a34a; steps moves to the violet), Classic Pink (`pink`, #ec4899) and Classic Yellow (`yellow`, amber #e3a008; carbs moves to teal, the morning meal and warning to the violet). Phillip asked to see them, "and then we can go back": all three are one block each in tokens.css plus a row in theme.ts and a union member in types.ts.
+Seen, not loved: Classic Green, Pink and Yellow cut the same morning. Classic and Classic Blue stay.
