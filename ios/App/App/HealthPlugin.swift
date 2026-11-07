@@ -252,11 +252,13 @@ public class HealthPlugin: CAPPlugin, CAPBridgedPlugin {
     /// activity records (Strava, Garmin and the Watch all fill one of them).
     private static func distanceMiles(of w: HKWorkout) -> Double? {
         if #available(iOS 16.0, *) {
-            let ids: [HKQuantityTypeIdentifier] = [
+            var ids: [HKQuantityTypeIdentifier] = [
                 .distanceWalkingRunning, .distanceCycling, .distanceSwimming,
-                .distanceDownhillSnowSports, .distanceWheelchair, .distancePaddleSports,
-                .distanceRowing, .distanceSkatingSports, .distanceCrossCountrySkiing,
+                .distanceDownhillSnowSports, .distanceWheelchair,
             ]
+            if #available(iOS 18.0, *) {
+                ids += [.distancePaddleSports, .distanceRowing, .distanceSkatingSports, .distanceCrossCountrySkiing]
+            }
             for id in ids {
                 if let q = w.statistics(for: qty(id))?.sumQuantity() {
                     let m = q.doubleValue(for: HKUnit.meter())
