@@ -3,6 +3,16 @@ import { useApp } from '../state/store'
 import { lastNDays } from '../lib/dates'
 import { weekCounts, type WeekCounts } from '../lib/weekly'
 import type { ShareLevel } from '../types'
+import {
+  AudienceField,
+  DEFAULT_LEVELS,
+  FIGURE_LEVELS,
+  LevelFields,
+  WORKOUT_LEVELS,
+  levelsToSettings,
+  type Audience,
+  type ShareLevels,
+} from '../components/SharingFields'
 import { Icon, type IconName } from '../components/Icon'
 import {
   Empty,
@@ -80,76 +90,44 @@ function describe(p: Person): string {
 
 /* ------------------------------------------------------ sharing prompt -- */
 
-/** The three rungs, for anything with a goal behind it. */
-const FIGURE_LEVELS: { value: ShareLevel; label: string }[] = [
-  { value: 'off', label: 'Off' },
-  { value: 'percent', label: '% of goal' },
-  { value: 'exact', label: 'Exact' },
-]
-
-/** Workouts have no percentage, so the middle rung is the names alone. */
-const WORKOUT_LEVELS: { value: ShareLevel; label: string }[] = [
-  { value: 'off', label: 'Off' },
-  { value: 'percent', label: 'Exercises' },
-  { value: 'exact', label: '+ calories' },
-]
-
-
 /**
- * Asked once, the first time this account follows someone.
+ * Asked once, the first time an account that was never asked follows someone.
  *
- * Following is the moment sharing starts to mean something, and it is the only
- * moment where the question is obviously relevant rather than an interruption.
- * The defaults are the percentages, enough for a friend to cheer you on,
- * with workouts off, since that one carries what you did and when.
+ * New accounts answer this at sign-up. Older ones meet it here, at the first
+ * moment sharing means something. Who may see comes first, then how much:
+ * the defaults are friends only and percentages, enough for a friend to
+ * cheer you on, with workouts off, since that one carries what you did and
+ * when.
  */
 function SharingPrompt({ onClose }: { onClose(): void }) {
   const { saveSettings } = useApp()
-  const [calories, setCalories] = useState<ShareLevel>('percent')
-  const [water, setWater] = useState<ShareLevel>('percent')
-  const [steps, setSteps] = useState<ShareLevel>('percent')
-  const [macros, setMacros] = useState<ShareLevel>('percent')
-  const [workouts, setWorkouts] = useState<ShareLevel>('off')
+  const [audience, setAudience] = useState<Audience>('friends')
+  const [levels, setLevels] = useState<ShareLevels>(DEFAULT_LEVELS)
+  const [error, setError] = useState<string | null>(null)
 
   return (
-    <Sheet title="What can they see?" onClose={onClose}>
+    <Sheet title="Your progress and friends" onClose={onClose}>
       <div className="card" style={{ margin: 0 }}>
-        <SegmentedField<ShareLevel>
-          label="Calories"
-          value={calories}
-          options={FIGURE_LEVELS}
-          onChange={setCalories}
-        />
-        <SegmentedField<ShareLevel> label="Water" value={water} options={FIGURE_LEVELS} onChange={setWater} />
-        <SegmentedField<ShareLevel> label="Steps" value={steps} options={FIGURE_LEVELS} onChange={setSteps} />
-        <SegmentedField<ShareLevel>
-          label="Macros"
-          value={macros}
-          options={FIGURE_LEVELS}
-          onChange={setMacros}
-        />
-        <SegmentedField<ShareLevel>
-          label="Workouts"
-          sub="No percentage to give here, so the middle is the exercises alone and the last adds what they burned."
-          value={workouts}
-          options={WORKOUT_LEVELS}
-          onChange={setWorkouts}
-        />
+        <AudienceField value={audience} onChange={setAudience} />
       </div>
+      <div className="section-label">What they can see</div>
+      <div className="card" style={{ margin: 0 }}>
+        <LevelFields value={levels} onChange={setLevels} />
+      </div>
+      {error && (
+        <div className="hint" style={{ color: 'var(--danger)' }}>
+          {error}
+        </div>
+      )}
       <div style={{ padding: '14px 4px 6px' }}>
         <button
           className="btn btn--primary"
           style={{ width: '100%' }}
           onClick={() => {
-            saveSettings({
-              shareCalories: calories,
-              shareWater: water,
-              shareSteps: steps,
-              shareMacros: macros,
-              shareWorkouts: workouts,
-              sharingAsked: true,
-            })
-            onClose()
+            saveSettings({ ...levelsToSettings(levels), sharingAsked: true })
+            setPrivate(audience === 'friends')
+              .then(onClose)
+              .catch((err) => setError((err as Error).message))
           }}
         >
           Save
@@ -1184,16 +1162,14 @@ export function FriendsSharing() {
 
   return (
     <>
-      <TopBar title="What you share" onBack={pop} solid />
+      <TopBar title="Privacy & sharing" onBack={pop} solid />
       <div className="scroll">
         <div className="section-label">Your account</div>
         <div className="card">
-          <Toggle
-            label="Private account"
-            sub="People have to ask before they can follow you. Anyone already following stays."
-            checked={priv ?? false}
-            onChange={setPriv}
-          />
+          <AudienceField value={priv ? 'friends' : 'public'} onChange={(a) => setPriv(a === 'friends')} />
+          <div className="hint" style={{ paddingTop: 0 }}>
+            Anyone already following you stays either way.
+          </div>
         </div>
 
         <div className="section-label">What followers see</div>

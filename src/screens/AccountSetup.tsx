@@ -3,6 +3,8 @@ import { useApp } from '../state/store'
 import { requireClient } from '../lib/supabase'
 import { setUsername as claimUsername } from '../services/cloud'
 import { displayNameFrom } from '../lib/storage'
+import { setPrivate } from '../services/social'
+import { AudienceField, DEFAULT_LEVELS, LevelFields, levelsToSettings, type Audience, type ShareLevels } from '../components/SharingFields'
 
 /**
  * The rest of signing up, once an address is verified.
@@ -48,8 +50,10 @@ export async function usernameTaken(handle: string): Promise<boolean> {
 }
 
 export function AccountSetup() {
-  const { session, setUsername, saveProfile, signOut } = useApp()
-  const [step, setStep] = useState<'handle' | 'name'>('handle')
+  const { session, setUsername, saveProfile, saveSettings, signOut } = useApp()
+  const [step, setStep] = useState<'handle' | 'name' | 'sharing'>('handle')
+  const [audience, setAudience] = useState<Audience>('friends')
+  const [levels, setLevels] = useState<ShareLevels>(DEFAULT_LEVELS)
 
   const [handle, setHandle] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -77,10 +81,16 @@ export function AccountSetup() {
     }
   }
 
-  async function finish(e: React.FormEvent) {
+  function nextFromName(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     if (!firstName.trim()) return setError('A first name is needed.')
+    setStep('sharing')
+  }
+
+  async function finish(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
 
     setBusy(true)
     try {
@@ -88,6 +98,11 @@ export function AccountSetup() {
          fail on the unique index, and failing after writing the name would
          leave the account half set up. */
       await claimUsername(handle)
+      /* Friends-only is the private flag on the server row; the levels are
+         settings and sync like any other. Answered here, so the first-follow
+         prompt never needs to ask. */
+      await setPrivate(audience === 'friends')
+      saveSettings({ ...levelsToSettings(levels), sharingAsked: true })
       setUsername(handle.trim().toLowerCase())
       saveProfile({
         firstName: firstName.trim(),
@@ -108,12 +123,14 @@ export function AccountSetup() {
     <div className="scroll">
       <div className="auth">
         <div className="auth__head">
-          {step === 'handle' ? 'Pick a username' : 'What should we call you?'}
+          {step === 'handle' ? 'Pick a username' : step === 'name' ? 'What should we call you?' : 'Your progress and friends'}
         </div>
         <div className="auth__sub">
           {step === 'handle'
             ? `Signed in as ${session?.user.email ?? 'your account'}. Your username is how friends find you, and you can sign in with it.`
-            : 'This is the name shown in the app. Only your first name is required.'}
+            : step === 'name'
+              ? 'This is the name shown in the app. Only your first name is required.'
+              : 'Decide who sees how your day is going, and how much. You can change any of this later under Settings.'}
         </div>
 
         {step === 'handle' ? (
@@ -140,8 +157,8 @@ export function AccountSetup() {
               </button>
             </div>
           </form>
-        ) : (
-          <form onSubmit={finish}>
+        ) : step === 'name' ? (
+          <form onSubmit={nextFromName}>
             <label className="authfield">
               <span className="authfield__label">First name</span>
               <input
@@ -170,11 +187,32 @@ export function AccountSetup() {
 
             <div className="btn-wrap" style={{ paddingTop: 4 }}>
               <button className="btn" type="submit" disabled={busy}>
-                {busy ? 'Saving…' : 'Finish'}
+                Continue
               </button>
             </div>
 
             <button className="linkbtn" onClick={() => setStep('handle')} type="button">
+              Back
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={finish}>
+            <div className="card" style={{ margin: '0 0 12px' }}>
+              <AudienceField value={audience} onChange={setAudience} />
+            </div>
+            <div className="card" style={{ margin: 0 }}>
+              <LevelFields value={levels} onChange={setLevels} />
+            </div>
+
+            {error && <div className="auth__error">{error}</div>}
+
+            <div className="btn-wrap" style={{ paddingTop: 4 }}>
+              <button className="btn" type="submit" disabled={busy}>
+                {busy ? 'Saving…' : 'Finish'}
+              </button>
+            </div>
+
+            <button className="linkbtn" onClick={() => setStep('name')} type="button">
               Back
             </button>
           </form>

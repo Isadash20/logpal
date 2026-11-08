@@ -3,7 +3,7 @@ import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { Empty, Row, SegmentedField, Sheet, Spinner, Tabs, TextField, TopBar } from '../components/ui'
 import { addDays, friendlyDate, today } from '../lib/dates'
-import { fileToAvatar } from '../lib/avatar'
+import { AvatarCropper } from '../components/AvatarCropper'
 import { challengeState, inviteLink, inviteMessage, parseInvite, standings, type MemberWeek } from '../lib/crews'
 import { kindOf, type ChallengeKind } from '../lib/challenges'
 import { ChallengeCard, NewChallengeSheet } from './Challenges'
@@ -331,6 +331,7 @@ function CrewSheet({
   const [emoji, setEmoji] = useState(existing?.emoji ?? '🏁')
   const [photo, setPhoto] = useState<string | null>(existing?.photo ?? null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
   const [visibility, setVisibility] = useState<Visibility>(existing?.visibility ?? 'private')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -378,11 +379,21 @@ function CrewSheet({
               const f = e.target.files?.[0]
               e.target.value = ''
               if (!f) return
-              fileToAvatar(f)
-                .then(setPhoto)
-                .catch(() => setError('That photo could not be read.'))
+              setCropFile(f)
             }}
           />
+          {cropFile && (
+            <AvatarCropper
+              file={cropFile}
+              shape="rounded"
+              title="Choose the crew photo"
+              onClose={() => setCropFile(null)}
+              onDone={(url) => {
+                setPhoto(url)
+                setCropFile(null)
+              }}
+            />
+          )}
         </div>
         {!photo && (
           <div className="chips chips--wrap">

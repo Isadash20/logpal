@@ -17,7 +17,7 @@ import {
 import { cal, timeOfDay } from '../lib/format'
 import { PROTOCOL_BY_KEY } from '../lib/fasting'
 import { displayNameFrom } from '../lib/storage'
-import { fileToAvatar } from '../lib/avatar'
+import { AvatarCropper } from '../components/AvatarCropper'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
 import { pendingRequestCount } from '../services/social'
@@ -113,6 +113,7 @@ export function More() {
             accounts, so on a device-local build the banner would open a screen
             whose only content is an explanation of why it is empty. */}
         {cloudEnabled() && <FriendsBanner />}
+        {cloudEnabled() && <SharingBanner />}
 
         <Banner
           icon="bookmark"
@@ -218,6 +219,20 @@ function FriendsBanner() {
       sub={session ? t('settings.friendsSub') : t('settings.friendsSignIn')}
       value={pending ? <span className="badge">{t('settings.waiting', { n: pending })}</span> : undefined}
       onClick={() => push({ name: 'friends' })}
+    />
+  )
+}
+
+/** Who sees your progress and how much. The same screen Friends links to. */
+export function SharingBanner() {
+  const { push, session } = useApp()
+  if (!session) return null
+  return (
+    <Banner
+      icon="lock"
+      title="Privacy & sharing"
+      sub="Public or friends only, and what they see: % of goal or exact numbers"
+      onClick={() => push({ name: 'friendsSharing' })}
     />
   )
 }
@@ -409,6 +424,7 @@ export function PrefsProfile() {
   const [avatar, setAvatar] = useState<string | undefined>(profile.avatar)
   const [bio, setBio] = useState(profile.bio ?? '')
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
   const [sex, setSex] = useState<Sex>(profile.sex)
   const [birthDate, setBirthDate] = useState(profile.birthDate)
   const [heightIn, setHeightIn] = useState(profile.heightIn)
@@ -552,9 +568,7 @@ export function PrefsProfile() {
                     e.target.value = ''
                     if (!f) return
                     setPhotoError(null)
-                    fileToAvatar(f)
-                      .then(setAvatar)
-                      .catch(() => setPhotoError('That photo could not be read. Try another.'))
+                    setCropFile(f)
                   }}
                 />
               </label>
@@ -569,6 +583,16 @@ export function PrefsProfile() {
             <div className="hint" style={{ color: 'var(--danger)' }}>
               {photoError}
             </div>
+          )}
+          {cropFile && (
+            <AvatarCropper
+              file={cropFile}
+              onClose={() => setCropFile(null)}
+              onDone={(url) => {
+                setAvatar(url)
+                setCropFile(null)
+              }}
+            />
           )}
           <label className="field field--stack">
             <span className="field__label">Bio</span>

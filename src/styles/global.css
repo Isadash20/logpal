@@ -5529,3 +5529,80 @@ button.row:active {
   color: var(--text-3);
   margin-top: 8px;
 }
+
+/* ------------------------------------------------------- avatar cropper -- */
+
+.cropper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Square frame; the photo moves under a scrim with the avatar shape cut out,
+   so the clear part is exactly what the avatar will be. */
+.cropper__frame {
+  position: relative;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.cropper__frame:active {
+  cursor: grabbing;
+}
+
+.cropper__frame img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.cropper__mask {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* The clear window is the frame itself; the shadow darkens everything the
+     avatar shape leaves out. */
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.62);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.cropper__frame--circle .cropper__mask {
+  border-radius: 50%;
+}
+
+.cropper__frame--rounded .cropper__mask {
+  border-radius: var(--r-card);
+}
+
+.cropper__hint {
+  color: var(--text-2);
+  font-size: 13px;
+  text-align: center;
+  padding: 0 8px;
+}
+
+.cropper__zoom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  color: var(--text-2);
+  font-size: 18px;
+}
+
+.cropper__zoom input {
+  flex: 1;
+  accent-color: var(--accent);
+}
