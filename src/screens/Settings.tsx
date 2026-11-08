@@ -20,7 +20,6 @@ import { displayNameFrom } from '../lib/storage'
 import { AvatarCropper } from '../components/AvatarCropper'
 import { cloudEnabled } from '../lib/supabase'
 import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
-import { pendingRequestCount } from '../services/social'
 import {
   LOCALES,
   deviceLocale,
@@ -109,18 +108,6 @@ export function More() {
           </span>
         </button>
 
-        {/* Only with credentials to sign in against, following needs two
-            accounts, so on a device-local build the banner would open a screen
-            whose only content is an explanation of why it is empty. */}
-        {cloudEnabled() && <FriendsBanner />}
-        {cloudEnabled() && <SharingBanner />}
-
-        <Banner
-          icon="bookmark"
-          title={t('settings.foods')}
-          sub={t('settings.foodsSub')}
-          onClick={() => push({ name: 'foodsHub' })}
-        />
         <Banner
           icon="chart"
           title={t('settings.plan')}
@@ -128,23 +115,10 @@ export function More() {
           onClick={() => push({ name: 'planHub' })}
         />
         <Banner
-          icon="clock"
-          title={t('settings.fasting')}
-          sub={
-            data.fasts.length
-              ? t('settings.fastingSub', {
-                  protocol: PROTOCOL_BY_KEY[data.fasting.protocol].label,
-                  n: data.fasts.length,
-                })
-              : t('settings.notStarted')
-          }
-          onClick={() => push({ name: 'fasting' })}
-        />
-        <Banner
-          icon="ruler"
-          title={t('settings.units')}
-          sub={`${settings.weightUnit} · ${settings.heightUnit} · ${waterUnitLabel(settings.waterUnit)}`}
-          onClick={() => push({ name: 'prefsUnits' })}
+          icon="bookmark"
+          title={t('settings.foods')}
+          sub={t('settings.foodsSub')}
+          onClick={() => push({ name: 'foodsHub' })}
         />
         <Banner
           icon="globe"
@@ -152,15 +126,12 @@ export function More() {
           sub={t('settings.regionSub', { language: languageName, zone: zoneName })}
           onClick={() => push({ name: 'prefsRegion' })}
         />
-        {/* Only the iOS app has a Health store to talk to. */}
-        {healthSupported && (
-          <Banner
-            icon="apple"
-            title={t('settings.health')}
-            sub={settings.healthSync ? t('settings.healthOn') : t('settings.healthSub')}
-            onClick={() => push({ name: 'prefsHealth' })}
-          />
-        )}
+        <Banner
+          icon="ruler"
+          title={t('settings.units')}
+          sub={`${settings.weightUnit} · ${settings.heightUnit} · ${waterUnitLabel(settings.waterUnit)}`}
+          onClick={() => push({ name: 'prefsUnits' })}
+        />
         <Banner
           icon="star"
           title={t('settings.appearance')}
@@ -177,6 +148,31 @@ export function More() {
           onClick={() => push({ name: 'prefsAppearance' })}
         />
         <Banner
+          icon="clock"
+          title={t('settings.fasting')}
+          sub={
+            data.fasts.length
+              ? t('settings.fastingSub', {
+                  protocol: PROTOCOL_BY_KEY[data.fasting.protocol].label,
+                  n: data.fasts.length,
+                })
+              : t('settings.notStarted')
+          }
+          onClick={() => push({ name: 'fasting' })}
+        />
+        {/* Only the iOS app has a Health store to talk to. */}
+        {healthSupported && (
+          <Banner
+            icon="apple"
+            title={t('settings.health')}
+            sub={settings.healthSync ? t('settings.healthOn') : t('settings.healthSub')}
+            onClick={() => push({ name: 'prefsHealth' })}
+          />
+        )}
+        {/* Only with credentials to sign in against: on a device-local build
+            there is nobody to share with. Friends themselves live on Connect. */}
+        {cloudEnabled() && <SharingBanner />}
+        <Banner
           icon="info"
           title={t('settings.about')}
           sub={t('settings.aboutSub')}
@@ -184,42 +180,6 @@ export function More() {
         />
       </div>
     </>
-  )
-}
-
-/**
- * Friends, with a count of anyone waiting on approval.
- *
- * The count is the only reason this is a component rather than a `Banner` in
- * the list above: a request made on a private account has nowhere else to
- * surface, so it would sit unanswered until its recipient happened to open the
- * screen. A failed count is silently no badge. A settings list is not the
- * place to report a network problem.
- */
-function FriendsBanner() {
-  const { push, session } = useApp()
-  const t = useT()
-  const [pending, setPending] = useState(0)
-
-  useEffect(() => {
-    if (!session) return
-    let live = true
-    void pendingRequestCount(session.user.id)
-      .then((n) => live && setPending(n))
-      .catch(() => {})
-    return () => {
-      live = false
-    }
-  }, [session])
-
-  return (
-    <Banner
-      icon="user"
-      title={t('settings.friends')}
-      sub={session ? t('settings.friendsSub') : t('settings.friendsSignIn')}
-      value={pending ? <span className="badge">{t('settings.waiting', { n: pending })}</span> : undefined}
-      onClick={() => push({ name: 'friends' })}
-    />
   )
 }
 
@@ -231,7 +191,7 @@ export function SharingBanner() {
     <Banner
       icon="lock"
       title="Privacy & sharing"
-      sub="Public or friends only, and what they see: % of goal or exact numbers"
+      sub="Who can see your progress: private, percentages or everything"
       onClick={() => push({ name: 'friendsSharing' })}
     />
   )

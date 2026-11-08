@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ActivityLevel, BodyType, GoalKind, HandSpan, Profile, Sex } from '../types'
-import { fileToAvatar } from '../lib/avatar'
+import { CameraSheet } from '../components/CameraSheet'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { PlanSummary } from '../components/PlanSummary'
@@ -52,7 +52,7 @@ export function Onboarding() {
   const [customCals, setCustomCals] = useState('')
   const [handPhoto, setHandPhoto] = useState<string | null>(null)
   const [handSpan, setHandSpan] = useState<HandSpan>('medium')
-  const [handError, setHandError] = useState<string | null>(null)
+  const [handCam, setHandCam] = useState(false)
 
   const idx = STEPS.indexOf(step)
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, idx + 1)])
@@ -152,16 +152,6 @@ export function Onboarding() {
       },
     })
     addWeight(today(), weightLb)
-  }
-
-  function onHandFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    e.target.value = ''
-    if (!f) return
-    setHandError(null)
-    fileToAvatar(f, 320)
-      .then(setHandPhoto)
-      .catch(() => setHandError('That photo could not be read. Try again.'))
   }
 
   const valid =
@@ -515,23 +505,28 @@ export function Onboarding() {
                 <img src={handPhoto} alt="Your hand" />
                 <div>
                   <div style={{ fontWeight: 700 }}>Got it</div>
-                  <label className="textbtn" style={{ cursor: 'pointer' }}>
+                  <button className="textbtn" onClick={() => setHandCam(true)}>
                     Retake
-                    <input type="file" accept="image/*" capture="environment" hidden onChange={onHandFile} />
-                  </label>
+                  </button>
                 </div>
               </div>
             ) : (
-              <label className="btn" style={{ cursor: 'pointer', marginBottom: 4 }}>
+              <button className="btn" style={{ marginBottom: 4 }} onClick={() => setHandCam(true)}>
                 <Icon name="camera" size={19} />
                 Scan my hand
-                <input type="file" accept="image/*" capture="environment" hidden onChange={onHandFile} />
-              </label>
+              </button>
             )}
-            {handError && (
-              <div className="hint" style={{ color: 'var(--danger)', padding: '8px 0 0' }}>
-                {handError}
-              </div>
+            {handCam && (
+              <CameraSheet
+                title="Scan your hand"
+                caption="Palm down, fingers together, the whole hand in the outline"
+                guide={<HandOutline />}
+                onClose={() => setHandCam(false)}
+                onCapture={(url) => {
+                  setHandPhoto(url)
+                  setHandCam(false)
+                }}
+              />
             )}
 
             {handPhoto && (
@@ -674,6 +669,20 @@ export function Onboarding() {
         )}
       </div>
     </div>
+  )
+}
+
+/** A thin hand outline to line the photo up with. */
+function HandOutline() {
+  return (
+    <svg viewBox="0 0 120 160" aria-hidden>
+      <g fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="5 5">
+        <path d="M34 150V96M86 150V96" />
+        <path d="M34 96V46a7 7 0 0 1 14 0v38M48 84V22a7 7 0 0 1 14 0v62M62 84V28a7 7 0 0 1 14 0v58M76 86V44a6.5 6.5 0 0 1 13 0v52" />
+        <path d="M34 96L18 76a7 7 0 0 1 10-10l12 14" />
+        <path d="M34 150c0 6 52 6 52 0" />
+      </g>
+    </svg>
   )
 }
 

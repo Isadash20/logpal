@@ -5676,3 +5676,56 @@ button.row:active {
   object-fit: cover;
   display: block;
 }
+
+/* ---------------------------------------------------------- camera sheet -- */
+
+.camsheet__frame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-height: 58vh;
+  margin: 0 auto;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: #000;
+}
+
+.camsheet__frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.camsheet__guide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  pointer-events: none;
+}
+
+.camsheet__guide svg {
+  width: 62%;
+  height: auto;
+  opacity: 0.9;
+}
+
+.camsheet__caption,
+.camsheet__error {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  text-align: center;
+  color: #fff;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.camsheet__error {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  font-size: 14px;
+  padding: 0 16px;
+}
