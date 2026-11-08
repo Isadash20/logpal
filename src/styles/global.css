@@ -5609,9 +5609,17 @@ button.row:active {
 
 /* ------------------------------------------------- meal scan hand intro -- */
 
+.eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
 .scansteps {
   list-style: none;
-  margin: 0 0 16px;
+  margin: 0 0 20px;
   padding: 0;
   display: grid;
   gap: 8px;
@@ -5620,8 +5628,8 @@ button.row:active {
 .scansteps li {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 14px;
+  padding: 14px 16px;
   border-radius: var(--r-md);
   background: var(--surface);
   border: 1px solid var(--border);

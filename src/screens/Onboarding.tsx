@@ -474,10 +474,18 @@ export function Onboarding() {
         )}
 
         {step === 'scan' && (
-          <Question
-            title="Make Meal Scan smarter"
-            sub="A photo of a plate has no sense of scale. A bowl of rice looks the same whether it is a cup or three. With a reference point like your hand, Meal Scan can measure portions far more accurately."
-          >
+          <div style={{ padding: '26px 16px 8px' }}>
+            <div className="eyebrow">Meal Scan</div>
+            <h2 style={{ fontSize: 27, letterSpacing: '-0.025em', lineHeight: 1.15, margin: '6px 0 0' }}>Make Meal Scan smarter</h2>
+            <p style={{ color: 'var(--text-2)', margin: '12px 0 0', fontSize: 15, lineHeight: 1.55 }}>
+              A photo of a plate has no sense of scale. A bowl of rice looks the same whether it is a cup or three.
+            </p>
+            <p style={{ margin: '10px 0 24px', fontSize: 15, lineHeight: 1.55, fontWeight: 600 }}>
+              With a reference point like your hand, Meal Scan can measure portions far more accurately.
+            </p>
+            <div className="section-label" style={{ padding: '0 0 10px' }}>
+              How it works
+            </div>
             <ol className="scansteps">
               <li>
                 <span className="scansteps__n">1</span>
@@ -536,7 +544,7 @@ export function Onboarding() {
                 <Choice label="Large" sub="Wider than a credit card is long" active={handSpan === 'large'} onClick={() => setHandSpan('large')} />
               </>
             )}
-          </Question>
+          </div>
         )}
 
         {step === 'plan' && (
