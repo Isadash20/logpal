@@ -474,27 +474,50 @@ export function Onboarding() {
         )}
 
         {step === 'scan' && (
-          <Question
-            title="Make Meal Scan smarter"
-            sub="A photo of a plate has no sense of scale: a bowl of rice looks the same whether it is a cup or three. Your hand fixes that. It is a ruler you always have with you."
-          >
-            <div className="handintro">
-              <div className="handintro__art" aria-hidden>
-                <span className="handintro__plate" />
-                <span className="handintro__hand">🖐️</span>
+          <div style={{ padding: '18px 16px 8px' }}>
+            <div className="scanhero">
+              <div className="scanhero__badge">Meal Scan</div>
+              <h2 className="scanhero__title">Make Meal Scan smarter</h2>
+              <div className="scanhero__art" aria-hidden>
+                <span className="scanhero__plate">
+                  <span className="scanhero__food" />
+                </span>
+                <span className="scanhero__hand">🖐️</span>
+                <span className="scanhero__rule">
+                  <i />
+                  <b>reference</b>
+                  <i />
+                </span>
               </div>
-              <ol className="handintro__steps">
-                <li>
-                  <b>Take one photo of your open hand</b>, palm down, on a table.
-                </li>
-                <li>
-                  <b>Pick your size</b> below. Most adults are medium.
-                </li>
-                <li>
-                  <b>Rest your hand beside the plate</b> when you scan a meal. Meal Scan measures the portions against it.
-                </li>
-              </ol>
+              <p className="scanhero__text">
+                A photo of a plate has no sense of scale. A bowl of rice looks the same whether it is a cup or three. With a
+                reference point like your hand, Meal Scan can measure portions far more accurately.
+              </p>
             </div>
+
+            <ol className="scansteps">
+              <li>
+                <span className="scansteps__n">1</span>
+                <span>
+                  <b>Photograph your open hand</b>
+                  <small>Palm down, flat on a table.</small>
+                </span>
+              </li>
+              <li>
+                <span className="scansteps__n">2</span>
+                <span>
+                  <b>Pick your size</b>
+                  <small>Small, medium or large. Most adults are medium.</small>
+                </span>
+              </li>
+              <li>
+                <span className="scansteps__n">3</span>
+                <span>
+                  <b>Rest it beside the plate when you scan</b>
+                  <small>Meal Scan measures the portions against it.</small>
+                </span>
+              </li>
+            </ol>
 
             {handPhoto ? (
               <div className="handintro__done">
@@ -508,14 +531,14 @@ export function Onboarding() {
                 </div>
               </div>
             ) : (
-              <label className="btn" style={{ cursor: 'pointer', marginBottom: 14 }}>
+              <label className="btn" style={{ cursor: 'pointer', marginBottom: 4 }}>
                 <Icon name="camera" size={19} />
                 Scan my hand
                 <input type="file" accept="image/*" capture="environment" hidden onChange={onHandFile} />
               </label>
             )}
             {handError && (
-              <div className="hint" style={{ color: 'var(--danger)', padding: '0 0 10px' }}>
+              <div className="hint" style={{ color: 'var(--danger)', padding: '8px 0 0' }}>
                 {handError}
               </div>
             )}
@@ -530,11 +553,7 @@ export function Onboarding() {
                 <Choice label="Large" sub="Wider than a credit card is long" active={handSpan === 'large'} onClick={() => setHandSpan('large')} />
               </>
             )}
-
-            <div className="hint" style={{ padding: '6px 0 0' }}>
-              Optional. The photo stays in your profile and is never shown to anyone. You can set this up later from Meal Scan.
-            </div>
-          </Question>
+          </div>
         )}
 
         {step === 'plan' && (
