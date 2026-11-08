@@ -11,7 +11,52 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content"
     />
-    <meta name="description" content="Calorie and nutrition tracker: log food by search, barcode or photo, plan meals, and track weight, water and fasting." />
+    <meta
+      name="description"
+      content="LogPal is a free calorie counter and macro tracker for iPhone and the web. Log meals by search, barcode or photo, track water, steps, weight and fasting, sync with Apple Health, and keep up with friends. No ads, no subscription."
+    />
+    <link rel="canonical" href="https://logpal-two.vercel.app/" />
+    <meta name="apple-itunes-app" content="app-id=6829268972" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="LogPal" />
+    <meta property="og:title" content="LogPal · Free calorie counter and macro tracker" />
+    <meta
+      property="og:description"
+      content="Log what you eat in seconds, see it against your goals, and watch the trend. Barcode scanner, meal photos, water, steps, fasting and Apple Health. Free, no ads."
+    />
+    <meta property="og:url" content="https://logpal-two.vercel.app/" />
+    <meta property="og:image" content="https://logpal-two.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LogPal · Free calorie counter and macro tracker" />
+    <meta name="twitter:description" content="Log meals by search, barcode or photo. Track water, steps, weight and fasting. Syncs with Apple Health. Free, no ads." />
+    <meta name="twitter:image" content="https://logpal-two.vercel.app/og.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "MobileApplication",
+        "name": "LogPal",
+        "operatingSystem": "iOS, Web",
+        "applicationCategory": "HealthApplication",
+        "applicationSubCategory": "Calorie counter",
+        "description": "Free calorie counter and macro tracker. Log meals by search, barcode or photo; track water, steps, weight and intermittent fasting; sync with Apple Health; share progress with friends you choose.",
+        "url": "https://logpal-two.vercel.app/",
+        "installUrl": "https://apps.apple.com/app/id6829268972",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "LogPal" },
+        "featureList": [
+          "Food search across USDA and Open Food Facts",
+          "Barcode scanner",
+          "Nutrition label scanner",
+          "Meal photo logging",
+          "Macros, water, steps, sleep and weight",
+          "Intermittent fasting timer",
+          "Apple Health sync",
+          "Friends, crews and weekly challenges"
+        ]
+      }
+    </script>
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e9e7f5" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0a16" />
     <!-- Installed to the Home Screen on iOS: run without Safari chrome, with
@@ -24,10 +69,19 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <title>LogPal · Calorie Counter</title>
+    <title>LogPal · Free Calorie Counter &amp; Macro Tracker</title>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>LogPal, a free calorie counter and macro tracker</h1>
+      <p>
+        Log what you eat by search, barcode or photo. Track calories, protein, carbs and fat against goals you set, plus
+        water, steps, sleep, weight and intermittent fasting. Sync with Apple Health on iPhone. Follow friends and share
+        only what you choose. Free, with no ads and no subscription. LogPal needs JavaScript to run.
+      </p>
+      <p><a href="https://apps.apple.com/app/id6829268972">Get LogPal on the App Store</a> · <a href="/privacy">Privacy policy</a></p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

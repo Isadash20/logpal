@@ -1,7 +1,7 @@
 {
   "name": "LogPal",
   "short_name": "LogPal",
-  "description": "Calorie and nutrition tracker: log food by search, barcode or photo, plan meals, and track weight, water and fasting.",
+  "description": "Free calorie counter and macro tracker. Log meals by search, barcode or photo; track water, steps, weight and fasting; sync with Apple Health.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

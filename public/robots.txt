@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /food-db.json
+Disallow: /food-db-ext.json
+Disallow: /recipes.json
+
+Sitemap: https://logpal-two.vercel.app/sitemap.xml
