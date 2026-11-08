@@ -145,11 +145,16 @@ export function Auth({ onSkip }: { onSkip(): void }) {
     setError(null)
     try {
       const native = isNative()
+      /* Google signs the person straight in as whichever account the system
+         browser already holds, with no chooser. `select_account` asks for the
+         chooser every time, so a phone with a personal account can still sign
+         in to a second one. Apple shows its own sheet regardless. */
+      const queryParams = provider === 'google' ? { prompt: 'select_account' } : undefined
       const { data, error } = await requireClient().auth.signInWithOAuth({
         provider,
         options: native
-          ? { redirectTo: NATIVE_AUTH_REDIRECT, skipBrowserRedirect: true }
-          : { redirectTo: window.location.origin },
+          ? { redirectTo: NATIVE_AUTH_REDIRECT, skipBrowserRedirect: true, queryParams }
+          : { redirectTo: window.location.origin, queryParams },
       })
       if (error) throw error
       if (native && data.url) await Browser.open({ url: data.url })
