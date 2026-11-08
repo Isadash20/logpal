@@ -144,7 +144,9 @@ export function More() {
               : settings.theme === 'dark'
                 ? t('settings.dark')
                 : t('settings.light'),
-          ].join(' · ')}
+          ]
+            .filter(Boolean)
+            .join(' · ')}
           onClick={() => push({ name: 'prefsAppearance' })}
         />
         <Banner
