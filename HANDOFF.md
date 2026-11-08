@@ -1778,3 +1778,5 @@ Build 24 (1.1) has it; script at the scratchpad's `build24.sh`. Web side deploys
 Build 25 (1.1) uploaded: Connect had no `<TopBar />`, so its title sat under the status bar on the phone; it has one now like Settings and Plan.
 
 Serving picker: the first portion of every food is now shown as "1 serving · <label>" (e.g. "1 serving · 30 g", "1 serving · 1 cup") and is the default, so Phillip can log a serving without knowing what one is. `lib/servingLabel.ts`; the stored `servingLabel` stays the raw label.
+
+- 2026-11-08 08:16: build 26 uploaded to TestFlight (uniform Connect door colour, "1 serving" first in the portion picker). Nothing on main is unshipped.
