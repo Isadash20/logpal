@@ -149,6 +149,18 @@ export function More() {
             .join(' · ')}
           onClick={() => push({ name: 'prefsAppearance' })}
         />
+        {/* Only the iOS app has a Health store to talk to. */}
+        {healthSupported && (
+          <Banner
+            icon="apple"
+            title={t('settings.health')}
+            sub={settings.healthSync ? t('settings.healthOn') : t('settings.healthSub')}
+            onClick={() => push({ name: 'prefsHealth' })}
+          />
+        )}
+        {/* Only with credentials to sign in against: on a device-local build
+            there is nobody to share with. Friends themselves live on Connect. */}
+        {cloudEnabled() && <SharingBanner />}
         <Banner
           icon="clock"
           title={t('settings.fasting')}
@@ -162,18 +174,6 @@ export function More() {
           }
           onClick={() => push({ name: 'fasting' })}
         />
-        {/* Only the iOS app has a Health store to talk to. */}
-        {healthSupported && (
-          <Banner
-            icon="apple"
-            title={t('settings.health')}
-            sub={settings.healthSync ? t('settings.healthOn') : t('settings.healthSub')}
-            onClick={() => push({ name: 'prefsHealth' })}
-          />
-        )}
-        {/* Only with credentials to sign in against: on a device-local build
-            there is nobody to share with. Friends themselves live on Connect. */}
-        {cloudEnabled() && <SharingBanner />}
         <Banner
           icon="info"
           title={t('settings.about')}
