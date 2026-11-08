@@ -478,10 +478,10 @@ export function Onboarding() {
             <div className="eyebrow">Meal Scan</div>
             <h2 style={{ fontSize: 27, letterSpacing: '-0.025em', lineHeight: 1.15, margin: '6px 0 0' }}>Make Meal Scan smarter</h2>
             <p style={{ color: 'var(--text-2)', margin: '12px 0 0', fontSize: 15, lineHeight: 1.55 }}>
-              A photo of a plate has no sense of scale. A bowl of rice looks the same whether it is a cup or three.
+              Photos are bad at size. The same bowl of rice can look like one cup or three, and we can&apos;t tell which.
             </p>
             <p style={{ margin: '10px 0 24px', fontSize: 15, lineHeight: 1.55, fontWeight: 600 }}>
-              With a reference point like your hand, Meal Scan can measure portions far more accurately.
+              If your hand is in the picture, we have something to measure against, and the portions come out a lot closer to what you actually ate.
             </p>
             <div className="section-label" style={{ padding: '0 0 10px' }}>
               How it works
@@ -491,7 +491,7 @@ export function Onboarding() {
                 <span className="scansteps__n">1</span>
                 <span>
                   <b>Photograph your open hand</b>
-                  <small>Palm down, flat on a table.</small>
+                  <small>Palm down, flat on the table.</small>
                 </span>
               </li>
               <li>
@@ -505,7 +505,7 @@ export function Onboarding() {
                 <span className="scansteps__n">3</span>
                 <span>
                   <b>Rest it beside the plate when you scan</b>
-                  <small>Meal Scan measures the portions against it.</small>
+                  <small>That&apos;s all it takes.</small>
                 </span>
               </li>
             </ol>
