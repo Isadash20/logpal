@@ -7,11 +7,12 @@ import {
   AudienceField,
   DEFAULT_LEVELS,
   FIGURE_LEVELS,
-  LevelFields,
   WORKOUT_LEVELS,
+  audienceOf,
+  isPrivateAudience,
+  levelsForAudience,
   levelsToSettings,
   type Audience,
-  type ShareLevels,
 } from '../components/SharingFields'
 import { Icon, type IconName } from '../components/Icon'
 import {
@@ -101,18 +102,16 @@ function describe(p: Person): string {
  */
 function SharingPrompt({ onClose }: { onClose(): void }) {
   const { saveSettings } = useApp()
-  const [audience, setAudience] = useState<Audience>('friends')
-  const [levels, setLevels] = useState<ShareLevels>(DEFAULT_LEVELS)
+  const [audience, setAudience] = useState<Audience>('private')
   const [error, setError] = useState<string | null>(null)
 
   return (
-    <Sheet title="Your progress and friends" onClose={onClose}>
+    <Sheet title="Who can see your progress?" onClose={onClose}>
       <div className="card" style={{ margin: 0 }}>
         <AudienceField value={audience} onChange={setAudience} />
       </div>
-      <div className="section-label">What they can see</div>
-      <div className="card" style={{ margin: 0 }}>
-        <LevelFields value={levels} onChange={setLevels} />
+      <div className="hint" style={{ padding: '10px 4px 0' }}>
+        Friends you accept see percentages either way. Fine-tune each figure under Settings → Privacy &amp; sharing.
       </div>
       {error && (
         <div className="hint" style={{ color: 'var(--danger)' }}>
@@ -124,8 +123,8 @@ function SharingPrompt({ onClose }: { onClose(): void }) {
           className="btn btn--primary"
           style={{ width: '100%' }}
           onClick={() => {
-            saveSettings({ ...levelsToSettings(levels), sharingAsked: true })
-            setPrivate(audience === 'friends')
+            saveSettings({ ...levelsToSettings(levelsForAudience(audience, DEFAULT_LEVELS)), sharingAsked: true })
+            setPrivate(isPrivateAudience(audience))
               .then(onClose)
               .catch((err) => setError((err as Error).message))
           }}
@@ -207,8 +206,8 @@ function FriendBoard({ person }: { person: Person }) {
               }}
             >
               {macros.map((m) => (
-                <div key={m.label}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div key={m.label} style={{ textAlign: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                     <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{m.label}</span>
                     <span
                       style={{ width: 7, height: 7, borderRadius: 999, background: m.color }}
@@ -1166,13 +1165,24 @@ export function FriendsSharing() {
       <div className="scroll">
         <div className="section-label">Your account</div>
         <div className="card">
-          <AudienceField value={priv ? 'friends' : 'public'} onChange={(a) => setPriv(a === 'friends')} />
+          <AudienceField
+            value={audienceOf(priv ?? true, { calories: shareCalories, water: shareWater, steps: shareSteps, macros: shareMacros, workouts: shareWorkouts })}
+            onChange={(a) => {
+              setPriv(isPrivateAudience(a))
+              const l = levelsForAudience(a, { calories: shareCalories, water: shareWater, steps: shareSteps, macros: shareMacros, workouts: shareWorkouts })
+              setShareCalories(l.calories)
+              setShareWater(l.water)
+              setShareSteps(l.steps)
+              setShareMacros(l.macros)
+              setShareWorkouts(l.workouts)
+            }}
+          />
           <div className="hint" style={{ paddingTop: 0 }}>
             Anyone already following you stays either way.
           </div>
         </div>
 
-        <div className="section-label">What followers see</div>
+        <div className="section-label">Fine-tune what they see</div>
         <div className="card">
           <Toggle
             label="Your name"

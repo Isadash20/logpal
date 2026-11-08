@@ -392,8 +392,21 @@ export interface Profile {
   stepGoal: number
   /** Manual override of the computed hydration target. */
   waterGoalOverrideMl?: number
+  /**
+   * The hand as a ruler for Meal Scan.
+   *
+   * A photo has no sense of scale; a hand resting beside the plate gives it
+   * one. Saved once at setup: a small photo of the open hand and which of
+   * three widths it is. Absent when they skipped it.
+   */
+  handSpan?: HandSpan
+  handPhoto?: string
   onboarded: boolean
 }
+
+/** Palm width across the knuckles: about 7.5, 8.5 and 9.5 cm. */
+export type HandSpan = 'small' | 'medium' | 'large'
+export const HAND_SPAN_CM: Record<HandSpan, number> = { small: 7.5, medium: 8.5, large: 9.5 }
 
 /**
  * How much of one figure an account shares.

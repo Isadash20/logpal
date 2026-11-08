@@ -220,7 +220,7 @@ export function MealScan({ date }: { date: string }) {
                   textShadow: '0 1px 3px rgba(0,0,0,.85)',
                 }}
               >
-                Fit the whole plate in the frame
+                {app.profile.handSpan ? 'Fit the plate in the frame, with your hand resting beside it' : 'Fit the whole plate in the frame'}
               </div>
             </div>
 

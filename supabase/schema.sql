@@ -288,7 +288,7 @@ create table if not exists logpal_social_profile (
   user_id      uuid primary key default auth.uid() references auth.users on delete cascade,
   -- The owner's call, and the only field here the server itself reads: it
   -- decides whether a new follow is accepted immediately or held for approval.
-  private      boolean not null default false,
+  private      boolean not null default true,
   display_name text,
   streak       integer,
   last_logged  date,
@@ -966,3 +966,9 @@ create policy challenge_members_update on logpal_challenge_members for update
 drop policy if exists challenge_members_delete on logpal_challenge_members;
 create policy challenge_members_delete on logpal_challenge_members for delete
   using (user_id = auth.uid() or logpal_made_challenge(challenge_id));
+
+-- 2026-11-08: private by default. New accounts answer "who can see your
+-- progress" at sign-up and the safe answer is the default; rows created by
+-- a publish before anyone was asked should not be public either.
+alter table logpal_social_profile alter column private set default true;
+update logpal_social_profile set private = true where private = false;

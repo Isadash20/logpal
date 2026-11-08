@@ -4,7 +4,7 @@ import { requireClient } from '../lib/supabase'
 import { setUsername as claimUsername } from '../services/cloud'
 import { displayNameFrom } from '../lib/storage'
 import { setPrivate } from '../services/social'
-import { AudienceField, DEFAULT_LEVELS, LevelFields, levelsToSettings, type Audience, type ShareLevels } from '../components/SharingFields'
+import { AudienceField, DEFAULT_LEVELS, isPrivateAudience, levelsForAudience, levelsToSettings, type Audience } from '../components/SharingFields'
 
 /**
  * The rest of signing up, once an address is verified.
@@ -52,8 +52,7 @@ export async function usernameTaken(handle: string): Promise<boolean> {
 export function AccountSetup() {
   const { session, setUsername, saveProfile, saveSettings, signOut } = useApp()
   const [step, setStep] = useState<'handle' | 'name' | 'sharing'>('handle')
-  const [audience, setAudience] = useState<Audience>('friends')
-  const [levels, setLevels] = useState<ShareLevels>(DEFAULT_LEVELS)
+  const [audience, setAudience] = useState<Audience>('private')
 
   const [handle, setHandle] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -101,8 +100,8 @@ export function AccountSetup() {
       /* Friends-only is the private flag on the server row; the levels are
          settings and sync like any other. Answered here, so the first-follow
          prompt never needs to ask. */
-      await setPrivate(audience === 'friends')
-      saveSettings({ ...levelsToSettings(levels), sharingAsked: true })
+      await setPrivate(isPrivateAudience(audience))
+      saveSettings({ ...levelsToSettings(levelsForAudience(audience, DEFAULT_LEVELS)), sharingAsked: true })
       setUsername(handle.trim().toLowerCase())
       saveProfile({
         firstName: firstName.trim(),
@@ -130,7 +129,7 @@ export function AccountSetup() {
             ? `Signed in as ${session?.user.email ?? 'your account'}. Your username is how friends find you, and you can sign in with it.`
             : step === 'name'
               ? 'This is the name shown in the app. Only your first name is required.'
-              : 'Decide who sees how your day is going, and how much. You can change any of this later under Settings.'}
+              : 'Decide who can see how your day is going. Private is the default; you can change it any time.'}
         </div>
 
         {step === 'handle' ? (
@@ -197,11 +196,11 @@ export function AccountSetup() {
           </form>
         ) : (
           <form onSubmit={finish}>
-            <div className="card" style={{ margin: '0 0 12px' }}>
+            <div className="card" style={{ margin: 0 }}>
               <AudienceField value={audience} onChange={setAudience} />
             </div>
-            <div className="card" style={{ margin: 0 }}>
-              <LevelFields value={levels} onChange={setLevels} />
+            <div className="hint" style={{ padding: '10px 4px 0' }}>
+              Friends you accept see percentages either way. Fine-tune each figure any time under Settings → Privacy &amp; sharing.
             </div>
 
             {error && <div className="auth__error">{error}</div>}

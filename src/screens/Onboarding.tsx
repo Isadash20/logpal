@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { ActivityLevel, BodyType, GoalKind, Profile, Sex } from '../types'
+import type { ActivityLevel, BodyType, GoalKind, HandSpan, Profile, Sex } from '../types'
+import { fileToAvatar } from '../lib/avatar'
 import { useApp } from '../state/store'
 import { Icon } from '../components/Icon'
 import { PlanSummary } from '../components/PlanSummary'
@@ -20,7 +21,7 @@ import { displayToIn, displayToLb, lbToDisplay, mlToDisplay } from '../lib/units
 import { today } from '../lib/dates'
 import { defaultProfile } from '../lib/storage'
 
-const STEPS = ['sex', 'age', 'body', 'type', 'activity', 'goal', 'target', 'plan'] as const
+const STEPS = ['sex', 'age', 'body', 'type', 'activity', 'goal', 'target', 'scan', 'plan'] as const
 type Step = (typeof STEPS)[number]
 
 /**
@@ -49,6 +50,9 @@ export function Onboarding() {
   const [rate, setRate] = useState(-1)
   const [customizing, setCustomizing] = useState(false)
   const [customCals, setCustomCals] = useState('')
+  const [handPhoto, setHandPhoto] = useState<string | null>(null)
+  const [handSpan, setHandSpan] = useState<HandSpan>('medium')
+  const [handError, setHandError] = useState<string | null>(null)
 
   const idx = STEPS.indexOf(step)
   const next = () => setStep(STEPS[Math.min(STEPS.length - 1, idx + 1)])
@@ -137,6 +141,7 @@ export function Onboarding() {
     })
     saveProfile({
       ...draft,
+      ...(handPhoto ? { handPhoto, handSpan } : {}),
       onboarded: true,
       planMode: customizing ? 'custom' : 'standard',
       customPlan: {
@@ -147,6 +152,16 @@ export function Onboarding() {
       },
     })
     addWeight(today(), weightLb)
+  }
+
+  function onHandFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    setHandError(null)
+    fileToAvatar(f, 320)
+      .then(setHandPhoto)
+      .catch(() => setHandError('That photo could not be read. Try again.'))
   }
 
   const valid =
@@ -458,6 +473,70 @@ export function Onboarding() {
           </Question>
         )}
 
+        {step === 'scan' && (
+          <Question
+            title="Make Meal Scan smarter"
+            sub="A photo of a plate has no sense of scale: a bowl of rice looks the same whether it is a cup or three. Your hand fixes that. It is a ruler you always have with you."
+          >
+            <div className="handintro">
+              <div className="handintro__art" aria-hidden>
+                <span className="handintro__plate" />
+                <span className="handintro__hand">🖐️</span>
+              </div>
+              <ol className="handintro__steps">
+                <li>
+                  <b>Take one photo of your open hand</b>, palm down, on a table.
+                </li>
+                <li>
+                  <b>Pick your size</b> below. Most adults are medium.
+                </li>
+                <li>
+                  <b>Rest your hand beside the plate</b> when you scan a meal. Meal Scan measures the portions against it.
+                </li>
+              </ol>
+            </div>
+
+            {handPhoto ? (
+              <div className="handintro__done">
+                <img src={handPhoto} alt="Your hand" />
+                <div>
+                  <div style={{ fontWeight: 700 }}>Got it</div>
+                  <label className="textbtn" style={{ cursor: 'pointer' }}>
+                    Retake
+                    <input type="file" accept="image/*" capture="environment" hidden onChange={onHandFile} />
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <label className="btn" style={{ cursor: 'pointer', marginBottom: 14 }}>
+                <Icon name="camera" size={19} />
+                Scan my hand
+                <input type="file" accept="image/*" capture="environment" hidden onChange={onHandFile} />
+              </label>
+            )}
+            {handError && (
+              <div className="hint" style={{ color: 'var(--danger)', padding: '0 0 10px' }}>
+                {handError}
+              </div>
+            )}
+
+            {handPhoto && (
+              <>
+                <div className="section-label" style={{ paddingLeft: 0 }}>
+                  How wide is your hand?
+                </div>
+                <Choice label="Small" sub="Palm narrower than a credit card is long" active={handSpan === 'small'} onClick={() => setHandSpan('small')} />
+                <Choice label="Medium" sub="About the length of a credit card across the knuckles" active={handSpan === 'medium'} onClick={() => setHandSpan('medium')} />
+                <Choice label="Large" sub="Wider than a credit card is long" active={handSpan === 'large'} onClick={() => setHandSpan('large')} />
+              </>
+            )}
+
+            <div className="hint" style={{ padding: '6px 0 0' }}>
+              Optional. The photo stays in your profile and is never shown to anyone. You can set this up later from Meal Scan.
+            </div>
+          </Question>
+        )}
+
         {step === 'plan' && (
           <div style={{ padding: '22px 16px 8px' }}>
             <div style={{ textAlign: 'center', marginBottom: 18 }}>
@@ -573,6 +652,10 @@ export function Onboarding() {
         {step === 'plan' ? (
           <button className="btn btn--ink" onClick={finish}>
             Start tracking
+          </button>
+        ) : step === 'scan' && !handPhoto ? (
+          <button className="btn btn--ghost" onClick={next}>
+            Skip for now
           </button>
         ) : (
           <button className="btn" disabled={!valid} onClick={next}>
