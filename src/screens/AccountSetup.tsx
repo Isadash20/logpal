@@ -51,7 +51,14 @@ export async function usernameTaken(handle: string): Promise<boolean> {
 
 export function AccountSetup() {
   const { session, setUsername, saveProfile, saveSettings, signOut } = useApp()
-  const [step, setStep] = useState<'handle' | 'name' | 'sharing'>('handle')
+  /* Google and Apple hand back an address and nothing else. Asking for a
+     password here means the account can also be opened with the username and
+     password on a device without that Google account, and nobody is locked
+     into one provider. Email sign-ups already chose one. */
+  const needsPassword = !(session?.user.identities ?? []).some((i) => i.provider === 'email')
+  const [step, setStep] = useState<'handle' | 'name' | 'password' | 'sharing'>('handle')
+  const [password, setPassword] = useState('')
+  const [password2, setPassword2] = useState('')
   const [audience, setAudience] = useState<Audience>('private')
 
   const [handle, setHandle] = useState('')
@@ -84,7 +91,24 @@ export function AccountSetup() {
     e.preventDefault()
     setError(null)
     if (!firstName.trim()) return setError('A first name is needed.')
-    setStep('sharing')
+    setStep(needsPassword ? 'password' : 'sharing')
+  }
+
+  async function nextFromPassword(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    if (password.length < 6) return setError('At least 6 characters.')
+    if (password !== password2) return setError('The two passwords do not match.')
+    setBusy(true)
+    try {
+      const { error } = await requireClient().auth.updateUser({ password })
+      if (error) throw error
+      setStep('sharing')
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function finish(e: React.FormEvent) {
@@ -122,14 +146,22 @@ export function AccountSetup() {
     <div className="scroll">
       <div className="auth">
         <div className="auth__head">
-          {step === 'handle' ? 'Pick a username' : step === 'name' ? 'What should we call you?' : 'Your progress and friends'}
+          {step === 'handle'
+            ? 'Pick a username'
+            : step === 'name'
+              ? 'What should we call you?'
+              : step === 'password'
+                ? 'Choose a password'
+                : 'Your progress and friends'}
         </div>
         <div className="auth__sub">
           {step === 'handle'
             ? `Signed in as ${session?.user.email ?? 'your account'}. Your username is how friends find you, and you can sign in with it.`
             : step === 'name'
               ? 'This is the name shown in the app. Only your first name is required.'
-              : 'Decide who can see how your day is going. Private is the default; you can change it any time.'}
+              : step === 'password'
+                ? 'So you can also sign in with your username and password, on any device.'
+                : 'Decide who can see how your day is going. Private is the default; you can change it any time.'}
         </div>
 
         {step === 'handle' ? (
@@ -194,6 +226,47 @@ export function AccountSetup() {
               Back
             </button>
           </form>
+        ) : step === 'password' ? (
+          <form onSubmit={nextFromPassword}>
+            <label className="authfield">
+              <span className="authfield__label">Password</span>
+              <input
+                className="authinput"
+                type="password"
+                autoFocus
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <label className="authfield">
+              <span className="authfield__label">Confirm password</span>
+              <input
+                className="authinput"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={6}
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+              />
+            </label>
+
+            {error && <div className="auth__error">{error}</div>}
+
+            <div className="btn-wrap" style={{ paddingTop: 4 }}>
+              <button className="btn" type="submit" disabled={busy}>
+                {busy ? 'Saving…' : 'Continue'}
+              </button>
+            </div>
+
+            <button className="linkbtn" onClick={() => setStep('name')} type="button">
+              Back
+            </button>
+          </form>
         ) : (
           <form onSubmit={finish}>
             <div className="card" style={{ margin: 0 }}>
@@ -211,7 +284,7 @@ export function AccountSetup() {
               </button>
             </div>
 
-            <button className="linkbtn" onClick={() => setStep('name')} type="button">
+            <button className="linkbtn" onClick={() => setStep(needsPassword ? 'password' : 'name')} type="button">
               Back
             </button>
           </form>

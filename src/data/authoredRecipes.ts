@@ -5,6 +5,7 @@ import { LAMB_RECIPES } from './authored/lamb'
 import { PLANT_RECIPES } from './authored/plantMains'
 import { PORK_RECIPES } from './authored/pork'
 import { POULTRY_RECIPES } from './authored/poultry'
+import { PROTEIN_DESSERT_RECIPES } from './authored/proteinDesserts'
 import { SEAFOOD_RECIPES } from './authored/seafood'
 import { VEGETABLE_RECIPES } from './authored/vegetables'
 
@@ -2567,4 +2568,5 @@ export const AUTHORED_RECIPES: Authored[] = [
   ...PLANT_RECIPES,
   ...VEGETABLE_RECIPES,
   ...DESSERT_RECIPES,
+  ...PROTEIN_DESSERT_RECIPES,
 ]

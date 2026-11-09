@@ -50,8 +50,13 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  /* Creating an account is two screens: the address first, then the password.
+     Both on one page read as a sign-in form, and people typed their existing
+     password into it. */
+  const [upStep, setUpStep] = useState<'email' | 'password'>('email')
 
   const signingUp = mode === 'up'
+  const askingPassword = !signingUp || upStep === 'password'
 
   /* A failed OAuth round trip comes back as parameters on the return URL and
      nothing else. No exception, no rejected promise, just the user landing
@@ -87,9 +92,17 @@ export function Auth({ onSkip }: { onSkip(): void }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setBusy(true)
     setError(null)
     setNotice(null)
+    if (signingUp && upStep === 'email') {
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+        setError(t('auth.badEmail'))
+        return
+      }
+      setUpStep('password')
+      return
+    }
+    setBusy(true)
     try {
       const db = requireClient()
       if (signingUp) {
@@ -165,6 +178,8 @@ export function Auth({ onSkip }: { onSkip(): void }) {
 
   function swapMode() {
     setMode(signingUp ? 'in' : 'up')
+    setUpStep('email')
+    setPassword('')
     setError(null)
     setNotice(null)
   }
@@ -172,10 +187,15 @@ export function Auth({ onSkip }: { onSkip(): void }) {
   return (
     <div className="scroll">
       <div className="auth">
-        <div className="auth__head">{signingUp ? t('auth.createAccount') : t('auth.title')}</div>
-        <div className="auth__sub">{signingUp ? t('auth.subUp') : t('auth.subIn')}</div>
+        <div className="auth__head">
+          {signingUp ? (upStep === 'email' ? t('auth.createAccount') : t('auth.choosePassword')) : t('auth.title')}
+        </div>
+        <div className="auth__sub">
+          {signingUp ? (upStep === 'email' ? t('auth.subUp') : t('auth.subPassword', { email: email.trim() })) : t('auth.subIn')}
+        </div>
 
         <form onSubmit={submit}>
+          {askingPassword && signingUp ? null : (
           <label className="authfield">
             <span className="authfield__label">
               {signingUp ? t('auth.email') : t('auth.emailOrUsername')}
@@ -195,36 +215,56 @@ export function Auth({ onSkip }: { onSkip(): void }) {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
+          )}
 
-
-
-          <label className="authfield">
-            <span className="authfield__label">{t('auth.password')}</span>
-            <input
-              className="authinput"
-              type="password"
-              autoComplete={signingUp ? 'new-password' : 'current-password'}
-              placeholder={signingUp ? t('auth.atLeast6') : ''}
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </label>
+          {askingPassword && (
+            <label className="authfield">
+              <span className="authfield__label">{t('auth.password')}</span>
+              <input
+                className="authinput"
+                type="password"
+                autoComplete={signingUp ? 'new-password' : 'current-password'}
+                placeholder={signingUp ? t('auth.atLeast6') : ''}
+                required
+                minLength={6}
+                autoFocus={signingUp}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+          )}
 
           {error && <div className="auth__error">{error}</div>}
           {notice && <div className="auth__notice">{notice}</div>}
 
           <div className="btn-wrap" style={{ paddingTop: 4 }}>
             <button className="btn" type="submit" disabled={busy}>
-              {busy ? t('auth.oneMoment') : signingUp ? t('auth.createAccount') : t('auth.signIn')}
+              {busy
+                ? t('auth.oneMoment')
+                : signingUp
+                  ? upStep === 'email'
+                    ? t('auth.continue')
+                    : t('auth.createAccount')
+                  : t('auth.signIn')}
             </button>
           </div>
         </form>
 
-        <button className="linkbtn" onClick={swapMode}>
-          {signingUp ? t('auth.haveAccount') : t('auth.createAnAccount')}
-        </button>
+        {signingUp && upStep === 'password' ? (
+          <button
+            className="linkbtn"
+            onClick={() => {
+              setUpStep('email')
+              setError(null)
+            }}
+          >
+            {t('auth.back')}
+          </button>
+        ) : (
+          <button className="linkbtn" onClick={swapMode}>
+            {signingUp ? t('auth.haveAccount') : t('auth.createAnAccount')}
+          </button>
+        )}
 
         <div className="auth__or">{t('auth.or')}</div>
 

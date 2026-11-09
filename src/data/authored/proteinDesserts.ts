@@ -1,0 +1,216 @@
+import { r, type Authored } from './recipe'
+
+/**
+ * Protein desserts: the sweet things people on a protein target actually make.
+ *
+ * Every one leans on Greek yogurt, cottage cheese, egg whites, gelatin or a
+ * scoop of whey/casein rather than on flour and butter, so a serving carries
+ * 15 to 35 g of protein for under 300 calories. Protein powders differ by
+ * brand; the figures assume a typical whey or casein at about 120 calories
+ * and 24 g protein a scoop. Nothing here asks anyone to eat raw egg or raw
+ * flour.
+ */
+export const PROTEIN_DESSERT_RECIPES: Authored[] = [
+  r({
+    id: 'cottage_cheese_mousse',
+    name: 'Chocolate Cottage Cheese Mousse',
+    description:
+      'Blend cottage cheese long enough and it stops being cottage cheese. With cocoa and a little sweetener it sets in the fridge into something close to a real mousse.',
+    servings: 2, prep: 5, cook: 0,
+    tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free'],
+    ingredients: [
+      '1 1/2 cups low-fat cottage cheese',
+      '3 tablespoons cocoa powder',
+      '2 tablespoons maple syrup or honey',
+      '1 teaspoon vanilla extract',
+      'Pinch of salt',
+      '2 tablespoons dark chocolate, shaved',
+    ],
+    steps: [
+      'Blend the cottage cheese on high until completely smooth and glossy, stopping to scrape the sides. Give it 2 full minutes.',
+      'Add the cocoa, syrup, vanilla and salt and blend again.',
+      'Spoon into two glasses and chill for at least an hour. It firms up as it cools.',
+      'Top with the shaved chocolate.',
+    ],
+    n: { calories: 230, protein: 23, carbs: 24, fat: 5.5, satFat: 3, fiber: 3, sugar: 17, sodium: 560 },
+    photo: 'chocolate mousse glass',
+    imageUrl: "https://images.pexels.com/photos/30238851/pexels-photo-30238851.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "Léo Gilmant · Pexels licence",
+  }),
+  r({
+    id: 'protein_pudding',
+    name: 'Vanilla Protein Pudding',
+    description:
+      'Casein, not whey. Casein thickens on its own in cold milk, which is the whole reason this sets into pudding instead of staying a shake.',
+    servings: 1, prep: 5, cook: 0,
+    tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free'],
+    ingredients: [
+      '1 scoop (30 g) vanilla casein protein powder',
+      '2/3 cup unsweetened almond milk',
+      '1/4 cup nonfat Greek yogurt',
+      '1 tablespoon sugar-free instant pudding mix',
+      '1/4 teaspoon cinnamon',
+      '1/2 cup sliced strawberries',
+    ],
+    steps: [
+      'Whisk the casein, pudding mix and cinnamon into the almond milk until smooth. It will thicken within a minute.',
+      'Fold in the yogurt.',
+      'Chill 10 minutes if you want it firmer. Top with the strawberries.',
+    ],
+    n: { calories: 215, protein: 32, carbs: 15, fat: 3.5, satFat: 1, fiber: 2.5, sugar: 7, sodium: 460 },
+    photo: 'panna cotta strawberries',
+    imageUrl: "https://images.pexels.com/photos/15359109/pexels-photo-15359109.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "Eduardo Krajan · Pexels licence",
+  }),
+  r({
+    id: 'protein_brownies',
+    name: 'Black Bean Protein Brownies',
+    description:
+      'The beans disappear entirely. What is left is a fudgy brownie with twice the protein and a third of the sugar of the box kind.',
+    servings: 12, prep: 10, cook: 22,
+    tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free'],
+    ingredients: [
+      '1 can (15 oz) black beans, rinsed and drained',
+      '2 scoops (60 g) chocolate whey protein powder',
+      '1/3 cup cocoa powder',
+      '1/3 cup maple syrup',
+      '1/4 cup nut butter',
+      '2 large eggs',
+      '1/4 cup unsweetened applesauce',
+      '1 teaspoon vanilla extract',
+      '1/2 teaspoon baking powder',
+      '1/4 teaspoon salt',
+      '1/3 cup dark chocolate chips',
+    ],
+    steps: [
+      'Heat the oven to 350°F and line an 8-inch square pan with parchment.',
+      'Blend everything except the chocolate chips until totally smooth. Scrape down twice; a whole bean in a brownie gives the game away.',
+      'Fold in most of the chips, spread into the pan, and scatter the rest on top.',
+      'Bake 20 to 22 minutes, until the edges are set and a toothpick comes out with moist crumbs. Underbake slightly, they firm up as they cool.',
+      'Cool completely before cutting into 12. Keep in the fridge.',
+    ],
+    n: { calories: 160, protein: 10, carbs: 19, fat: 6, satFat: 2, fiber: 4, sugar: 9, sodium: 170 },
+    photo: 'chocolate brownies',
+    imageUrl: "https://images.pexels.com/photos/40262827/pexels-photo-40262827.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "Mohammad Fahim · Pexels licence",
+  }),
+  r({
+    id: 'protein_fluff',
+    name: 'Protein Fluff',
+    description:
+      'Frozen berries, casein and a splash of milk, beaten for five minutes until the bowl is full of something between a mousse and soft serve. One scoop becomes a huge bowl.',
+    servings: 1, prep: 8, cook: 0,
+    tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free'],
+    ingredients: [
+      '1 cup frozen mixed berries',
+      '1 scoop (30 g) vanilla casein protein powder',
+      '1/3 cup unsweetened almond milk',
+      '1/4 teaspoon xanthan gum (optional, for extra volume)',
+    ],
+    steps: [
+      'Blend the frozen berries, casein, milk and xanthan into a thick, smooth paste.',
+      'Scrape into a large bowl and beat with an electric mixer on high for 5 to 8 minutes. It will triple or quadruple in volume.',
+      'Eat immediately. It does not keep.',
+    ],
+    n: { calories: 215, protein: 26, carbs: 23, fat: 2.5, satFat: 1, fiber: 6, sugar: 12, sodium: 260 },
+    photo: 'strawberry frozen yogurt bowl',
+    imageUrl: "https://images.pexels.com/photos/2161649/pexels-photo-2161649.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "David Disponett · Pexels licence",
+  }),
+  r({
+    id: 'protein_banana_bread',
+    name: 'Protein Banana Bread',
+    description:
+      'Three ripe bananas, Greek yogurt in place of most of the oil, and two scoops of vanilla protein in with the flour. Still tastes like banana bread, which is the test.',
+    servings: 10, prep: 15, cook: 50,
+    tags: ['Dessert', 'Breakfast', 'Snack', 'High Protein'],
+    ingredients: [
+      '3 very ripe bananas, mashed',
+      '2 large eggs',
+      '3/4 cup nonfat Greek yogurt',
+      '1/4 cup honey',
+      '2 tablespoons coconut oil, melted',
+      '1 teaspoon vanilla extract',
+      '1 1/4 cups whole wheat flour',
+      '2 scoops (60 g) vanilla whey protein powder',
+      '1 teaspoon baking soda',
+      '1 teaspoon cinnamon',
+      '1/4 teaspoon salt',
+      '1/4 cup chopped walnuts',
+    ],
+    steps: [
+      'Heat the oven to 350°F and line a 9 by 5 inch loaf pan with parchment.',
+      'Whisk the bananas, eggs, yogurt, honey, oil and vanilla together.',
+      'Stir the flour, protein powder, baking soda, cinnamon and salt together, then fold into the wet mix until just combined. Protein batter toughens if overworked.',
+      'Fold in the walnuts and scrape into the pan.',
+      'Bake 45 to 50 minutes, until a skewer comes out clean. Tent with foil after 30 minutes if the top darkens too fast.',
+      'Cool in the pan 10 minutes, then on a rack. Slice into 10.',
+    ],
+    n: { calories: 205, protein: 12, carbs: 29, fat: 5.5, satFat: 2.5, fiber: 3, sugar: 13, sodium: 210 },
+    photo: 'banana bread slices',
+    imageUrl: "https://images.pexels.com/photos/4114141/pexels-photo-4114141.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "alleksana · Pexels licence",
+  }),
+  r({
+    id: 'baked_protein_donuts',
+    name: 'Baked Protein Donuts',
+    description:
+      'A donut pan and twelve minutes. Cake-style, not fried, with a thin Greek yogurt glaze that sets as it cools.',
+    servings: 6, prep: 10, cook: 12,
+    tags: ['Dessert', 'Breakfast', 'Snack', 'High Protein'],
+    ingredients: [
+      '3/4 cup oat flour',
+      '2 scoops (60 g) vanilla whey protein powder',
+      '1/4 cup granulated sweetener (erythritol or monk fruit blend)',
+      '1 teaspoon baking powder',
+      '1/4 teaspoon salt',
+      '1 large egg',
+      '1/2 cup unsweetened almond milk',
+      '1/4 cup nonfat Greek yogurt',
+      '1 tablespoon coconut oil, melted',
+      '1 teaspoon vanilla extract',
+      '1/4 cup nonfat Greek yogurt (glaze)',
+      '1 tablespoon powdered sweetener (glaze)',
+      '1 tablespoon rainbow sprinkles',
+    ],
+    steps: [
+      'Heat the oven to 350°F and grease a 6-cavity donut pan.',
+      'Whisk the oat flour, protein powder, sweetener, baking powder and salt.',
+      'Whisk the egg, almond milk, 1/4 cup yogurt, oil and vanilla, then stir into the dry mix until smooth.',
+      'Pipe or spoon into the pan, filling each ring three-quarters full.',
+      'Bake 11 to 12 minutes, until springy. Cool 5 minutes before turning out.',
+      'Stir the glaze yogurt and powdered sweetener together, dip the tops, and add the sprinkles.',
+    ],
+    n: { calories: 170, protein: 14, carbs: 16, fat: 5, satFat: 2.5, fiber: 2, sugar: 3, sodium: 230 },
+    photo: 'homemade baked donuts plate',
+    imageUrl: "https://images.pexels.com/photos/420308/pexels-photo-420308.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "Summer Stock · Pexels licence",
+  }),
+  r({
+    id: 'protein_peanut_butter_cups',
+    name: 'Protein Peanut Butter Cups',
+    description:
+      'Dark chocolate shells with a peanut butter and protein powder centre, set in the freezer. One cup is a real snack, not a nibble.',
+    servings: 8, prep: 20, cook: 0,
+    tags: ['Dessert', 'Snack', 'High Protein', 'Gluten Free'],
+    ingredients: [
+      '5 ounces dark chocolate (70%), chopped',
+      '1 teaspoon coconut oil',
+      '1/2 cup natural peanut butter',
+      '1 scoop (30 g) vanilla or peanut butter whey protein powder',
+      '1 tablespoon maple syrup',
+      'Pinch of flaky salt',
+    ],
+    steps: [
+      'Line 8 muffin cups with paper liners. Melt the chocolate with the coconut oil in short bursts in the microwave, stirring between.',
+      'Spoon a teaspoon of chocolate into each liner and tilt to coat the base. Freeze 5 minutes.',
+      'Stir the peanut butter, protein powder and maple syrup into a thick paste. Roll into 8 discs slightly smaller than the liners.',
+      'Set a disc on each chocolate base, cover with the remaining chocolate, and top with a few flakes of salt.',
+      'Freeze 20 minutes until firm. Keep in the fridge.',
+    ],
+    n: { calories: 235, protein: 10, carbs: 13, fat: 17, satFat: 7, fiber: 3, sugar: 8, sodium: 95 },
+    photo: 'peanut butter cups chocolate',
+    imageUrl: "https://images.pexels.com/photos/5846193/pexels-photo-5846193.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    photoCredit: "ROMAN ODINTSOV · Pexels licence",
+  }),
+]
