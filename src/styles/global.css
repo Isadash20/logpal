@@ -5708,6 +5708,9 @@ button.row:active {
 .camsheet__guide svg {
   width: 66%;
   height: auto;
+  /* The drawing's box includes the thumb, so the palm sits left of the
+     box's centre; shift it so the palm, not the box, is centred. */
+  transform: translateX(7%);
   opacity: 0.9;
 }
 
