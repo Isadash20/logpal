@@ -67,6 +67,18 @@ export function takeAuthError(): { code: string; description: string } | null {
   return authError
 }
 
+/* Fired after every OAuth return has been handled, success or not. The
+   sign-in screen is already on screen when a deep link arrives in the app,
+   so a one-off read on mount would never see a failure that lands later. */
+const AUTH_RETURN_EVENT = 'logpal:auth-return'
+export function onAuthReturn(cb: () => void): () => void {
+  window.addEventListener(AUTH_RETURN_EVENT, cb)
+  return () => window.removeEventListener(AUTH_RETURN_EVENT, cb)
+}
+function announceAuthReturn() {
+  window.dispatchEvent(new Event(AUTH_RETURN_EVENT))
+}
+
 export async function consumeAuthFragment(href?: string): Promise<boolean> {
   if (!supabase) return false
 
@@ -99,7 +111,15 @@ export async function consumeAuthFragment(href?: string): Promise<boolean> {
   const access_token = hash.get('access_token')
   const refresh_token = hash.get('refresh_token')
   const code = query.get('code')
-  if (!access_token && !code) return false
+  if (!access_token && !code) {
+    /* A deep link that carries nothing usable is itself worth reporting:
+       it is what a return from a mis-set redirect looks like. */
+    if (href && !errorCode) {
+      authError = { code: 'empty_return', description: 'The sign-in came back without a token.' }
+    }
+    if (href) announceAuthReturn()
+    return false
+  }
 
   const clear = () => {
     if (!href) window.history.replaceState({}, '', window.location.pathname)
@@ -117,14 +137,16 @@ export async function consumeAuthFragment(href?: string): Promise<boolean> {
       return true
     }
     return false
-  } catch {
+  } catch (err) {
     // A stale or half-formed return is not worth blocking startup over; the
-    // sign-in screen is the right place to land.
+    // sign-in screen is the right place to land, and it says why.
+    authError = { code: 'exchange_failed', description: (err as Error).message }
     return false
   } finally {
     // Cleared either way, so a reload cannot replay a spent token and the
     // address bar stops displaying a credential.
     clear()
+    if (href) announceAuthReturn()
   }
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { requireClient, takeAuthError } from '../lib/supabase'
+import { onAuthReturn, requireClient, takeAuthError } from '../lib/supabase'
 import { Browser } from '@capacitor/browser'
 import { NATIVE_AUTH_REDIRECT, isNative } from '../lib/native'
 import { useT } from '../i18n'
@@ -63,31 +63,37 @@ export function Auth({ onSkip }: { onSkip(): void }) {
      back on this screen as though they had never left. Without this, a
      misconfigured Google client is indistinguishable from a mis-click. */
   useEffect(() => {
-    /* Read from where the bootstrap put it rather than from the URL: the
-       parameters are lifted off on startup so they cannot linger in the
-       address bar of a device that was already signed in. */
-    const held = takeAuthError()
-    const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
-    const fromQuery = new URLSearchParams(window.location.search)
-    const code = held?.code ?? fromHash.get('error') ?? fromQuery.get('error')
-    if (!code) return
+    const show = () => {
+      /* Read from where the bootstrap put it rather than from the URL: the
+         parameters are lifted off on startup so they cannot linger in the
+         address bar of a device that was already signed in. */
+      const held = takeAuthError()
+      const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const fromQuery = new URLSearchParams(window.location.search)
+      const code = held?.code ?? fromHash.get('error') ?? fromQuery.get('error')
+      if (!code) return
 
-    const description =
-      held?.description ??
-      fromHash.get('error_description') ??
-      fromQuery.get('error_description') ??
-      ''
+      const description =
+        held?.description ??
+        fromHash.get('error_description') ??
+        fromQuery.get('error_description') ??
+        ''
 
-    setError(
-      /redirect|redirect_uri/i.test(description)
-        ? 'Sign-in came back to an address this project does not allow. Add this page’s URL under Authentication → URL Configuration in Supabase.'
-        : /provider is not enabled/i.test(description)
-          ? 'Google sign-in is not switched on for this project yet.'
-          : description.replace(/\+/g, ' ') || `Sign-in failed (${code}).`,
-    )
+      setError(
+        /redirect|redirect_uri/i.test(description)
+          ? 'Sign-in came back to an address this project does not allow. Add this page’s URL under Authentication → URL Configuration in Supabase.'
+          : /provider is not enabled/i.test(description)
+            ? 'Google sign-in is not switched on for this project yet.'
+            : `${description.replace(/\+/g, ' ') || 'Sign-in failed'} (${code})`,
+      )
 
-    // Strip the parameters so a reload does not resurrect a stale error.
-    window.history.replaceState({}, '', window.location.pathname)
+      // Strip the parameters so a reload does not resurrect a stale error.
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+    show()
+    /* In the app the return is a deep link that lands while this screen is
+       already up, so listen for it rather than reading once. */
+    return onAuthReturn(show)
   }, [])
 
   async function submit(e: React.FormEvent) {
