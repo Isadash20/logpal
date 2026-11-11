@@ -5704,8 +5704,9 @@ button.row:active {
   pointer-events: none;
 }
 
+.camsheet__guide img,
 .camsheet__guide svg {
-  width: 64%;
+  width: 66%;
   height: auto;
   opacity: 0.9;
 }

@@ -1794,3 +1794,5 @@ Serving picker: the first portion of every food is now shown as "1 serving · <l
 - 2026-11-09 morning: create-account is two screens (email → Continue → password). Google/Apple sign-ups get a "Choose a password" step in AccountSetup (auth.updateUser) after the name, so the account also opens with username+password. Seven protein desserts in src/data/authored/proteinDesserts.ts (mousse, pudding, brownies, fluff, banana bread, baked donuts, PB cups); ice cream, cheesecake, mug cake, cookie dough, jello, rice pudding, tiramisu already existed. Photos reviewed on screen. Build 29.
 
 - 2026-11-10: hand-scan outline redrawn as a spread hand (thumb right, slim tapered fingers, rounded webs) generated in scratchpad handgen.py; build 30. Disk is 95% full, which is why iCloud keeps evicting src/ (brctl download src public brings it back).
+
+- 2026-11-10 late: hand-scan guide is now Phillip's own line drawing (public/hand-guide.png, mirrored so the thumb is on the left, white on transparent); the SVG path is gone. Build 31. Builds now run from a GitHub clone at /private/tmp/claude-501/logpal-build (iCloud-proof, ~2 min).
