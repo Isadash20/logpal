@@ -5699,8 +5699,9 @@ button.row:active {
 .camsheet__guide {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
 }
 
