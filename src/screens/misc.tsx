@@ -146,8 +146,7 @@ export function QuickAdd({ date, meal: initialMeal }: { date: string; meal?: Mea
 /* ----------------------------------------------------------------- water -- */
 
 export function WaterScreen({ date }: { date: string }) {
-  const { pop, dayLog, setWater, settings, profile, waterTarget, latestWeight, age, totalsFor } =
-    useApp()
+  const { pop, dayLog, setWater, settings, waterTarget } = useApp()
   const log = dayLog(date)
   const unit = settings.waterUnit
   const shown = mlToDisplay(log.water, unit)
@@ -155,7 +154,6 @@ export function WaterScreen({ date }: { date: string }) {
   const pctFull = waterTarget > 0 ? Math.min(1, log.water / waterTarget) : 0
   const glasses = Math.ceil(waterTarget / ML_PER_CUP)
   const filled = Math.round(log.water / ML_PER_CUP)
-  const exMin = totalsFor(date).exerciseMinutes
 
   /* Two presets, a small one and a big one, then "type a number and tap it as
      many times as you need". Someone drinking 50 oz bottles should not have
@@ -320,23 +318,6 @@ export function WaterScreen({ date }: { date: string }) {
         <div className="hint">
           Type an amount once, then tap Add every time you finish one. Everything on
           this screen saves as you tap it.
-        </div>
-
-        <div className="section-label">How your goal is set</div>
-        <div className="card">
-          <Row title="Body weight" value={`${Math.round(latestWeight)} lb`} />
-          <Row title="Age" value={age} />
-          <Row title="Activity level" value={profile.activityLevel.replace(/-/g, ' ')} />
-          <Row title="Exercise today" value={`${exMin} min`} />
-          <Row
-            title="Daily target"
-            value={`${fmt(goal)} ${waterUnitLabel(unit)}`}
-          />
-        </div>
-        <div className="hint">
-          Your target scales with body mass, then adds an allowance for how active you
-          are, your height, and about 12 ml for every minute of logged exercise. Override
-          it any time in Settings.
         </div>
       </div>
     </>
