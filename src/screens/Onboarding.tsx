@@ -519,7 +519,7 @@ export function Onboarding() {
             {handCam && (
               <CameraSheet
                 title="Scan your hand"
-                caption="Palm down, fingers together, the whole hand in the outline"
+                caption="Palm down, fingers spread, the whole hand inside the outline"
                 guide={<HandOutline />}
                 onClose={() => setHandCam(false)}
                 onCapture={(url) => {
@@ -672,16 +672,11 @@ export function Onboarding() {
   )
 }
 
-/** A thin hand outline to line the photo up with. */
+/** A hand outline to line the photo up with: palm down, fingers up, centred. */
 function HandOutline() {
   return (
-    <svg viewBox="0 0 120 160" aria-hidden>
-      <g fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" strokeDasharray="5 5">
-        <path d="M34 150V96M86 150V96" />
-        <path d="M34 96V46a7 7 0 0 1 14 0v38M48 84V22a7 7 0 0 1 14 0v62M62 84V28a7 7 0 0 1 14 0v58M76 86V44a6.5 6.5 0 0 1 13 0v52" />
-        <path d="M34 96L18 76a7 7 0 0 1 10-10l12 14" />
-        <path d="M34 150c0 6 52 6 52 0" />
-      </g>
+    <svg viewBox="60 40 240 320" aria-hidden>
+      <path d="M106 318 C86 300 80 215 83.2 180.3 L72.1 91 A12 12 0 0 1 95.8 87.2 L112.8 175.7 Q113.7 184.1 114.5 172.5 L114.2 64.5 A12 12 0 0 1 138.2 63.6 L145.5 171.5 Q146.8 182.6 148.1 173.7 L160.1 75.9 A11.5 11.5 0 0 1 183 77.9 L177.9 176.3 Q179.4 189.6 180.8 183 L200.3 112 A10.5 10.5 0 0 1 220.8 116.7 L207.2 189 C214 202 204 220 196.1 221 L264.6 168.1 A13.5 13.5 0 0 1 281.9 188.7 L217.9 247 C216 266 210 298 206 318 C206 346 106 346 106 318 Z" fill="rgba(255,255,255,0.1)" stroke="#fff" strokeWidth="3" strokeLinejoin="round" />
     </svg>
   )
 }
