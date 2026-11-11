@@ -1796,3 +1796,8 @@ Serving picker: the first portion of every food is now shown as "1 serving · <l
 - 2026-11-10: hand-scan outline redrawn as a spread hand (thumb right, slim tapered fingers, rounded webs) generated in scratchpad handgen.py; build 30. Disk is 95% full, which is why iCloud keeps evicting src/ (brctl download src public brings it back).
 
 - 2026-11-10 late: hand-scan guide is now Phillip's own line drawing (public/hand-guide.png, mirrored so the thumb is on the left, white on transparent); the SVG path is gone. Build 31. Builds now run from a GitHub clone at /private/tmp/claude-501/logpal-build (iCloud-proof, ~2 min).
+
+## 2026-11-11 — Builds 32–33: hand guide is the user's own drawing
+- `public/hand-guide.png` is the user's supplied line drawing, mirrored horizontally (thumb left), dark→alpha.
+- `.camsheet__guide` centres with flex (grid `place-content` left the img at the frame's left edge); `translateX(-3.4%)` puts the middle fingertip (53.4% across the PNG) on the frame's centre line. Verified tipX === frameMid in the 5181 preview.
+- Build 33 uploaded to TestFlight ("Upload succeeded"); this is the build to attach to 1.1 and record the review video on.
