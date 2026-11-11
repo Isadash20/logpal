@@ -584,28 +584,42 @@ export async function deleteAccount(): Promise<void> {
  * `maybeSingle()` then fails on "more than one row". The symptom is the
  * sign-up gate reappearing for an account that already has a handle.
  */
-export async function fetchUsername(): Promise<string | null> {
+export async function fetchUsername(userId?: string): Promise<string | null> {
+  const info = await fetchUsernameInfo(userId)
+  return info?.username ?? null
+}
+
+export type UsernameInfo = { username: string; changedAt: string }
+
+/**
+ * The handle plus when it was last set, which is what the seven-day change
+ * lock is measured from. Takes the id from the session when the caller has it,
+ * so the lookup never has to wait on the auth lock that `getUser()` takes.
+ */
+export async function fetchUsernameInfo(userId?: string): Promise<UsernameInfo | null> {
   const db = requireClient()
-  const { data: auth } = await db.auth.getUser()
-  const id = auth.user?.id
+  let id = userId
+  if (!id) {
+    const { data: auth } = await db.auth.getUser()
+    id = auth.user?.id
+  }
   if (!id) return null
 
   const { data, error } = await db
     .from('logpal_usernames')
-    .select('username')
+    /* `*` rather than naming `changed_at`: that column arrives with the
+       2026-11-11 SQL, and a build that asked for it against an older database
+       would fail the lookup, and a failed lookup is what opens the sign-up gate
+       on an account that already has a handle. `created_at` stands in for it. */
+    .select('*')
     .eq('user_id', id)
     .maybeSingle()
   if (error) throw error
-  return (data?.username as string) ?? null
+  if (!data) return null
+  const row = data as { username: string; changed_at?: string | null; created_at?: string | null }
+  return { username: row.username, changedAt: row.changed_at ?? row.created_at ?? new Date(0).toISOString() }
 }
 
-/**
- * Claims or changes a handle.
- *
- * Upsert on user_id rather than insert, so someone who already has a handle can
- * change it; the case-insensitive unique index is what actually rejects a
- * collision, and its error is translated into something a person can act on.
- */
 export async function setUsername(handle: string): Promise<void> {
   const db = requireClient()
   const value = handle.trim().toLowerCase()
@@ -614,6 +628,12 @@ export async function setUsername(handle: string): Promise<void> {
     .upsert({ username: value }, { onConflict: 'user_id' })
   if (error) {
     if (error.code === '23505') throw new Error('That username is taken. Try another.')
+    /* The cooldown trigger raises "USERNAME_COOLDOWN <iso date>". */
+    const m = /USERNAME_COOLDOWN\s+(\S+)/.exec(error.message)
+    if (m) {
+      const when = new Date(m[1]).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+      throw new Error(`You can change your username again on ${when}.`)
+    }
     throw error
   }
 }

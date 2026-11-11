@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../state/store'
 import { requireClient } from '../lib/supabase'
-import { setUsername as claimUsername } from '../services/cloud'
+import { fetchUsername, setUsername as claimUsername } from '../services/cloud'
+import { USERNAME_COOLDOWN_DAYS, usernameProblem, usernameTaken } from '../lib/username'
 import { displayNameFrom } from '../lib/storage'
 import { setPrivate } from '../services/social'
 import { AudienceField, DEFAULT_LEVELS, isPrivateAudience, levelsForAudience, levelsToSettings, type Audience } from '../components/SharingFields'
@@ -19,35 +20,7 @@ import { AudienceField, DEFAULT_LEVELS, isPrivateAudience, levelsForAudience, le
  * failure does not throw away the rest of what they typed.
  */
 
-/** Handles are what other people search for, so keep them plain. */
-const USERNAME_RE = /^[a-z0-9_.]{3,20}$/
-
-export function usernameProblem(name: string): string | null {
-  const v = name.trim().toLowerCase()
-  if (v.length < 3) return 'Usernames need at least three characters.'
-  if (v.length > 20) return 'Usernames can be at most twenty characters.'
-  if (!USERNAME_RE.test(v)) {
-    return 'Usernames can use letters, numbers, full stops and underscores only.'
-  }
-  return null
-}
-
-/**
- * True when the handle is already someone else's.
- *
- * Only an early warning. The database's case-insensitive unique index is what
- * actually guarantees it, and two people racing for the same handle are settled
- * there, not here.
- */
-export async function usernameTaken(handle: string): Promise<boolean> {
-  const { data, error } = await requireClient()
-    .from('logpal_usernames')
-    .select('username')
-    .ilike('username', handle.trim().toLowerCase())
-    .maybeSingle()
-  if (error) throw error
-  return data !== null
-}
+export { usernameProblem, usernameTaken } from '../lib/username'
 
 export function AccountSetup() {
   const { session, setUsername, saveProfile, saveSettings, signOut } = useApp()
@@ -66,6 +39,23 @@ export function AccountSetup() {
   const [lastName, setLastName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  /* Belt and braces: if this screen was reached because the lookup failed,
+     not because there is no handle, find the handle and close the gate rather
+     than let a second claim overwrite it. */
+  useEffect(() => {
+    const id = session?.user.id
+    if (!id) return
+    let live = true
+    void fetchUsername(id)
+      .then((u) => {
+        if (live && u) setUsername(u)
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [session, setUsername])
 
   async function nextFromHandle(e: React.FormEvent) {
     e.preventDefault()
@@ -156,7 +146,7 @@ export function AccountSetup() {
         </div>
         <div className="auth__sub">
           {step === 'handle'
-            ? `Signed in as ${session?.user.email ?? 'your account'}. Your username is how friends find you, and you can sign in with it.`
+            ? `Signed in as ${session?.user.email ?? 'your account'}. Your username is how friends find you, and you can sign in with it. Pick carefully: it can only be changed once every ${USERNAME_COOLDOWN_DAYS} days.`
             : step === 'name'
               ? 'This is the name shown in the app. Only your first name is required.'
               : step === 'password'

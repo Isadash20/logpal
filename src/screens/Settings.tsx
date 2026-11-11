@@ -19,7 +19,8 @@ import { PROTOCOL_BY_KEY } from '../lib/fasting'
 import { displayNameFrom } from '../lib/storage'
 import { AvatarCropper } from '../components/AvatarCropper'
 import { cloudEnabled } from '../lib/supabase'
-import { fetchUsername, setUsername as setUsernameRemote } from '../services/cloud'
+import { fetchUsernameInfo, setUsername as setUsernameRemote, type UsernameInfo } from '../services/cloud'
+import { formatUnlockDate, USERNAME_COOLDOWN_DAYS, usernameLocked, usernameProblem, usernameTaken, usernameUnlocksAt } from '../lib/username'
 import {
   LOCALES,
   deviceLocale,
@@ -393,42 +394,24 @@ export function PrefsProfile() {
   const { feet, inches } = splitFeetInches(heightIn)
 
   /* The handle lives server-side, in its own world-readable table, so it is
-     loaded separately from the rest of the profile and saved separately too,
-     it can fail on its own (taken) without losing the other edits. */
-  const [username, setUsername] = useState('')
-  const [savedUsername, setSavedUsername] = useState<string | null>(null)
-  const [handleError, setHandleError] = useState<string | null>(null)
-  const [handleBusy, setHandleBusy] = useState(false)
+     loaded separately from the rest of the profile. It is not an inline field:
+     changing it is rare, locked for a week after each change, and deliberately
+     behind a tap and a confirmation. */
+  const [handleInfo, setHandleInfo] = useState<UsernameInfo | null | undefined>(undefined)
+  const [editingHandle, setEditingHandle] = useState(false)
 
   useEffect(() => {
     if (!session) return
     let live = true
-    void fetchUsername()
-      .then((u) => {
-        if (!live) return
-        setSavedUsername(u)
-        setUsername(u ?? '')
-      })
+    void fetchUsernameInfo(session.user.id)
+      .then((u) => live && setHandleInfo(u))
       .catch(() => {
-        /* Not worth surfacing; the field simply starts empty. */
+        /* Not worth surfacing; the row simply shows nothing until it loads. */
       })
     return () => {
       live = false
     }
   }, [session])
-
-  async function saveHandle() {
-    setHandleBusy(true)
-    setHandleError(null)
-    try {
-      await setUsernameRemote(username)
-      setSavedUsername(username.trim().toLowerCase())
-    } catch (err) {
-      setHandleError((err as Error).message)
-    } finally {
-      setHandleBusy(false)
-    }
-  }
 
   return (
     <>
@@ -443,42 +426,32 @@ export function PrefsProfile() {
                 title="Sync"
                 value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
               />
-              <label className="field">
-                <span className="field__label">Username</span>
-                <span className="field__control">
-                  <input
-                    className="input"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    placeholder="yourname"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </span>
-              </label>
+              <Row
+                title="Username"
+                value={
+                  handleInfo === undefined ? '' : handleInfo ? `@${handleInfo.username}` : 'Not set'
+                }
+                chevron
+                onClick={() => setEditingHandle(true)}
+              />
             </div>
 
-            {handleError && (
-              <div className="hint" style={{ color: 'var(--danger)' }}>
-                {handleError}
-              </div>
-            )}
-            {username.trim().toLowerCase() !== (savedUsername ?? '') && (
-              <div className="btn-wrap">
-                <button
-                  className="btn btn--ghost"
-                  disabled={handleBusy || username.trim().length < 3}
-                  onClick={() => void saveHandle()}
-                >
-                  {handleBusy ? 'Checking…' : 'Save username'}
-                </button>
-              </div>
-            )}
             <div className="hint">
-              Your username is how friends will find you, and you can sign in with
-              it instead of your email. Your display name below is what shows up in
-              the app.
+              Your username is how friends find you, and you can sign in with it
+              instead of your email. It can be changed once every {USERNAME_COOLDOWN_DAYS} days.
+              Your display name below can change as often as you like.
             </div>
+
+            {editingHandle && (
+              <UsernameDialog
+                info={handleInfo ?? null}
+                onClose={() => setEditingHandle(false)}
+                onSaved={(u) => {
+                  setHandleInfo({ username: u, changedAt: new Date().toISOString() })
+                  setEditingHandle(false)
+                }}
+              />
+            )}
 
             <div className="btn-wrap">
               <button className="btn btn--ghost" onClick={() => void signOut()}>
@@ -1078,6 +1051,152 @@ function SignInPrompt() {
  * it takes the account with it, because clearing only this device would be a
  * lie. The next sync would pull everything straight back down.
  */
+/**
+ * Changing the handle. Two screens inside one dialog: type the new one, then
+ * confirm it, because the next change is a week away and a typo should not
+ * cost someone that week. Also where the lock is explained when it is on.
+ */
+function UsernameDialog({
+  info,
+  onClose,
+  onSaved,
+}: {
+  info: UsernameInfo | null
+  onClose(): void
+  onSaved(username: string): void
+}) {
+  const { setUsername: setUsernameLocal } = useApp()
+  const [value, setValue] = useState(info?.username ?? '')
+  const [confirming, setConfirming] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const locked = usernameLocked(info?.changedAt)
+  const next = value.trim().toLowerCase()
+  const unchanged = next === (info?.username ?? '')
+
+  async function check() {
+    setError(null)
+    const problem = usernameProblem(next)
+    if (problem) return setError(problem)
+    if (unchanged) return onClose()
+    setBusy(true)
+    try {
+      if (await usernameTaken(next)) {
+        setError('That username is taken. Try another.')
+        return
+      }
+      setConfirming(true)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function save() {
+    setBusy(true)
+    setError(null)
+    try {
+      await setUsernameRemote(next)
+      setUsernameLocal(next)
+      onSaved(next)
+    } catch (err) {
+      setError((err as Error).message)
+      setConfirming(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (locked && info) {
+    return (
+      <Dialog title="Username locked" onClose={onClose}>
+        <div style={{ color: 'var(--text-2)', marginBottom: 12, fontSize: 14 }}>
+          You are <b>@{info.username}</b>. Usernames can change once every {USERNAME_COOLDOWN_DAYS} days,
+          so the next change opens on {formatUnlockDate(usernameUnlocksAt(info.changedAt))}.
+        </div>
+        <button className="btn" onClick={onClose}>
+          OK
+        </button>
+      </Dialog>
+    )
+  }
+
+  if (confirming) {
+    return (
+      <Dialog
+        title="Change your username?"
+        onClose={() => {
+          if (!busy) setConfirming(false)
+        }}
+      >
+        <div style={{ color: 'var(--text-2)', marginBottom: 12, fontSize: 14 }}>
+          {info ? (
+            <>
+              <b>@{info.username}</b> becomes <b>@{next}</b>. Friends find you by it and
+              you sign in with it.
+            </>
+          ) : (
+            <>
+              You will be <b>@{next}</b>. Friends find you by it and you sign in with it.
+            </>
+          )}{' '}
+          Once changed, it is locked for the next {USERNAME_COOLDOWN_DAYS} days.
+        </div>
+        {error && (
+          <div className="hint" style={{ color: 'var(--danger)', marginBottom: 8 }}>
+            {error}
+          </div>
+        )}
+        <button className="btn" disabled={busy} onClick={() => void save()}>
+          {busy ? 'Saving…' : 'Yes, change it'}
+        </button>
+        <button
+          className="btn btn--ghost"
+          style={{ marginTop: 8 }}
+          disabled={busy}
+          onClick={() => setConfirming(false)}
+        >
+          Cancel
+        </button>
+      </Dialog>
+    )
+  }
+
+  return (
+    <Dialog title={info ? 'Change username' : 'Pick a username'} onClose={onClose}>
+      <div style={{ color: 'var(--text-2)', marginBottom: 12, fontSize: 14 }}>
+        Letters, numbers, full stops and underscores. Changes are limited to one
+        every {USERNAME_COOLDOWN_DAYS} days.
+      </div>
+      <input
+        className="input"
+        autoFocus
+        autoCapitalize="none"
+        autoComplete="off"
+        spellCheck={false}
+        placeholder="yourname"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        disabled={busy}
+        style={{ marginBottom: 12 }}
+      />
+      {error && (
+        <div className="hint" style={{ color: 'var(--danger)', marginBottom: 8 }}>
+          {error}
+        </div>
+      )}
+      <button className="btn" disabled={busy || next.length < 3 || unchanged} onClick={() => void check()}>
+        {busy ? 'Checking…' : 'Continue'}
+      </button>
+      <button className="btn btn--ghost" style={{ marginTop: 8 }} disabled={busy} onClick={onClose}>
+        Cancel
+      </button>
+    </Dialog>
+  )
+}
+
 /**
  * Delete the account itself.
  *

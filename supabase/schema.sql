@@ -972,3 +972,41 @@ create policy challenge_members_delete on logpal_challenge_members for delete
 -- a publish before anyone was asked should not be public either.
 alter table logpal_social_profile alter column private set default true;
 update logpal_social_profile set private = true where private = false;
+
+-- 2026-11-11: usernames are required and change at most once a week.
+-- `changed_at` is set by the trigger, never by the client, so a sign-up cannot
+-- backdate it; the first change is allowed seven days after the claim, each
+-- later one seven days after the last. Uniqueness (case-insensitive) is the
+-- index above; this only adds the cooldown.
+alter table logpal_usernames add column if not exists changed_at timestamptz not null default now();
+
+create or replace function logpal_username_cooldown()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' then
+    new.created_at := now();
+    new.changed_at := now();
+    return new;
+  end if;
+  -- A re-save of the same handle is not a change and does not restart the clock.
+  if lower(new.username) = lower(old.username) then
+    new.changed_at := old.changed_at;
+    new.created_at := old.created_at;
+    return new;
+  end if;
+  if old.changed_at > now() - interval '7 days' then
+    raise exception 'USERNAME_COOLDOWN %', to_char(old.changed_at + interval '7 days', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+      using errcode = 'P0001';
+  end if;
+  new.changed_at := now();
+  new.created_at := old.created_at;
+  return new;
+end
+$$;
+
+drop trigger if exists logpal_usernames_cooldown on logpal_usernames;
+create trigger logpal_usernames_cooldown
+  before insert or update on logpal_usernames
+  for each row execute function logpal_username_cooldown();

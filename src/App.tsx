@@ -131,6 +131,7 @@ function Shell() {
        Google, which hands back only an address, and by an email sign-up that
        had to wait for confirmation. Undefined means the lookup is still in
        flight, and gating on that would flash this screen at everyone. */
+    if (session && username === undefined) return <div className="app" />
     if (session && username === null) {
       return (
         <div className="app">

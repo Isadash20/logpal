@@ -637,9 +637,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     let live = true
     setUsernameState(undefined)
-    void fetchUsername()
-      .then((u) => live && setUsernameState(u))
-      .catch(() => live && setUsernameState(null))
+    /* Fail closed. Undefined keeps the app blank, null opens the username
+       gate, and an account that has a handle must never be shown the gate on
+       a flaky request (claiming there would overwrite it). So a failed lookup
+       is retried, and only after that does it settle on "no handle". */
+    const lookup = (attempt: number) => {
+      fetchUsername(userId)
+        .then((u) => live && setUsernameState(u))
+        .catch(() => {
+          if (!live) return
+          if (attempt < 3) setTimeout(() => live && lookup(attempt + 1), 1000 * 2 ** attempt)
+          else setUsernameState(null)
+        })
+    }
+    lookup(0)
     setSyncing(true)
     setSyncError(null)
     pullCloud(userId, true)

@@ -1801,3 +1801,10 @@ Serving picker: the first portion of every food is now shown as "1 serving · <l
 - `public/hand-guide.png` is the user's supplied line drawing, mirrored horizontally (thumb left), dark→alpha.
 - `.camsheet__guide` centres with flex (grid `place-content` left the img at the frame's left edge); `translateX(-3.4%)` puts the middle fingertip (53.4% across the PNG) on the frame's centre line. Verified tipX === frameMid in the 5181 preview.
 - Build 33 uploaded to TestFlight ("Upload succeeded"); this is the build to attach to 1.1 and record the review video on.
+
+## 2026-11-11 — Usernames required, one change a week (build 34)
+- Bug: a new account reached the app with no handle. The gate only opened on `username === null`; while the lookup was still in flight (`undefined`) the app rendered as normal. `App.tsx` now stays blank until the lookup settles, and the store retries a failed lookup three times before treating it as "no handle" (a wrong "no handle" would let a second claim overwrite a real one). `AccountSetup` also re-checks on mount.
+- `fetchUsername(userId)` takes the id from the session instead of `auth.getUser()` (auth lock). `fetchUsernameInfo` returns `{username, changedAt}`; selects `*` so it works before and after the migration.
+- Cooldown: `supabase/schema.sql` tail adds `logpal_usernames.changed_at` and a trigger that forces `created_at`/`changed_at` on insert and rejects an update within 7 days of the last change (`USERNAME_COOLDOWN <iso>`), which `setUsername` translates into "You can change your username again on …". **Phillip must run that block in the SQL editor**; until then the client still locks from `created_at`.
+- Settings → Profile: the username is a tappable row (`@handle`), not an input. Tap → dialog (type, Continue, taken check) → "Change your username?" confirmation → save. Locked handles show the unlock date instead. Rules live in `src/lib/username.ts` (+ test).
+- Uniqueness was already enforced (case-insensitive unique index + taken check).
