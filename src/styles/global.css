@@ -5734,3 +5734,29 @@ button.row:active {
   font-size: 14px;
   padding: 0 16px;
 }
+
+/* ---------------------------------------------------- first-pull wait -- */
+
+.syncwait {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--text-2);
+  font-size: 14px;
+}
+.syncwait__spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: syncwait-spin 0.9s linear infinite;
+}
+@keyframes syncwait-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

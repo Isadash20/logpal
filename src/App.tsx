@@ -76,7 +76,7 @@ function Shell() {
   const app = useApp()
   const t = useT()
   const { route, activeTab, setTab, profile, settings, date } = app
-  const { session, authReady, localOnly, setLocalOnly, username, pendingInvite, dismissInvite } = app
+  const { session, authReady, localOnly, setLocalOnly, username, awaitingFirstPull, pendingInvite, dismissInvite } = app
   const [addOpen, setAddOpen] = useState(false)
   const [inviteAck, setInviteAck] = useState(false)
   const tabDefs = (defs: typeof TABS_LEFT): TabDef[] => defs.map((d) => ({ ...d, label: t(d.label) }))
@@ -131,7 +131,16 @@ function Shell() {
        Google, which hands back only an address, and by an email sign-up that
        had to wait for confirmation. Undefined means the lookup is still in
        flight, and gating on that would flash this screen at everyone. */
-    if (session && username === undefined) return <div className="app" />
+    if (session && (username === undefined || awaitingFirstPull)) {
+      return (
+        <div className="app">
+          <div className="syncwait">
+            <div className="syncwait__spinner" />
+            <div className="syncwait__text">Loading your account…</div>
+          </div>
+        </div>
+      )
+    }
     if (session && username === null) {
       return (
         <div className="app">

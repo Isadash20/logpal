@@ -36,7 +36,7 @@ import { aisleFor } from '../data/aisles'
 import { findRecipe, resolveRecipe } from '../services/recipes'
 import { formatAmountFor, parseIngredient, unitPrefsFrom } from '../lib/ingredients'
 import type { Session } from '@supabase/supabase-js'
-import { defaultData, localAdapter, syncedStore } from '../lib/storage'
+import { defaultData, localAdapter, scopedKey, setStorageScope, syncedStore } from '../lib/storage'
 import { mergeEdits } from '../services/merge'
 import { cloudEnabled, consumeAuthFragment, installNativeAuthListener, supabase } from '../lib/supabase'
 import {
@@ -81,15 +81,15 @@ const PUSH_FAILED_KEY = 'logpal.pushFailed'
 let pushesInFlight = 0
 function pushFailed(): boolean {
   try {
-    return localStorage.getItem(PUSH_FAILED_KEY) === '1'
+    return localStorage.getItem(scopedKey(PUSH_FAILED_KEY)) === '1'
   } catch {
     return false
   }
 }
 function markPushFailed(failed: boolean) {
   try {
-    if (failed) localStorage.setItem(PUSH_FAILED_KEY, '1')
-    else localStorage.removeItem(PUSH_FAILED_KEY)
+    if (failed) localStorage.setItem(scopedKey(PUSH_FAILED_KEY), '1')
+    else localStorage.removeItem(scopedKey(PUSH_FAILED_KEY))
   } catch {
     /* private mode; the next launch simply trusts the cloud */
   }
@@ -422,6 +422,9 @@ interface Ctx {
   authReady: boolean
   /** True while the first cloud read of a session is in flight. */
   syncing: boolean
+  /** A first sign-in on this device, cloud copy not yet landed. */
+  awaitingFirstPull: boolean
+  syncNow(): Promise<void>
   /** Last sync failure, or null. Changes are kept locally and retried. */
   syncError: string | null
   /** The signed-in account's handle, or null if it has not been claimed yet.
@@ -628,13 +631,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [setSynced],
   )
 
+  /* True while an account that has never been on this device is still
+     waiting for its first cloud read; the app shows a loading screen instead
+     of an empty diary or a flash of onboarding. */
+  const [awaitingFirstPull, setAwaitingFirstPull] = useState(false)
+
   useEffect(() => {
+    setStorageScope(userId)
+    syncedRef.current = null
+    setReconciledFor(null)
     if (!userId) {
-      syncedRef.current = null
       setUsernameState(undefined)
-      setReconciledFor(null)
+      setAwaitingFirstPull(false)
+      /* Signed out: show the guest slot, never the account that just left. */
+      const guest = localAdapter.load() ?? defaultData()
+      hydratingRef.current = true
+      dataRef.current = guest
+      setData(guest)
       return
     }
+    /* Each account has its own slot on the device. One that has been here
+       before carries on from where it was, and its synced snapshot lets its
+       offline edits merge with the cloud. One that has not adopts the guest
+       slot, which is either real guest data about to be lifted into a brand
+       new account, or a pre-scope install's data; either way it moves, so no
+       later account can inherit it. */
+    const own = localAdapter.load()
+    const adopting = own === null
+    const start = own ?? localAdapter.loadGuest() ?? defaultData()
+    if (adopting) {
+      localAdapter.clearGuest()
+      syncedStore.clearGuest()
+      localAdapter.save(start)
+    }
+    setAwaitingFirstPull(adopting)
+    hydratingRef.current = true
+    dataRef.current = start
+    setData(start)
+
     let live = true
     setUsernameState(undefined)
     /* Fail closed. Undefined keeps the app blank, null opens the username
@@ -656,14 +690,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     pullCloud(userId, true)
       .then(() => live && setReconciledFor(userId))
       .catch((err) => live && setSyncError((err as Error).message))
-      .finally(() => live && setSyncing(false))
+      .finally(() => {
+        if (!live) return
+        setSyncing(false)
+        setAwaitingFirstPull(false)
+      })
     return () => {
       live = false
     }
   }, [userId, pullCloud])
 
   /* Coming back to the foreground pulls again, so a cup logged on the other
-     device shows up here without a relaunch. */
+     device shows up here without a relaunch. A device left open on the table
+     (the iPad, typically) also pulls on a timer, so it does not sit on a
+     stale diary while the phone logs lunch. */
+  const PULL_EVERY_MS = 45_000
+  const syncNow = useCallback(async () => {
+    const uid = userIdRef.current
+    if (!uid || !cloudEnabled()) return
+    setSyncing(true)
+    try {
+      await pullCloud(uid, false)
+      setSyncError(null)
+    } catch (err) {
+      setSyncError((err as Error).message)
+    } finally {
+      setSyncing(false)
+    }
+  }, [pullCloud])
+
   useEffect(() => {
     if (!userId || reconciledFor !== userId || !cloudEnabled()) return
     const pull = () => {
@@ -676,8 +731,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const sub = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) pull()
     })
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && navigator.onLine !== false) pull()
+    }, PULL_EVERY_MS)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
+      window.clearInterval(timer)
       void sub.then((h) => h.remove())
     }
   }, [userId, reconciledFor, pullCloud])
@@ -1760,6 +1819,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUsername: setUsernameState,
     syncing,
     syncError,
+    awaitingFirstPull,
+    syncNow,
     localOnly,
     setLocalOnly,
     pendingInvite,
@@ -1767,11 +1828,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       if (!supabase) return
       await supabase.auth.signOut()
-      // Drop back to whatever this device holds, rather than showing another
-      // account's data until the next load.
-      setSynced(null)
+      /* The scope effect lands the guest slot the moment the session goes;
+         the account's own slot stays on the device for its next sign-in. */
       setLocalOnly(false)
-      setData(localAdapter.load() ?? defaultData())
       setStack([{ name: 'tab', tab: 'today' }])
       setActiveTab('today')
     },

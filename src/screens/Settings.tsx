@@ -378,7 +378,7 @@ export function PlanHub() {
  * it in the place the summary card already pointed at.
  */
 export function PrefsProfile() {
-  const { pop, profile, settings, saveProfile, session, syncing, syncError, signOut } =
+  const { pop, profile, settings, saveProfile, session, syncing, syncError, syncNow, signOut } =
     useApp()
   /* First and last, not the derived display name, editing the derived value
      directly would leave the parts it came from disagreeing with it. */
@@ -424,7 +424,10 @@ export function PrefsProfile() {
               <Row title="Signed in as" value={session.user.email ?? '-'} />
               <Row
                 title="Sync"
+                sub={syncError ?? 'Tap to pull the latest from your other devices'}
                 value={syncError ? 'Problem' : syncing ? 'Syncing…' : 'Up to date'}
+                chevron
+                onClick={() => void syncNow()}
               />
               <Row
                 title="Username"

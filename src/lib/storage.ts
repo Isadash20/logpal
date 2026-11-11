@@ -8,6 +8,28 @@ const KEY = 'logpal.v1'
 const LEGACY_KEYS = ['fitlog.v1']
 
 /**
+ * Which account's copy the adapters read and write.
+ *
+ * Local storage used to be one slot per device, whoever was signed in. Two
+ * accounts taking turns on one phone then shared a diary: signing in as the
+ * second found the first's data on the device and lifted it into the second's
+ * cloud. Now every account has its own slot (`logpal.v1.<user id>`) and the
+ * bare key is the guest slot, which is also where a pre-scope install's data
+ * sits until the account it belongs to signs in and adopts it.
+ */
+let scope: string | null = null
+export function setStorageScope(userId: string | null): void {
+  scope = userId
+}
+export function storageScope(): string | null {
+  return scope
+}
+/** The key for a base name under the current scope, or an explicit one. */
+export function scopedKey(base: string, userId: string | null = scope): string {
+  return userId ? `${base}.${userId}` : base
+}
+
+/**
  * Persistence adapter. Everything the app writes funnels through `save`/`load`,
  * so swapping localStorage for a remote backend is contained to this file:
  * make the two functions async, add a `userId`, and have the store await them.
@@ -16,47 +38,61 @@ export interface PersistenceAdapter {
   load(): AppData | null
   save(data: AppData): void
   clear(): void
+  /** The guest slot, whatever the current scope. */
+  loadGuest(): AppData | null
+  clearGuest(): void
 }
 
 export const localAdapter: PersistenceAdapter = {
   load() {
-    try {
-      let raw = localStorage.getItem(KEY)
-
-      // First run after the rename: adopt the old key's data and leave the
-      // original in place, so an accidental downgrade doesn't lose anything.
-      if (!raw) {
-        for (const legacy of LEGACY_KEYS) {
-          const old = localStorage.getItem(legacy)
-          if (old) {
-            localStorage.setItem(KEY, old)
-            raw = old
-            break
-          }
-        }
-      }
-
-      if (!raw) return null
-      return migrate(JSON.parse(raw))
-    } catch {
-      return null
-    }
+    return loadKey(scopedKey(KEY))
   },
   save(data) {
+    const key = scopedKey(KEY)
     try {
-      localStorage.setItem(KEY, JSON.stringify(data))
+      localStorage.setItem(key, JSON.stringify(data))
     } catch {
       // Quota exceeded, drop the network food cache first, it is rebuildable.
       try {
-        localStorage.setItem(KEY, JSON.stringify({ ...data, foodCache: {} }))
+        localStorage.setItem(key, JSON.stringify({ ...data, foodCache: {} }))
       } catch {
         /* give up silently rather than breaking the UI */
       }
     }
   },
   clear() {
+    localStorage.removeItem(scopedKey(KEY))
+  },
+  loadGuest() {
+    return loadKey(KEY)
+  },
+  clearGuest() {
     localStorage.removeItem(KEY)
   },
+}
+
+function loadKey(key: string): AppData | null {
+  try {
+    let raw = localStorage.getItem(key)
+
+    // First run after the rename: adopt the old key's data and leave the
+    // original in place, so an accidental downgrade doesn't lose anything.
+    if (!raw && key === KEY) {
+      for (const legacy of LEGACY_KEYS) {
+        const old = localStorage.getItem(legacy)
+        if (old) {
+          localStorage.setItem(KEY, old)
+          raw = old
+          break
+        }
+      }
+    }
+
+    if (!raw) return null
+    return migrate(JSON.parse(raw))
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -68,24 +104,29 @@ const SYNCED_KEY = 'logpal.synced.v1'
 export const syncedStore = {
   load(): AppData | null {
     try {
-      const raw = localStorage.getItem(SYNCED_KEY)
+      const raw = localStorage.getItem(scopedKey(SYNCED_KEY))
       return raw ? migrate(JSON.parse(raw)) : null
     } catch {
       return null
     }
   },
   save(data: AppData): void {
+    const key = scopedKey(SYNCED_KEY)
     try {
-      localStorage.setItem(SYNCED_KEY, JSON.stringify(data))
+      localStorage.setItem(key, JSON.stringify(data))
     } catch {
       try {
-        localStorage.setItem(SYNCED_KEY, JSON.stringify({ ...data, foodCache: {} }))
+        localStorage.setItem(key, JSON.stringify({ ...data, foodCache: {} }))
       } catch {
         /* no room; the next launch falls back to the push flag */
       }
     }
   },
   clear(): void {
+    localStorage.removeItem(scopedKey(SYNCED_KEY))
+  },
+  /** A pre-scope install kept the snapshot under the bare key; drop it with the guest slot. */
+  clearGuest(): void {
     localStorage.removeItem(SYNCED_KEY)
   },
 }
@@ -154,7 +195,12 @@ function migrate(data: Partial<AppData>): AppData {
   // Profiles written before goals were structured only had weeklyGoal.
   if (!data.profile?.goal) {
     profile.goal = {
-      kind: profile.weeklyGoal < 0 ? 'lose-weight' : profile.weeklyGoal > 0 ? 'gain-muscle' : 'maintain',
+      kind:
+        profile.weeklyGoal < 0
+          ? 'lose-weight'
+          : profile.weeklyGoal > 0
+          ? 'gain-muscle'
+          : 'maintain',
       targetWeight: profile.goalWeight,
       rate: profile.weeklyGoal,
     }
