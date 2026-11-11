@@ -5708,9 +5708,9 @@ button.row:active {
 .camsheet__guide svg {
   width: 66%;
   height: auto;
-  /* The drawing's box includes the thumb, so the palm sits left of the
-     box's centre; shift it so the palm, not the box, is centred. */
-  transform: translateX(7%);
+  /* Measured: the middle fingertip is 53.4% across the drawing. Shift so
+     that fingertip, not the box, sits on the frame's centre line. */
+  transform: translateX(-3.4%);
   opacity: 0.9;
 }
 
