@@ -1010,3 +1010,6 @@ drop trigger if exists logpal_usernames_cooldown on logpal_usernames;
 create trigger logpal_usernames_cooldown
   before insert or update on logpal_usernames
   for each row execute function logpal_username_cooldown();
+alter table logpal_usernames disable trigger logpal_usernames_cooldown;
+update logpal_usernames set changed_at = created_at where changed_at > created_at + interval '1 minute';
+alter table logpal_usernames enable trigger logpal_usernames_cooldown;
