@@ -105,6 +105,13 @@ export function seedDemo(): void {
 
   d.recentFoodIds = d.foodEntries.slice(0, 8).map((e) => e.foodId)
 
+  /* `&palette=sakura&theme=dark` picks the look, for shooting each one. */
+  const q = new URLSearchParams(location.search)
+  const palette = q.get('palette')
+  const theme = q.get('theme')
+  if (palette) d.settings.palette = palette as AppData['settings']['palette']
+  if (theme === 'light' || theme === 'dark') d.settings.theme = theme
+
   localStorage.setItem(KEY, JSON.stringify(d))
   localStorage.setItem('logpal.localOnly', '1')
 }
