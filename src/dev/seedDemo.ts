@@ -16,10 +16,13 @@ import type { AppData, FoodEntry, MealKey } from '../types'
 
 const KEY = 'logpal.v1'
 
+/* Local calendar days, not UTC: at 9pm in New York `toISOString` is already
+   tomorrow, and "today" in the seed would be a day the app has not reached. */
 function isoDaysAgo(n: number): string {
   const d = new Date()
   d.setDate(d.getDate() - n)
-  return d.toISOString().slice(0, 10)
+  const p = (x: number) => String(x).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
 let seq = 0
@@ -66,7 +69,7 @@ export function seedDemo(): void {
   ]
   for (let back = 0; back < 10; back++) {
     const date = isoDaysAgo(back)
-    /* Today stops after lunch and a snack, so the ring has room left. */
+    /* Today stops before dinner, so the ring has room left. */
     const rows = back === 0 ? menu.filter(([m]) => m !== 'evening') : menu
     for (const [meal, q, n, hour] of rows) {
       const e = entry(date, meal, q, n, hour)
@@ -91,11 +94,23 @@ export function seedDemo(): void {
     }
   }
 
-  for (let back = 13; back >= 0; back--) {
-    d.weights.push({ date: isoDaysAgo(back), weight: Math.round((172 - (13 - back) * 0.5 + ((back * 7) % 3) * 0.2) * 10) / 10 })
+  /* A month of weigh-ins, so the 30-day chart is full. */
+  for (let back = 29; back >= 0; back--) {
+    d.weights.push({ date: isoDaysAgo(back), weight: Math.round((172 - (29 - back) * 0.23 + ((back * 7) % 3) * 0.2) * 10) / 10 })
   }
 
   d.fasting = { ...d.fasting, enabled: true, protocol: '16:8' }
+  /* Six finished fasts behind the one running, so the record reads as a streak. */
+  for (let back = 6; back >= 1; back--) {
+    const start = Date.now() - 11 * 60 * 60 * 1000 - back * 24 * 60 * 60 * 1000
+    d.fasts.push({
+      id: `demo-fast-${back}`,
+      startedAt: start,
+      endedAt: start + (16 + (back % 2)) * 60 * 60 * 1000,
+      targetHours: 16,
+      protocol: '16:8',
+    })
+  }
   d.fasts.push({
     id: 'demo-fast',
     startedAt: Date.now() - 11 * 60 * 60 * 1000,

@@ -119,7 +119,7 @@ export function dayInsight(f: DayFacts): DayInsight | null {
 
   if (left <= 150 && f.hour < 20) {
     return {
-      text: `${fmt(left)} calories left. A light ${MEAL_WORD[nextMeal(f.hour, f.mealsLogged)]} keeps the day on plan.`,
+      text: `${fmt(left)} calories left. A light ${MEAL_WORD[nextMeal(f.hour, f.mealsLogged)].replace(/^a /, '')} keeps the day on plan.`,
       tone: 'neutral',
     }
   }
