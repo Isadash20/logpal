@@ -6,7 +6,7 @@
       "destination": "/privacy.html"
     },
     {
-      "source": "/((?!.*\\.).*)",
+      "source": "/((?!api/)(?!.*\\.).*)",
       "destination": "/index.html"
     }
   ],

@@ -5760,3 +5760,139 @@ button.row:active {
     transform: rotate(360deg);
   }
 }
+
+/* ------------------------------------------------------- full camera -- */
+/* Meal scan's viewfinder. Fixed over everything, black to the edges, the
+   safe areas padded so the close button and shutter clear the notch and the
+   home indicator. */
+.fullcam {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.fullcam__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fullcam__top,
+.fullcam__bottom {
+  position: relative;
+  z-index: 1;
+}
+
+.fullcam__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(8px + env(safe-area-inset-top)) 10px 10px;
+  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+}
+
+.fullcam__close {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.fullcam__title {
+  font-weight: 700;
+  font-size: 16px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.fullcam__bottom {
+  padding: 18px 20px calc(26px + env(safe-area-inset-bottom));
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.6));
+}
+
+.fullcam__hint {
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.fullcam__controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.fullcam__library {
+  justify-self: start;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.fullcam__shutter {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: transparent;
+  padding: 4px;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.fullcam__shutter span {
+  flex: 1;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.12s;
+}
+
+.fullcam__shutter:active span {
+  transform: scale(0.88);
+}
+
+.fullcam__shutter:disabled {
+  opacity: 0.45;
+}
+
+.fullcam__error {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 28px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* The grams box on a scanned item. */
+.scan-g {
+  width: 58px;
+  padding: 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: right;
+}
