@@ -101,9 +101,14 @@ async function sessionIsValid(authorization: string | null): Promise<boolean> {
   return res.ok
 }
 
-export default async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors() })
-  if (req.method !== 'POST') return json(405, { error: 'POST only' })
+/* Vercel runs the Web-standard signature only for exports named after the
+   HTTP method; a default export gets Node's (req, res) and a returned
+   Response would hang the request. */
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204, headers: cors() })
+}
+
+export async function POST(req: Request): Promise<Response> {
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return json(503, { error: 'Meal scan is not set up on the server yet.' })
