@@ -19,3 +19,16 @@ export function isNative(): boolean {
  * string must be on Supabase's redirect allow-list.
  */
 export const NATIVE_AUTH_REDIRECT = 'logpal://auth'
+
+/**
+ * Open a web page outside the app: the system browser on the phone, a new
+ * tab on the web. Used for citations, where leaving the app is the point.
+ */
+export async function openUrl(url: string): Promise<void> {
+  if (isNative()) {
+    const { Browser } = await import('@capacitor/browser')
+    await Browser.open({ url })
+    return
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+}

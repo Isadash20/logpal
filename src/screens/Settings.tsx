@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { Palette, Sex } from '../types'
 import { applyLook, PALETTES } from '../lib/theme'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Icon } from '../components/Icon'
 import { Banner, Dialog, Row, SaveBar, SelectField, Toggle, TopBar } from '../components/ui'
 import {
@@ -291,6 +292,7 @@ export function PlanHub() {
         <div className="hint">
           Tap any target to edit it, or to switch between the recommended plan and your own.
         </div>
+        <SourcesLink topic="calories" />
 
         <div className="section-label">Water</div>
         <div className="card">
@@ -981,7 +983,7 @@ export function PrefsAppearance() {
 /* ---------------------------------------------------------------- about -- */
 
 export function About() {
-  const { pop, session } = useApp()
+  const { pop, push, session } = useApp()
   const t = useT()
 
   /* No "reset all data" button here any more, by request. It was a one-tap
@@ -997,6 +999,7 @@ export function About() {
           <Row title={t('settings.version')} value={`0.1.0 · ${__BUILD_SHA__}`} />
           <Row title={t('settings.foodData')} value="USDA + Open Food Facts" />
           <Row title={t('settings.calorieEquation')} value="Mifflin-St Jeor" />
+          <Row title="Sources and references" sub="The research behind every target" chevron onClick={() => push({ name: 'sources' })} />
         </div>
 
         <div className="hint">

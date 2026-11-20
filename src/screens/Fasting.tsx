@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FastProtocol } from '../types'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Icon } from '../components/Icon'
 import { Dialog, Row, TopBar } from '../components/ui'
 import {
@@ -245,6 +246,7 @@ export function Fasting() {
           medication that needs food, or have a history of disordered eating, talk to a
           clinician before restricting when you eat.
         </div>
+        <SourcesLink topic="fasting" label="What the research says about fasting" />
       </div>
 
       {pickerOpen && (

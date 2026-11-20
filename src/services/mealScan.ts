@@ -37,6 +37,8 @@ export class MealScanError extends Error {
     message: string,
     /** True when the user is not signed in; the screen offers sign-in. */
     public readonly needsSignIn = false,
+    /** True when the server has no model to call (503) or the day's quota is gone (429). */
+    public readonly unavailable = false,
   ) {
     super(message)
   }
@@ -94,6 +96,9 @@ export async function scanMeal(opts: {
 
   const body = (await res.json().catch(() => ({}))) as Partial<ScanResult> & { error?: string }
   if (res.status === 401) throw new MealScanError(body.error ?? 'Sign in to use meal scan.', true)
+  if (res.status === 503 || res.status === 429) {
+    throw new MealScanError(body.error ?? 'Meal scan is not available right now.', false, true)
+  }
   if (!res.ok || !Array.isArray(body.items)) {
     throw new MealScanError(body.error ?? `Meal scan failed (${res.status}).`)
   }

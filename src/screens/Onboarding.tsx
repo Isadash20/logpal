@@ -19,6 +19,7 @@ import { cal } from '../lib/format'
 import { PROTOCOL_BY_KEY, recommendFast } from '../lib/fasting'
 import { displayToIn, displayToLb, lbToDisplay, mlToDisplay } from '../lib/units'
 import { today } from '../lib/dates'
+import { openUrl } from '../lib/native'
 import { defaultProfile } from '../lib/storage'
 
 const STEPS = ['sex', 'age', 'body', 'type', 'activity', 'goal', 'target', 'scan', 'plan'] as const
@@ -640,7 +641,20 @@ export function Onboarding() {
             </div>
 
             <div className="hint">
-              These are estimates from standard equations, not medical advice.
+              These are estimates from standard equations, not medical advice. Calories use
+              the{' '}
+              <button className="textbtn" style={{ padding: 0, fontSize: 'inherit' }} onClick={() => void openUrl('https://pubmed.ncbi.nlm.nih.gov/2305711/')}>
+                Mifflin-St Jeor equation
+              </button>{' '}
+              with{' '}
+              <button className="textbtn" style={{ padding: 0, fontSize: 'inherit' }} onClick={() => void openUrl('https://www.fao.org/4/y5686e/y5686e00.htm')}>
+                FAO/WHO activity factors
+              </button>
+              ; water follows the{' '}
+              <button className="textbtn" style={{ padding: 0, fontSize: 'inherit' }} onClick={() => void openUrl('https://nap.nationalacademies.org/catalog/10925')}>
+                National Academies water intakes
+              </button>
+              . The full list of sources is under Settings → About.
             </div>
           </div>
         )}

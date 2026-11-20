@@ -5896,3 +5896,16 @@ button.row:active {
   font-size: 14px;
   text-align: right;
 }
+
+/* Citation rows: a paper's title is the point, so it wraps instead of
+   trailing off in an ellipsis. */
+.row--wrap .row__title,
+.row--wrap .row__sub {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.35;
+}
+.row--wrap .row__sub {
+  margin-top: 3px;
+}

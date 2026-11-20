@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { ActivityLevel, BodyType, CustomPlan, GoalKind, MacroMode, MacroSplit } from '../types'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Row, SaveBar, SegmentedField, SelectField, TopBar } from '../components/ui'
 import { PlanSummary } from '../components/PlanSummary'
 import {
@@ -452,6 +453,7 @@ export function Goals() {
           Activity level covers everyday movement only. Logged exercise is added back to
           the day, and also raises your water target.
         </div>
+        <SourcesLink topic="calories" />
       </div>
 
       {custom && (

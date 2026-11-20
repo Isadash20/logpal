@@ -177,6 +177,11 @@ export function MealScan({ date }: { date: string }) {
       setPhase('result')
     } catch (err) {
       const e = err as MealScanError
+      if (e.unavailable && description.trim().length >= 3) {
+        await runWords()
+        setSizing('Photo reading is not available right now, so this is estimated from your words. Portions are database defaults.')
+        return
+      }
       setProblem(e.message || 'Meal scan failed.')
       setNeedsSignIn(!!e.needsSignIn)
     } finally {

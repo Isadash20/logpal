@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MEAL_KEYS, PERIOD_LABELS, periodForDate, type Food, type MealKey } from '../types'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Icon, type IconName } from '../components/Icon'
 import { Row, TopBar } from '../components/ui'
 import { emptyNutrients } from '../lib/nutrition'
@@ -319,6 +320,7 @@ export function WaterScreen({ date }: { date: string }) {
           Type an amount once, then tap Add every time you finish one. Everything on
           this screen saves as you tap it.
         </div>
+        <SourcesLink topic="water" label="How the water target is worked out" />
       </div>
     </>
   )

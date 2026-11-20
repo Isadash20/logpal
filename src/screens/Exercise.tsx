@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Empty, Row, Tabs, TopBar } from '../components/ui'
 import { Icon } from '../components/Icon'
 import { EXERCISE_BY_ID, searchExercises } from '../data/exercises'
@@ -278,6 +279,7 @@ export function ExerciseDetail({ date, kind, exerciseId, name, entryId }: { date
             your activity level.
           </div>
         )}
+        <SourcesLink topic="exercise" label="How calories burned are estimated" />
       </div>
     </>
   )

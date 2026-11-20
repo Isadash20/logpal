@@ -274,6 +274,7 @@ export type Route =
   | { name: 'recipeView'; recipeId: string; slot?: MealSlot; date?: string }
   | { name: 'shoppingList' }
   | { name: 'about' }
+  | { name: 'sources'; topic?: import('../data/sources').SourceTopic }
 
 /* ------------------------------------------------------------- selectors -- */
 

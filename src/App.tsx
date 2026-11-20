@@ -5,6 +5,7 @@ import { Sheet } from './components/ui'
 import { Today } from './screens/Today'
 import { Plan } from './screens/Plan'
 import { MealScan } from './screens/MealScan'
+import { Sources } from './screens/Sources'
 import { NutriScan } from './screens/NutriScan'
 import { Progress, MeasurementDetail, WeightEntry, LiftDetail } from './screens/Progress'
 import { WeekReview } from './screens/WeekReview'
@@ -355,6 +356,8 @@ function Shell() {
 
       case 'about':
         return <About />
+      case 'sources':
+        return <Sources topic={route.topic} />
 
       case 'progressPhotos':
         return <More />

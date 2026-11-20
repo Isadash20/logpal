@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { Icon } from '../components/Icon'
 import { Row, TopBar } from '../components/ui'
 import { BarChart } from '../components/charts'
@@ -187,6 +188,7 @@ export function SleepScreen({ date }: { date: string }) {
             }
           />
         </div>
+        <SourcesLink topic="sleep" label="Why 8 hours is the default" />
 
         <div style={{ height: 24 }} />
       </div>
@@ -386,6 +388,7 @@ export function StepsScreen({ date }: { date: string }) {
             }
           />
         </div>
+        <SourcesLink topic="steps" label="Why 10,000 is the default" />
 
         {healthSupported && !settings.healthSync && (
           <>

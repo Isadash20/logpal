@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import type { MealSlot, Recipe } from '../types'
 import { MEAL_SLOTS, SLOT_LABELS } from '../types'
 import { useApp } from '../state/store'
+import { SourcesLink } from './Sources'
 import { stepDetail } from '../lib/stepDetail'
 import { formatRest, restMinutes, workingMinutes } from '../lib/recipeTime'
 import { Icon } from '../components/Icon'
@@ -1822,6 +1823,7 @@ function HealthPanel({ resolved }: { resolved: NonNullable<ReturnType<typeof res
           nutrients LogPal tracks. Calories are not scored. A calorie is not good or bad
           on its own, which is why this sits beside the count rather than replacing it.
         </div>
+        <SourcesLink topic="score" label="The daily values and guidelines behind the score" />
       </div>
 
       {health.positive.length > 0 && (
